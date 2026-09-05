@@ -1,0 +1,60 @@
+version: 2
+
+models:
+  - name: stg_agent_events
+    description: "Typed and deduplicated AI agent tool execution events from the Bronze Parquet data."
+    columns:
+      - name: agent_id
+        description: "Unique identifier for the AI agent."
+        tests:
+          - not_null
+
+      - name: session_id
+        description: "Identifier for the agent session."
+        tests:
+          - not_null
+
+      - name: action_id
+        description: "Identifier for the tool execution action."
+        tests:
+          - not_null
+          - unique
+
+      - name: timestamp
+        description: "Timestamp when the tool execution occurred."
+        tests:
+          - not_null
+
+      - name: tool_name
+        description: "Name of the tool executed by the agent."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - sql_query_executor
+                  - vector_search
+                  - web_scraper
+                  - db_writer
+
+      - name: execution_time_ms
+        description: "Tool execution duration in milliseconds."
+        tests:
+          - not_null
+
+      - name: cost_usd
+        description: "Execution cost in US dollars."
+        tests:
+          - not_null
+
+      - name: query
+        description: "Optional query extracted from tool_args."
+
+      - name: limit
+        description: "Optional result limit extracted from tool_args."
+
+      - name: url
+        description: "Optional URL extracted from tool_args."
+
+      - name: event_hour
+        description: "Execution timestamp truncated to the hour."

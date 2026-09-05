@@ -1,0 +1,68 @@
+[0m00:22:59.862199 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001AB3BBFD360>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001AB3CF28370>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001AB3CF28160>]}
+
+
+============================== 00:22:59.875271 | 1b1709c9-0529-468c-afc7-5d617d05ee55 ==============================
+[0m00:22:59.875271 [info ] [MainThread]: Running with dbt=1.11.11
+[0m00:22:59.876915 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'log_cache_events': 'False', 'write_json': 'True', 'partial_parse': 'True', 'cache_selected_only': 'False', 'warn_error': 'None', 'version_check': 'True', 'fail_fast': 'False', 'log_path': 'logs', 'debug': 'False', 'profiles_dir': '.', 'use_colors': 'True', 'use_experimental_parser': 'False', 'no_print': 'None', 'quiet': 'False', 'empty': 'None', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'introspect': 'True', 'static_parser': 'True', 'log_format': 'default', 'target_path': 'None', 'invocation_command': 'dbt debug --profiles-dir .', 'send_anonymous_usage_stats': 'True'}
+[0m00:22:59.957887 [info ] [MainThread]: dbt version: 1.11.11
+[0m00:22:59.959885 [info ] [MainThread]: python version: 3.10.11
+[0m00:22:59.960884 [info ] [MainThread]: python path: C:\Users\kheza\AppData\Local\Programs\Python\Python310\python.exe
+[0m00:22:59.962886 [info ] [MainThread]: os info: Windows-10-10.0.26200-SP0
+[0m00:22:59.964393 [info ] [MainThread]: Using profiles dir at .
+[0m00:22:59.965407 [info ] [MainThread]: Using profiles.yml file at .\profiles.yml
+[0m00:22:59.967408 [info ] [MainThread]: Using dbt_project.yml file at C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_project.yml
+[0m00:22:59.968405 [info ] [MainThread]: Configuration:
+[0m00:22:59.971234 [info ] [MainThread]:   profiles.yml file [[31mERROR not found[0m]
+[0m00:22:59.974748 [info ] [MainThread]:   dbt_project.yml file [[31mERROR not found[0m]
+[0m00:22:59.976795 [info ] [MainThread]: Required dependencies:
+[0m00:22:59.978793 [debug] [MainThread]: Executing "git --help"
+[0m00:23:00.091392 [debug] [MainThread]: STDOUT: "b"usage: git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>]\n           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]\n           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--no-lazy-fetch]\n           [--no-optional-locks] [--no-advice] [--bare] [--git-dir=<path>]\n           [--work-tree=<path>] [--namespace=<name>] [--config-env=<name>=<envvar>]\n           <command> [<args>]\n\nThese are common Git commands used in various situations:\n\nstart a working area (see also: git help tutorial)\n   clone      Clone a repository into a new directory\n   init       Create an empty Git repository or reinitialize an existing one\n\nwork on the current change (see also: git help everyday)\n   add        Add file contents to the index\n   mv         Move or rename a file, a directory, or a symlink\n   restore    Restore working tree files\n   rm         Remove files from the working tree and from the index\n\nexamine the history and state (see also: git help revisions)\n   bisect     Use binary search to find the commit that introduced a bug\n   diff       Show changes between commits, commit and working tree, etc\n   grep       Print lines matching a pattern\n   log        Show commit logs\n   show       Show various types of objects\n   status     Show the working tree status\n\ngrow, mark and tweak your common history\n   backfill   Download missing objects in a partial clone\n   branch     List, create, or delete branches\n   commit     Record changes to the repository\n   merge      Join two or more development histories together\n   rebase     Reapply commits on top of another base tip\n   reset      Reset current HEAD to the specified state\n   switch     Switch branches\n   tag        Create, list, delete or verify a tag object signed with GPG\n\ncollaborate (see also: git help workflows)\n   fetch      Download objects and refs from another repository\n   pull       Fetch from and integrate with another repository or a local branch\n   push       Update remote refs along with associated objects\n\n'git help -a' and 'git help -g' list available subcommands and some\nconcept guides. See 'git help <command>' or 'git help <concept>'\nto read about a specific subcommand or concept.\nSee 'git help git' for an overview of the system.\n""
+[0m00:23:00.093422 [debug] [MainThread]: STDERR: "b''"
+[0m00:23:00.095666 [info ] [MainThread]:  - git [[32mOK found[0m]
+
+[0m00:23:00.096762 [info ] [MainThread]: Connection test skipped since no profile was found
+[0m00:23:00.099035 [info ] [MainThread]: [31m2 checks failed:[0m
+[0m00:23:00.101148 [info ] [MainThread]: dbt looked for a profiles.yml file in .\profiles.yml, but did
+not find one. For more information on configuring your profile, consult the
+documentation:
+
+https://docs.getdbt.com/docs/configure-your-profile
+
+
+[0m00:23:00.104054 [info ] [MainThread]: Project loading failed for the following reason:
+ project path <C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_project.yml> not found
+
+[0m00:23:00.112874 [debug] [MainThread]: Command `dbt debug` failed at 00:23:00.112874 after 0.43 seconds
+[0m00:23:00.115593 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001AB3BBFD360>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001AB3CF28370>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001AB3CF0FA60>]}
+[0m00:23:00.117958 [debug] [MainThread]: Flushing usage events
+[0m00:23:01.306018 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m00:27:26.054568 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001FD2670D3F0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001FD27A983D0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001FD27A981C0>]}
+
+
+============================== 00:27:26.060306 | 6f72ba10-f990-48f7-8dbc-bfc290d992c4 ==============================
+[0m00:27:26.060306 [info ] [MainThread]: Running with dbt=1.11.11
+[0m00:27:26.061272 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'write_json': 'True', 'log_cache_events': 'False', 'partial_parse': 'True', 'cache_selected_only': 'False', 'profiles_dir': '.', 'version_check': 'True', 'debug': 'False', 'log_path': 'logs', 'fail_fast': 'False', 'warn_error': 'None', 'use_colors': 'True', 'use_experimental_parser': 'False', 'empty': 'False', 'quiet': 'False', 'no_print': 'None', 'log_format': 'default', 'static_parser': 'True', 'invocation_command': 'dbt compile --profiles-dir .', 'introspect': 'True', 'target_path': 'None', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'send_anonymous_usage_stats': 'True'}
+[0m00:27:26.062306 [error] [MainThread]: Encountered an error:
+Runtime Error
+  No dbt_project.yml found at expected path C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_project.yml
+  Verify that each entry within packages.yml (and their transitive dependencies) contains a file named dbt_project.yml
+  
+[0m00:27:26.066829 [debug] [MainThread]: Command `dbt compile` failed at 00:27:26.066829 after 0.19 seconds
+[0m00:27:26.068913 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001FD2670D3F0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001FD27A980D0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001FD27A98460>]}
+[0m00:27:26.070614 [debug] [MainThread]: Flushing usage events
+[0m00:27:27.217081 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m00:31:56.572693 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001983D0CD360>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001983E4543D0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001983E4541C0>]}
+
+
+============================== 00:31:56.580377 | 9c5b214b-7b32-4acd-ab80-3b61dc33b1cb ==============================
+[0m00:31:56.580377 [info ] [MainThread]: Running with dbt=1.11.11
+[0m00:31:56.581380 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'log_cache_events': 'False', 'write_json': 'True', 'partial_parse': 'True', 'cache_selected_only': 'False', 'warn_error': 'None', 'debug': 'False', 'profiles_dir': '.', 'log_path': 'logs', 'fail_fast': 'False', 'version_check': 'True', 'use_colors': 'True', 'use_experimental_parser': 'False', 'empty': 'None', 'quiet': 'False', 'no_print': 'None', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'static_parser': 'True', 'invocation_command': 'dbt show --select stg_agent_events --limit 10 --profiles-dir .', 'introspect': 'True', 'target_path': 'None', 'log_format': 'default', 'send_anonymous_usage_stats': 'True'}
+[0m00:31:56.583898 [error] [MainThread]: Encountered an error:
+Runtime Error
+  No dbt_project.yml found at expected path C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_project.yml
+  Verify that each entry within packages.yml (and their transitive dependencies) contains a file named dbt_project.yml
+  
+[0m00:31:56.586903 [debug] [MainThread]: Command `dbt show` failed at 00:31:56.586903 after 0.17 seconds
+[0m00:31:56.587904 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001983D0CD360>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001983E4540D0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001983E454460>]}
+[0m00:31:56.588904 [debug] [MainThread]: Flushing usage events
+[0m00:31:57.445882 [debug] [MainThread]: An error was encountered while trying to flush usage events

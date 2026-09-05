@@ -1,0 +1,7 @@
+dbt_delta_guard:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../data/bronze/dbt_delta_guard.duckdb
+      threads: 4

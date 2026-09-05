@@ -1,0 +1,16 @@
+name: dbt_delta_guard
+version: "1.0.0"
+config-version: 2
+
+profile: dbt_delta_guard
+
+model-paths: [models]
+
+models:
+  dbt_delta_guard:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: ephemeral
+    marts:
+      +materialized: table
