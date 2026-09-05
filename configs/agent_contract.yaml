@@ -2,7 +2,7 @@ version: "1.0.0"
 contract_id: agent_events_v1
 description: >
   Data contract governing real-time AI agent tool execution logs ingested
-  from Redpanda into Delta Lake Bronze.
+  from Apache Kafka into Delta Lake Bronze.
 
 schema:
   fields:

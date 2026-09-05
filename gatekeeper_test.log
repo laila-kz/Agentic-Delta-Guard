@@ -1,0 +1,2 @@
+Error: Could not find or load main class org.apache.spark.launcher.Main
+Caused by: java.lang.ClassNotFoundException: org.apache.spark.launcher.Main
