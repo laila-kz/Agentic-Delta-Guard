@@ -1,2 +1,41 @@
-Guide/
+# Environments & Virtual Environments
 .venv/
+venv/
+ENV/
+env/
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Guides and Documentation
+Guide/
+
+# Build & Tools artifacts (JDK zips, tools)
+tools/
+*.zip
+*.tar.gz
+*.msi
+
+# Java / Maven / Ivy Caches
+.ivy2/
+jars/
+
+# Checkpoints & Data storage (Delta tables, Spark logs)
+checkpoints/
+data/
+spark-warehouse/
+metastore_db/
+derby.log
+
+# IDE & OS specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

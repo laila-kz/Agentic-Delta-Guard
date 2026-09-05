@@ -4,7 +4,15 @@ gatekeeper.py — Distributed PySpark Structured Streaming Gatekeeper.
 Enforces ODCS data contract rules on worker nodes natively via DataFrame column
 expressions. Zero Driver memory bottlenecks.
 """
+import os
 import yaml
+
+# ── Java Version Requirement ─────────────────────────────────────────────────
+# PySpark 3.5 requires Java 11 or Java 17. Java 21+ is NOT supported because
+# Hadoop's UserGroupInformation calls Subject.getSubject() which was removed.
+# Use run_gatekeeper.ps1 to launch with Java 17, or set JAVA_HOME manually:
+#   $env:JAVA_HOME = "C:\Program Files\Microsoft\jdk-17.0.x.x-hotspot"
+
 from delta.tables import DeltaTable
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
@@ -16,8 +24,10 @@ from pyspark.sql.types import (
     StructType,
 )
 
-BOOTSTRAP_SERVERS = "localhost:9092"
-TOPIC = "agent.events.v1"
+# Running on your HOST MACHINE (outside Docker) → use localhost:9092
+# Running INSIDE a Docker container             → use kafka:29092
+BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:29092")
+TOPIC = "agent-events"
 CONTRACT_PATH = "configs/agent_contract.yaml"
 BRONZE_PATH = "data/bronze/agent_events"
 QUARANTINE_PATH = "data/quarantine/agent_events"
@@ -38,20 +48,28 @@ EVENT_SCHEMA = StructType(
 )
 
 
+from delta import configure_spark_with_delta_pip
+
+
 def build_spark() -> SparkSession:
-    return (
+    builder = (
         SparkSession.builder.appName("AgenticDeltaGuard-Gatekeeper")
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
         .config(
             "spark.sql.catalog.spark_catalog",
             "org.apache.spark.sql.delta.catalog.DeltaCatalog",
         )
-        .config(
-            "spark.jars.packages",
-            "io.delta:delta-spark_2.12:3.2.0,org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1",
-        )
-        .getOrCreate()
     )
+    # Check if local pre-downloaded jars exist in /workspace/jars
+    jars_dir = "/workspace/jars"
+    if os.path.exists(jars_dir) and os.listdir(jars_dir):
+        jar_files = [os.path.join(jars_dir, f) for f in os.listdir(jars_dir) if f.endswith(".jar")]
+        if jar_files:
+            builder = builder.config("spark.jars", ",".join(jar_files))
+            return builder.getOrCreate()
+
+    extra_packages = ["org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.0"]
+    return configure_spark_with_delta_pip(builder, extra_packages=extra_packages).getOrCreate()
 
 
 def process_batch(batch_df: DataFrame, batch_id: int):

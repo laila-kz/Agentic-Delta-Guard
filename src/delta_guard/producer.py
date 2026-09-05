@@ -19,8 +19,10 @@ from kafka import KafkaProducer
 
 fake = Faker()
 
+# Running on your HOST MACHINE (outside Docker) → use localhost:9092
+# Running INSIDE a Docker container             → use kafka:29092
 BOOTSTRAP_SERVERS = "localhost:9092"
-TOPIC = "agent.events.v1"
+TOPIC = "agent-events"
 KNOWN_AGENTS = [f"agent_{i:03d}" for i in range(1, 21)]
 TOOL_NAMES = ["sql_query_executor", "vector_search", "web_scraper", "db_writer"]
 POISON_RATE = 0.15
