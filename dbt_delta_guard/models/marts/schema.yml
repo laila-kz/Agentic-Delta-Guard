@@ -1,0 +1,48 @@
+version: 2
+
+models:
+  - name: fct_agent_activity
+    description: "Agent activity events enriched with latency, cost, and success classifications."
+    columns:
+      - name: action_id
+        tests:
+          - not_null
+          - unique
+      - name: agent_id
+        tests:
+          - not_null
+      - name: cost_tier
+        tests:
+          - accepted_values:
+              arguments:
+                values:
+                  - FREE
+                  - LOW_COST (<$0.01)
+                  - MEDIUM_COST ($0.01-$0.10)
+                  - HIGH_COST (>=$0.10)
+      - name: latency_tier
+        tests:
+          - accepted_values:
+              arguments:
+                values:
+                  - FAST (<100ms)
+                  - NOMINAL (100-500ms)
+                  - SLOW (>500ms)
+
+  - name: dim_tool_efficiency
+    description: "Tool-level execution, cost, latency, and success metrics."
+    columns:
+      - name: tool_name
+        tests:
+          - not_null
+          - unique
+      - name: total_invocations
+        tests:
+          - not_null
+      - name: success_rate_pct
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100

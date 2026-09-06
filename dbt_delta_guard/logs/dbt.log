@@ -1479,3 +1479,2222 @@ having count(*) > 1
 [0m00:32:12.244156 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000019EFD56D3C0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000019EFB70A8C0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000019E80019EA0>]}
 [0m00:32:12.246148 [debug] [MainThread]: Flushing usage events
 [0m00:32:12.995988 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m01:24:40.449060 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000028B75A1D390>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000028B76D4C370>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000028B76D4C1C0>]}
+
+
+============================== 01:24:40.455909 | 1e66b149-c183-4825-a659-7eba01687755 ==============================
+[0m01:24:40.455909 [info ] [MainThread]: Running with dbt=1.11.11
+[0m01:24:40.458435 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'write_json': 'True', 'log_cache_events': 'False', 'partial_parse': 'True', 'cache_selected_only': 'False', 'warn_error': 'None', 'debug': 'False', 'fail_fast': 'False', 'log_path': 'C:\\Users\\kheza\\Desktop\\Data Engineering\\kafka_streaming_project\\dbt_delta_guard\\logs', 'version_check': 'True', 'profiles_dir': '.', 'use_colors': 'True', 'use_experimental_parser': 'False', 'empty': 'None', 'quiet': 'False', 'no_print': 'None', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'invocation_command': 'dbt deps --profiles-dir .', 'introspect': 'True', 'static_parser': 'True', 'target_path': 'None', 'log_format': 'default', 'send_anonymous_usage_stats': 'True'}
+[0m01:24:41.147146 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '1e66b149-c183-4825-a659-7eba01687755', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000028B73997DC0>]}
+[0m01:24:41.218158 [debug] [MainThread]: Set downloads directory='C:\Users\kheza\AppData\Local\Temp\dbt-downloads-r1t7qoxs'
+[0m01:24:41.219221 [error] [MainThread]: Encountered an error:
+">=1.1.1,<2.0.0" is not a valid semantic version.
+[0m01:24:41.274910 [error] [MainThread]: Traceback (most recent call last):
+  File "C:\Users\kheza\AppData\Local\Programs\Python\Python310\lib\site-packages\dbt\cli\requires.py", line 182, in wrapper
+    result, success = func(*args, **kwargs)
+  File "C:\Users\kheza\AppData\Local\Programs\Python\Python310\lib\site-packages\dbt\cli\requires.py", line 128, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\kheza\AppData\Local\Programs\Python\Python310\lib\site-packages\dbt\cli\requires.py", line 258, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\kheza\AppData\Local\Programs\Python\Python310\lib\site-packages\dbt\cli\requires.py", line 321, in wrapper
+    return func(*args, **kwargs)
+  File "C:\Users\kheza\AppData\Local\Programs\Python\Python310\lib\site-packages\dbt\cli\main.py", line 466, in deps
+    results = task.run()
+  File "C:\Users\kheza\AppData\Local\Programs\Python\Python310\lib\site-packages\dbt\task\deps.py", line 289, in run
+    self.lock()
+  File "C:\Users\kheza\AppData\Local\Programs\Python\Python310\lib\site-packages\dbt\task\deps.py", line 261, in lock
+    resolved_deps = resolve_packages(packages, self.project, self.cli_vars)
+  File "C:\Users\kheza\AppData\Local\Programs\Python\Python310\lib\site-packages\dbt\deps\resolver.py", line 121, in resolve_packages
+    pending = PackageListing.from_contracts(packages)
+  File "C:\Users\kheza\AppData\Local\Programs\Python\Python310\lib\site-packages\dbt\deps\resolver.py", line 91, in from_contracts
+    self.update_from(src)
+  File "C:\Users\kheza\AppData\Local\Programs\Python\Python310\lib\site-packages\dbt\deps\resolver.py", line 83, in update_from
+    pkg = RegistryUnpinnedPackage.from_contract(contract)
+  File "C:\Users\kheza\AppData\Local\Programs\Python\Python310\lib\site-packages\dbt\deps\registry.py", line 83, in from_contract
+    versions = [semver.VersionSpecifier.from_version_string(v) for v in raw_version]
+  File "C:\Users\kheza\AppData\Local\Programs\Python\Python310\lib\site-packages\dbt\deps\registry.py", line 83, in <listcomp>
+    versions = [semver.VersionSpecifier.from_version_string(v) for v in raw_version]
+  File "C:\Users\kheza\AppData\Local\Programs\Python\Python310\lib\site-packages\dbt_common\semver.py", line 99, in from_version_string
+    raise dbt_common.exceptions.base.SemverError(
+dbt_common.exceptions.base.SemverError: ">=1.1.1,<2.0.0" is not a valid semantic version.
+
+[0m01:24:41.279003 [debug] [MainThread]: Command `dbt deps` failed at 01:24:41.279003 after 1.00 seconds
+[0m01:24:41.280006 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000028B75A1D390>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000028B76F4CCA0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000028B76F4CB80>]}
+[0m01:24:41.281006 [debug] [MainThread]: Flushing usage events
+[0m01:24:42.063372 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m01:24:57.203499 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002392B51D360>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002392C84C370>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002392C84C190>]}
+
+
+============================== 01:24:57.209012 | a6ca45b9-6b8e-4c71-b49c-f00b05e5f513 ==============================
+[0m01:24:57.209012 [info ] [MainThread]: Running with dbt=1.11.11
+[0m01:24:57.210012 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'log_cache_events': 'False', 'write_json': 'True', 'partial_parse': 'True', 'cache_selected_only': 'False', 'warn_error': 'None', 'fail_fast': 'False', 'profiles_dir': '.', 'log_path': 'C:\\Users\\kheza\\Desktop\\Data Engineering\\kafka_streaming_project\\dbt_delta_guard\\logs', 'version_check': 'True', 'debug': 'False', 'use_colors': 'True', 'use_experimental_parser': 'False', 'empty': 'None', 'quiet': 'False', 'no_print': 'None', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'invocation_command': 'dbt deps --profiles-dir .', 'log_format': 'default', 'introspect': 'True', 'target_path': 'None', 'static_parser': 'True', 'send_anonymous_usage_stats': 'True'}
+[0m01:24:57.740575 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': 'a6ca45b9-6b8e-4c71-b49c-f00b05e5f513', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002392B7CD720>]}
+[0m01:24:57.793000 [debug] [MainThread]: Set downloads directory='C:\Users\kheza\AppData\Local\Temp\dbt-downloads-apryxq_n'
+[0m01:24:57.795001 [debug] [MainThread]: Making package index registry request: GET https://hub.getdbt.com/api/v1/index.json
+[0m01:24:58.173427 [debug] [MainThread]: Response from registry index: GET https://hub.getdbt.com/api/v1/index.json 200
+[0m01:24:58.175452 [debug] [MainThread]: Making package registry request: GET https://hub.getdbt.com/api/v1/dbt-labs/dbt_utils.json
+[0m01:24:58.497588 [debug] [MainThread]: Response from registry: GET https://hub.getdbt.com/api/v1/dbt-labs/dbt_utils.json 200
+[0m01:24:58.522041 [info ] [MainThread]: Updating lock file in file path: C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard/package-lock.yml
+[0m01:24:58.531525 [debug] [MainThread]: Set downloads directory='C:\Users\kheza\AppData\Local\Temp\dbt-downloads-vf1h8aon'
+[0m01:24:58.538167 [info ] [MainThread]: Installing dbt-labs/dbt_utils
+[0m01:25:28.070867 [info ] [MainThread]: Installed from version 1.4.1
+[0m01:25:28.087766 [info ] [MainThread]: Up to date!
+[0m01:25:28.103024 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'package', 'label': 'a6ca45b9-6b8e-4c71-b49c-f00b05e5f513', 'property_': 'install', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002392B827790>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002392C974AC0>]}
+[0m01:25:28.137607 [debug] [MainThread]: Command `dbt deps` succeeded at 01:25:28.136055 after 31.08 seconds
+[0m01:25:28.145533 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002392B51D360>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000023929497D90>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002392C977C40>]}
+[0m01:25:28.150808 [debug] [MainThread]: Flushing usage events
+[0m01:25:28.834608 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m01:26:03.374813 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000028AF010D420>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000028AF14943D0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000028AF14941F0>]}
+
+
+============================== 01:26:03.382879 | 38447af3-bc80-4ee3-976e-457a378992a9 ==============================
+[0m01:26:03.382879 [info ] [MainThread]: Running with dbt=1.11.11
+[0m01:26:03.383886 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'log_cache_events': 'False', 'write_json': 'True', 'partial_parse': 'True', 'cache_selected_only': 'False', 'profiles_dir': '.', 'debug': 'False', 'warn_error': 'None', 'log_path': 'C:\\Users\\kheza\\Desktop\\Data Engineering\\kafka_streaming_project\\dbt_delta_guard\\logs', 'version_check': 'True', 'fail_fast': 'False', 'use_colors': 'True', 'use_experimental_parser': 'False', 'empty': 'False', 'quiet': 'False', 'no_print': 'None', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'static_parser': 'True', 'invocation_command': 'dbt compile --profiles-dir .', 'introspect': 'True', 'target_path': 'None', 'log_format': 'default', 'send_anonymous_usage_stats': 'True'}
+[0m01:26:04.091353 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '38447af3-bc80-4ee3-976e-457a378992a9', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000028AF1387AC0>]}
+[0m01:26:04.403042 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '38447af3-bc80-4ee3-976e-457a378992a9', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000028AEA4EA1A0>]}
+[0m01:26:04.414623 [info ] [MainThread]: Registered adapter: duckdb=1.10.1
+[0m01:26:05.609549 [debug] [MainThread]: checksum: 30a8cc8fdcbf66701b0944d4ccce3fa46dd04b61e5df68b9f16d57b2e0e3f0be, vars: {}, profile: , target: , version: 1.11.11
+[0m01:26:06.086369 [info ] [MainThread]: Unable to do partial parsing because a project dependency has been added
+[0m01:26:06.088898 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'partial_parser', 'label': '38447af3-bc80-4ee3-976e-457a378992a9', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000028AF153EBC0>]}
+[0m01:26:06.112705 [error] [MainThread]: Encountered an error:
+Parsing Error
+  Error reading dbt_delta_guard: marts\schema.yml - Runtime Error
+    Syntax error near line 4
+    ------------------------------
+    1  | version: 2
+    2  | 
+    3  | models:
+    4  | 	- name: fct_agent_activity
+    5  | 		description: "Agent activity events enriched with latency, cost, and success classifications."
+    6  | 		columns:
+    7  | 			- name: action_id
+    
+    Raw Error:
+    ------------------------------
+    while scanning for the next token
+    found character that cannot start any token
+      in "<unicode string>", line 4, column 1
+[0m01:26:06.120858 [debug] [MainThread]: Command `dbt compile` failed at 01:26:06.119861 after 2.92 seconds
+[0m01:26:06.122386 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000028AF010D420>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000028AF2B04640>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000028AF2B04670>]}
+[0m01:26:06.125045 [debug] [MainThread]: Flushing usage events
+[0m01:26:06.890702 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m01:26:42.436578 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001F6CD6CD390>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001F6CEA543D0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001F6CEA541F0>]}
+
+
+============================== 01:26:42.450415 | 94a1433d-e815-431b-9e8f-e946f8c7251c ==============================
+[0m01:26:42.450415 [info ] [MainThread]: Running with dbt=1.11.11
+[0m01:26:42.453380 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'log_cache_events': 'False', 'write_json': 'True', 'partial_parse': 'True', 'cache_selected_only': 'False', 'profiles_dir': '.', 'fail_fast': 'False', 'warn_error': 'None', 'log_path': 'C:\\Users\\kheza\\Desktop\\Data Engineering\\kafka_streaming_project\\dbt_delta_guard\\logs', 'version_check': 'True', 'debug': 'False', 'use_colors': 'True', 'use_experimental_parser': 'False', 'empty': 'False', 'quiet': 'False', 'no_print': 'None', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'invocation_command': 'dbt compile --profiles-dir .', 'log_format': 'default', 'introspect': 'True', 'target_path': 'None', 'static_parser': 'True', 'send_anonymous_usage_stats': 'True'}
+[0m01:26:45.668377 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '94a1433d-e815-431b-9e8f-e946f8c7251c', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001F6CE945270>]}
+[0m01:26:46.556854 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '94a1433d-e815-431b-9e8f-e946f8c7251c', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001F6CD97E860>]}
+[0m01:26:46.572127 [info ] [MainThread]: Registered adapter: duckdb=1.10.1
+[0m01:26:49.381007 [debug] [MainThread]: checksum: 30a8cc8fdcbf66701b0944d4ccce3fa46dd04b61e5df68b9f16d57b2e0e3f0be, vars: {}, profile: , target: , version: 1.11.11
+[0m01:26:50.057181 [info ] [MainThread]: Unable to do partial parsing because a project dependency has been added
+[0m01:26:50.060215 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'partial_parser', 'label': '94a1433d-e815-431b-9e8f-e946f8c7251c', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001F6CE26A2C0>]}
+[0m01:27:00.663562 [warn ] [MainThread]: [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 1 unused configuration paths:
+- models.dbt_delta_guard.intermediate
+[0m01:27:00.682978 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': '94a1433d-e815-431b-9e8f-e946f8c7251c', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001F6D05E8130>]}
+[0m01:27:01.220753 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\manifest.json
+[0m01:27:01.238633 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\semantic_manifest.json
+[0m01:27:01.307273 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': '94a1433d-e815-431b-9e8f-e946f8c7251c', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001F6D0544070>]}
+[0m01:27:01.310290 [info ] [MainThread]: Found 3 models, 22 data tests, 601 macros
+[0m01:27:01.313291 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '94a1433d-e815-431b-9e8f-e946f8c7251c', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001F6D0233700>]}
+[0m01:27:01.323253 [info ] [MainThread]: 
+[0m01:27:01.325666 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m01:27:01.328527 [info ] [MainThread]: 
+[0m01:27:01.332236 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m01:27:01.360057 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_dbt_delta_guard_main'
+[0m01:27:03.110010 [debug] [ThreadPool]: Using duckdb connection "list_dbt_delta_guard_main"
+[0m01:27:03.120789 [debug] [ThreadPool]: On list_dbt_delta_guard_main: BEGIN
+[0m01:27:03.125301 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m01:27:03.327479 [debug] [ThreadPool]: SQL status: OK in 0.202 seconds
+[0m01:27:03.339831 [debug] [ThreadPool]: Using duckdb connection "list_dbt_delta_guard_main"
+[0m01:27:03.344704 [debug] [ThreadPool]: On list_dbt_delta_guard_main: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "connection_name": "list_dbt_delta_guard_main"} */
+select
+      'dbt_delta_guard' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main'
+    and lower(table_catalog) = 'dbt_delta_guard'
+  
+[0m01:27:03.627517 [debug] [ThreadPool]: SQL status: OK in 0.272 seconds
+[0m01:27:03.653552 [debug] [ThreadPool]: On list_dbt_delta_guard_main: ROLLBACK
+[0m01:27:03.691431 [debug] [ThreadPool]: Failed to rollback 'list_dbt_delta_guard_main'
+[0m01:27:03.751946 [debug] [ThreadPool]: On list_dbt_delta_guard_main: Close
+[0m01:27:03.805778 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '94a1433d-e815-431b-9e8f-e946f8c7251c', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001F6D0544460>]}
+[0m01:27:03.940940 [debug] [Thread-1 (]: Began running node model.dbt_delta_guard.stg_agent_events
+[0m01:27:03.951881 [debug] [Thread-1 (]: Acquiring new duckdb connection 'model.dbt_delta_guard.stg_agent_events'
+[0m01:27:03.958340 [debug] [Thread-1 (]: Began compiling node model.dbt_delta_guard.stg_agent_events
+[0m01:27:04.035438 [debug] [Thread-1 (]: Writing injected SQL for node "model.dbt_delta_guard.stg_agent_events"
+[0m01:27:04.044268 [debug] [Thread-1 (]: Began executing node model.dbt_delta_guard.stg_agent_events
+[0m01:27:04.058289 [debug] [Thread-1 (]: Finished running node model.dbt_delta_guard.stg_agent_events
+[0m01:27:04.069271 [debug] [Thread-3 (]: Began running node model.dbt_delta_guard.fct_agent_activity
+[0m01:27:04.072424 [debug] [Thread-4 (]: Began running node test.dbt_delta_guard.accepted_values_stg_agent_events_tool_name__sql_query_executor__vector_search__web_scraper__db_writer.e0201ad10e
+[0m01:27:04.075838 [debug] [Thread-2 (]: Began running node test.dbt_delta_guard.assert_non_negative_costs
+[0m01:27:04.078706 [debug] [Thread-1 (]: Began running node test.dbt_delta_guard.not_null_stg_agent_events_action_id.b0d61ab913
+[0m01:27:04.086944 [debug] [Thread-3 (]: Acquiring new duckdb connection 'model.dbt_delta_guard.fct_agent_activity'
+[0m01:27:04.092376 [debug] [Thread-4 (]: Acquiring new duckdb connection 'test.dbt_delta_guard.accepted_values_stg_agent_events_tool_name__sql_query_executor__vector_search__web_scraper__db_writer.e0201ad10e'
+[0m01:27:04.113888 [debug] [Thread-4 (]: Began compiling node test.dbt_delta_guard.accepted_values_stg_agent_events_tool_name__sql_query_executor__vector_search__web_scraper__db_writer.e0201ad10e
+[0m01:27:04.104357 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly model.dbt_delta_guard.stg_agent_events, now test.dbt_delta_guard.not_null_stg_agent_events_action_id.b0d61ab913)
+[0m01:27:04.108834 [debug] [Thread-3 (]: Began compiling node model.dbt_delta_guard.fct_agent_activity
+[0m01:27:04.099356 [debug] [Thread-2 (]: Acquiring new duckdb connection 'test.dbt_delta_guard.assert_non_negative_costs'
+[0m01:27:04.165552 [debug] [Thread-4 (]: Writing injected SQL for node "test.dbt_delta_guard.accepted_values_stg_agent_events_tool_name__sql_query_executor__vector_search__web_scraper__db_writer.e0201ad10e"
+[0m01:27:04.171833 [debug] [Thread-1 (]: Began compiling node test.dbt_delta_guard.not_null_stg_agent_events_action_id.b0d61ab913
+[0m01:27:04.208958 [debug] [Thread-3 (]: Writing injected SQL for node "model.dbt_delta_guard.fct_agent_activity"
+[0m01:27:04.245175 [debug] [Thread-2 (]: Began compiling node test.dbt_delta_guard.assert_non_negative_costs
+[0m01:27:04.285766 [debug] [Thread-4 (]: Began executing node test.dbt_delta_guard.accepted_values_stg_agent_events_tool_name__sql_query_executor__vector_search__web_scraper__db_writer.e0201ad10e
+[0m01:27:04.383114 [debug] [Thread-3 (]: Began executing node model.dbt_delta_guard.fct_agent_activity
+[0m01:27:04.457129 [debug] [Thread-1 (]: Writing injected SQL for node "test.dbt_delta_guard.not_null_stg_agent_events_action_id.b0d61ab913"
+[0m01:27:04.479604 [debug] [Thread-2 (]: Writing injected SQL for node "test.dbt_delta_guard.assert_non_negative_costs"
+[0m01:27:04.488600 [debug] [Thread-4 (]: Finished running node test.dbt_delta_guard.accepted_values_stg_agent_events_tool_name__sql_query_executor__vector_search__web_scraper__db_writer.e0201ad10e
+[0m01:27:04.497512 [debug] [Thread-3 (]: Finished running node model.dbt_delta_guard.fct_agent_activity
+[0m01:27:04.507542 [debug] [Thread-4 (]: Began running node test.dbt_delta_guard.not_null_stg_agent_events_agent_id.1e9fd0a13d
+[0m01:27:04.510849 [debug] [Thread-1 (]: Began executing node test.dbt_delta_guard.not_null_stg_agent_events_action_id.b0d61ab913
+[0m01:27:04.524109 [debug] [Thread-3 (]: Began running node test.dbt_delta_guard.not_null_stg_agent_events_cost_usd.818faaad6d
+[0m01:27:04.530491 [debug] [Thread-4 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.accepted_values_stg_agent_events_tool_name__sql_query_executor__vector_search__web_scraper__db_writer.e0201ad10e, now test.dbt_delta_guard.not_null_stg_agent_events_agent_id.1e9fd0a13d)
+[0m01:27:04.541804 [debug] [Thread-1 (]: Finished running node test.dbt_delta_guard.not_null_stg_agent_events_action_id.b0d61ab913
+[0m01:27:04.547169 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly model.dbt_delta_guard.fct_agent_activity, now test.dbt_delta_guard.not_null_stg_agent_events_cost_usd.818faaad6d)
+[0m01:27:04.553438 [debug] [Thread-4 (]: Began compiling node test.dbt_delta_guard.not_null_stg_agent_events_agent_id.1e9fd0a13d
+[0m01:27:04.559699 [debug] [Thread-2 (]: Began executing node test.dbt_delta_guard.assert_non_negative_costs
+[0m01:27:04.567579 [debug] [Thread-1 (]: Began running node test.dbt_delta_guard.not_null_stg_agent_events_execution_time_ms.b134e24faa
+[0m01:27:04.572347 [debug] [Thread-3 (]: Began compiling node test.dbt_delta_guard.not_null_stg_agent_events_cost_usd.818faaad6d
+[0m01:27:04.612618 [debug] [Thread-4 (]: Writing injected SQL for node "test.dbt_delta_guard.not_null_stg_agent_events_agent_id.1e9fd0a13d"
+[0m01:27:04.623528 [debug] [Thread-2 (]: Finished running node test.dbt_delta_guard.assert_non_negative_costs
+[0m01:27:04.631869 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.not_null_stg_agent_events_action_id.b0d61ab913, now test.dbt_delta_guard.not_null_stg_agent_events_execution_time_ms.b134e24faa)
+[0m01:27:04.667301 [debug] [Thread-3 (]: Writing injected SQL for node "test.dbt_delta_guard.not_null_stg_agent_events_cost_usd.818faaad6d"
+[0m01:27:04.688515 [debug] [Thread-4 (]: Began executing node test.dbt_delta_guard.not_null_stg_agent_events_agent_id.1e9fd0a13d
+[0m01:27:04.718069 [debug] [Thread-4 (]: Finished running node test.dbt_delta_guard.not_null_stg_agent_events_agent_id.1e9fd0a13d
+[0m01:27:04.726812 [debug] [Thread-4 (]: Began running node test.dbt_delta_guard.not_null_stg_agent_events_status.52c2dd2c27
+[0m01:27:04.733906 [debug] [Thread-4 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.not_null_stg_agent_events_agent_id.1e9fd0a13d, now test.dbt_delta_guard.not_null_stg_agent_events_status.52c2dd2c27)
+[0m01:27:04.721721 [debug] [Thread-3 (]: Began executing node test.dbt_delta_guard.not_null_stg_agent_events_cost_usd.818faaad6d
+[0m01:27:04.692922 [debug] [Thread-2 (]: Began running node test.dbt_delta_guard.not_null_stg_agent_events_session_id.405b840d00
+[0m01:27:04.737501 [debug] [Thread-4 (]: Began compiling node test.dbt_delta_guard.not_null_stg_agent_events_status.52c2dd2c27
+[0m01:27:04.745051 [debug] [Thread-3 (]: Finished running node test.dbt_delta_guard.not_null_stg_agent_events_cost_usd.818faaad6d
+[0m01:27:04.801329 [debug] [Thread-3 (]: Began running node test.dbt_delta_guard.not_null_stg_agent_events_timestamp.cb4c7da9cc
+[0m01:27:04.752658 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.assert_non_negative_costs, now test.dbt_delta_guard.not_null_stg_agent_events_session_id.405b840d00)
+[0m01:27:04.798766 [debug] [Thread-4 (]: Writing injected SQL for node "test.dbt_delta_guard.not_null_stg_agent_events_status.52c2dd2c27"
+[0m01:27:04.707874 [debug] [Thread-1 (]: Began compiling node test.dbt_delta_guard.not_null_stg_agent_events_execution_time_ms.b134e24faa
+[0m01:27:04.806432 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.not_null_stg_agent_events_cost_usd.818faaad6d, now test.dbt_delta_guard.not_null_stg_agent_events_timestamp.cb4c7da9cc)
+[0m01:27:04.811073 [debug] [Thread-2 (]: Began compiling node test.dbt_delta_guard.not_null_stg_agent_events_session_id.405b840d00
+[0m01:27:04.886798 [debug] [Thread-3 (]: Began compiling node test.dbt_delta_guard.not_null_stg_agent_events_timestamp.cb4c7da9cc
+[0m01:27:04.889385 [debug] [Thread-4 (]: Began executing node test.dbt_delta_guard.not_null_stg_agent_events_status.52c2dd2c27
+[0m01:27:04.892889 [debug] [Thread-1 (]: Writing injected SQL for node "test.dbt_delta_guard.not_null_stg_agent_events_execution_time_ms.b134e24faa"
+[0m01:27:04.953851 [debug] [Thread-4 (]: Finished running node test.dbt_delta_guard.not_null_stg_agent_events_status.52c2dd2c27
+[0m01:27:05.006727 [debug] [Thread-3 (]: Writing injected SQL for node "test.dbt_delta_guard.not_null_stg_agent_events_timestamp.cb4c7da9cc"
+[0m01:27:04.974695 [debug] [Thread-2 (]: Writing injected SQL for node "test.dbt_delta_guard.not_null_stg_agent_events_session_id.405b840d00"
+[0m01:27:05.015620 [debug] [Thread-4 (]: Began running node test.dbt_delta_guard.not_null_stg_agent_events_tool_name.ece6037db3
+[0m01:27:05.022286 [debug] [Thread-1 (]: Began executing node test.dbt_delta_guard.not_null_stg_agent_events_execution_time_ms.b134e24faa
+[0m01:27:05.038312 [debug] [Thread-3 (]: Began executing node test.dbt_delta_guard.not_null_stg_agent_events_timestamp.cb4c7da9cc
+[0m01:27:05.043485 [debug] [Thread-4 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.not_null_stg_agent_events_status.52c2dd2c27, now test.dbt_delta_guard.not_null_stg_agent_events_tool_name.ece6037db3)
+[0m01:27:05.055442 [debug] [Thread-2 (]: Began executing node test.dbt_delta_guard.not_null_stg_agent_events_session_id.405b840d00
+[0m01:27:05.072539 [debug] [Thread-1 (]: Finished running node test.dbt_delta_guard.not_null_stg_agent_events_execution_time_ms.b134e24faa
+[0m01:27:05.083304 [debug] [Thread-3 (]: Finished running node test.dbt_delta_guard.not_null_stg_agent_events_timestamp.cb4c7da9cc
+[0m01:27:05.089935 [debug] [Thread-4 (]: Began compiling node test.dbt_delta_guard.not_null_stg_agent_events_tool_name.ece6037db3
+[0m01:27:05.111472 [debug] [Thread-2 (]: Finished running node test.dbt_delta_guard.not_null_stg_agent_events_session_id.405b840d00
+[0m01:27:05.121225 [debug] [Thread-1 (]: Began running node test.dbt_delta_guard.unique_stg_agent_events_action_id.970a6843b6
+[0m01:27:05.128376 [debug] [Thread-3 (]: Began running node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:27:05.176926 [debug] [Thread-4 (]: Writing injected SQL for node "test.dbt_delta_guard.not_null_stg_agent_events_tool_name.ece6037db3"
+[0m01:27:05.185045 [debug] [Thread-2 (]: Began running node test.dbt_delta_guard.accepted_values_fct_agent_activity_cost_tier__FREE__LOW_COST_0_01___MEDIUM_COST_0_01_0_10___HIGH_COST_0_10_.d399c505be
+[0m01:27:05.194543 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.not_null_stg_agent_events_execution_time_ms.b134e24faa, now test.dbt_delta_guard.unique_stg_agent_events_action_id.970a6843b6)
+[0m01:27:05.201775 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.not_null_stg_agent_events_timestamp.cb4c7da9cc, now model.dbt_delta_guard.dim_tool_efficiency)
+[0m01:27:05.244381 [debug] [Thread-3 (]: Began compiling node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:27:05.212843 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.not_null_stg_agent_events_session_id.405b840d00, now test.dbt_delta_guard.accepted_values_fct_agent_activity_cost_tier__FREE__LOW_COST_0_01___MEDIUM_COST_0_01_0_10___HIGH_COST_0_10_.d399c505be)
+[0m01:27:05.237464 [debug] [Thread-4 (]: Began executing node test.dbt_delta_guard.not_null_stg_agent_events_tool_name.ece6037db3
+[0m01:27:05.223639 [debug] [Thread-1 (]: Began compiling node test.dbt_delta_guard.unique_stg_agent_events_action_id.970a6843b6
+[0m01:27:05.281660 [debug] [Thread-3 (]: Writing injected SQL for node "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:27:05.287400 [debug] [Thread-2 (]: Began compiling node test.dbt_delta_guard.accepted_values_fct_agent_activity_cost_tier__FREE__LOW_COST_0_01___MEDIUM_COST_0_01_0_10___HIGH_COST_0_10_.d399c505be
+[0m01:27:05.295826 [debug] [Thread-4 (]: Finished running node test.dbt_delta_guard.not_null_stg_agent_events_tool_name.ece6037db3
+[0m01:27:05.417326 [debug] [Thread-4 (]: Began running node test.dbt_delta_guard.accepted_values_fct_agent_activity_latency_tier__FAST_100ms___NOMINAL_100_500ms___SLOW_500ms_.0db74b34f3
+[0m01:27:05.385240 [debug] [Thread-3 (]: Began executing node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:27:05.375252 [debug] [Thread-1 (]: Writing injected SQL for node "test.dbt_delta_guard.unique_stg_agent_events_action_id.970a6843b6"
+[0m01:27:05.434170 [debug] [Thread-4 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.not_null_stg_agent_events_tool_name.ece6037db3, now test.dbt_delta_guard.accepted_values_fct_agent_activity_latency_tier__FAST_100ms___NOMINAL_100_500ms___SLOW_500ms_.0db74b34f3)
+[0m01:27:05.471661 [debug] [Thread-2 (]: Writing injected SQL for node "test.dbt_delta_guard.accepted_values_fct_agent_activity_cost_tier__FREE__LOW_COST_0_01___MEDIUM_COST_0_01_0_10___HIGH_COST_0_10_.d399c505be"
+[0m01:27:05.489951 [debug] [Thread-3 (]: Finished running node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:27:05.502660 [debug] [Thread-4 (]: Began compiling node test.dbt_delta_guard.accepted_values_fct_agent_activity_latency_tier__FAST_100ms___NOMINAL_100_500ms___SLOW_500ms_.0db74b34f3
+[0m01:27:05.507834 [debug] [Thread-1 (]: Began executing node test.dbt_delta_guard.unique_stg_agent_events_action_id.970a6843b6
+[0m01:27:05.513364 [debug] [Thread-3 (]: Began running node test.dbt_delta_guard.assert_no_duplicates
+[0m01:27:05.551490 [debug] [Thread-4 (]: Writing injected SQL for node "test.dbt_delta_guard.accepted_values_fct_agent_activity_latency_tier__FAST_100ms___NOMINAL_100_500ms___SLOW_500ms_.0db74b34f3"
+[0m01:27:05.556573 [debug] [Thread-2 (]: Began executing node test.dbt_delta_guard.accepted_values_fct_agent_activity_cost_tier__FREE__LOW_COST_0_01___MEDIUM_COST_0_01_0_10___HIGH_COST_0_10_.d399c505be
+[0m01:27:05.567425 [debug] [Thread-1 (]: Finished running node test.dbt_delta_guard.unique_stg_agent_events_action_id.970a6843b6
+[0m01:27:05.572563 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly model.dbt_delta_guard.dim_tool_efficiency, now test.dbt_delta_guard.assert_no_duplicates)
+[0m01:27:05.588857 [debug] [Thread-2 (]: Finished running node test.dbt_delta_guard.accepted_values_fct_agent_activity_cost_tier__FREE__LOW_COST_0_01___MEDIUM_COST_0_01_0_10___HIGH_COST_0_10_.d399c505be
+[0m01:27:05.592418 [debug] [Thread-4 (]: Began executing node test.dbt_delta_guard.accepted_values_fct_agent_activity_latency_tier__FAST_100ms___NOMINAL_100_500ms___SLOW_500ms_.0db74b34f3
+[0m01:27:05.602313 [debug] [Thread-1 (]: Began running node test.dbt_delta_guard.not_null_fct_agent_activity_action_id.fc73ef0796
+[0m01:27:05.607879 [debug] [Thread-3 (]: Began compiling node test.dbt_delta_guard.assert_no_duplicates
+[0m01:27:05.618378 [debug] [Thread-2 (]: Began running node test.dbt_delta_guard.not_null_fct_agent_activity_agent_id.5edf30bb07
+[0m01:27:05.626870 [debug] [Thread-4 (]: Finished running node test.dbt_delta_guard.accepted_values_fct_agent_activity_latency_tier__FAST_100ms___NOMINAL_100_500ms___SLOW_500ms_.0db74b34f3
+[0m01:27:05.634739 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.unique_stg_agent_events_action_id.970a6843b6, now test.dbt_delta_guard.not_null_fct_agent_activity_action_id.fc73ef0796)
+[0m01:27:05.658321 [debug] [Thread-3 (]: Writing injected SQL for node "test.dbt_delta_guard.assert_no_duplicates"
+[0m01:27:05.669755 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.accepted_values_fct_agent_activity_cost_tier__FREE__LOW_COST_0_01___MEDIUM_COST_0_01_0_10___HIGH_COST_0_10_.d399c505be, now test.dbt_delta_guard.not_null_fct_agent_activity_agent_id.5edf30bb07)
+[0m01:27:05.678324 [debug] [Thread-4 (]: Began running node test.dbt_delta_guard.unique_fct_agent_activity_action_id.30604fbd49
+[0m01:27:05.684391 [debug] [Thread-1 (]: Began compiling node test.dbt_delta_guard.not_null_fct_agent_activity_action_id.fc73ef0796
+[0m01:27:05.704497 [debug] [Thread-2 (]: Began compiling node test.dbt_delta_guard.not_null_fct_agent_activity_agent_id.5edf30bb07
+[0m01:27:05.709780 [debug] [Thread-3 (]: Began executing node test.dbt_delta_guard.assert_no_duplicates
+[0m01:27:05.714790 [debug] [Thread-4 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.accepted_values_fct_agent_activity_latency_tier__FAST_100ms___NOMINAL_100_500ms___SLOW_500ms_.0db74b34f3, now test.dbt_delta_guard.unique_fct_agent_activity_action_id.30604fbd49)
+[0m01:27:06.340941 [debug] [Thread-3 (]: Finished running node test.dbt_delta_guard.assert_no_duplicates
+[0m01:27:06.348727 [debug] [Thread-1 (]: Writing injected SQL for node "test.dbt_delta_guard.not_null_fct_agent_activity_action_id.fc73ef0796"
+[0m01:27:06.364911 [debug] [Thread-4 (]: Began compiling node test.dbt_delta_guard.unique_fct_agent_activity_action_id.30604fbd49
+[0m01:27:06.370582 [debug] [Thread-3 (]: Began running node test.dbt_delta_guard.dbt_utils_accepted_range_dim_tool_efficiency_success_rate_pct__100__0.7e491bff04
+[0m01:27:06.413816 [debug] [Thread-2 (]: Writing injected SQL for node "test.dbt_delta_guard.not_null_fct_agent_activity_agent_id.5edf30bb07"
+[0m01:27:06.449588 [debug] [Thread-4 (]: Writing injected SQL for node "test.dbt_delta_guard.unique_fct_agent_activity_action_id.30604fbd49"
+[0m01:27:06.453616 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.assert_no_duplicates, now test.dbt_delta_guard.dbt_utils_accepted_range_dim_tool_efficiency_success_rate_pct__100__0.7e491bff04)
+[0m01:27:06.459399 [debug] [Thread-1 (]: Began executing node test.dbt_delta_guard.not_null_fct_agent_activity_action_id.fc73ef0796
+[0m01:27:06.475202 [debug] [Thread-3 (]: Began compiling node test.dbt_delta_guard.dbt_utils_accepted_range_dim_tool_efficiency_success_rate_pct__100__0.7e491bff04
+[0m01:27:06.484034 [debug] [Thread-2 (]: Began executing node test.dbt_delta_guard.not_null_fct_agent_activity_agent_id.5edf30bb07
+[0m01:27:06.492344 [debug] [Thread-4 (]: Began executing node test.dbt_delta_guard.unique_fct_agent_activity_action_id.30604fbd49
+[0m01:27:06.505626 [debug] [Thread-1 (]: Finished running node test.dbt_delta_guard.not_null_fct_agent_activity_action_id.fc73ef0796
+[0m01:27:06.544107 [debug] [Thread-2 (]: Finished running node test.dbt_delta_guard.not_null_fct_agent_activity_agent_id.5edf30bb07
+[0m01:27:06.539004 [debug] [Thread-3 (]: Writing injected SQL for node "test.dbt_delta_guard.dbt_utils_accepted_range_dim_tool_efficiency_success_rate_pct__100__0.7e491bff04"
+[0m01:27:06.556807 [debug] [Thread-4 (]: Finished running node test.dbt_delta_guard.unique_fct_agent_activity_action_id.30604fbd49
+[0m01:27:06.580758 [debug] [Thread-4 (]: Began running node test.dbt_delta_guard.not_null_dim_tool_efficiency_total_invocations.a983f65e38
+[0m01:27:06.573271 [debug] [Thread-2 (]: Began running node test.dbt_delta_guard.not_null_dim_tool_efficiency_tool_name.465ebd13b5
+[0m01:27:06.565068 [debug] [Thread-1 (]: Began running node test.dbt_delta_guard.not_null_dim_tool_efficiency_success_rate_pct.c2576d8e36
+[0m01:27:06.585327 [debug] [Thread-3 (]: Began executing node test.dbt_delta_guard.dbt_utils_accepted_range_dim_tool_efficiency_success_rate_pct__100__0.7e491bff04
+[0m01:27:06.588501 [debug] [Thread-4 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.unique_fct_agent_activity_action_id.30604fbd49, now test.dbt_delta_guard.not_null_dim_tool_efficiency_total_invocations.a983f65e38)
+[0m01:27:06.599194 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.not_null_fct_agent_activity_agent_id.5edf30bb07, now test.dbt_delta_guard.not_null_dim_tool_efficiency_tool_name.465ebd13b5)
+[0m01:27:06.607291 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.not_null_fct_agent_activity_action_id.fc73ef0796, now test.dbt_delta_guard.not_null_dim_tool_efficiency_success_rate_pct.c2576d8e36)
+[0m01:27:06.614745 [debug] [Thread-3 (]: Finished running node test.dbt_delta_guard.dbt_utils_accepted_range_dim_tool_efficiency_success_rate_pct__100__0.7e491bff04
+[0m01:27:06.620033 [debug] [Thread-4 (]: Began compiling node test.dbt_delta_guard.not_null_dim_tool_efficiency_total_invocations.a983f65e38
+[0m01:27:06.625330 [debug] [Thread-2 (]: Began compiling node test.dbt_delta_guard.not_null_dim_tool_efficiency_tool_name.465ebd13b5
+[0m01:27:06.656616 [debug] [Thread-1 (]: Began compiling node test.dbt_delta_guard.not_null_dim_tool_efficiency_success_rate_pct.c2576d8e36
+[0m01:27:06.662185 [debug] [Thread-3 (]: Began running node test.dbt_delta_guard.unique_dim_tool_efficiency_tool_name.324aec9482
+[0m01:27:06.695211 [debug] [Thread-4 (]: Writing injected SQL for node "test.dbt_delta_guard.not_null_dim_tool_efficiency_total_invocations.a983f65e38"
+[0m01:27:06.807431 [debug] [Thread-3 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.dbt_utils_accepted_range_dim_tool_efficiency_success_rate_pct__100__0.7e491bff04, now test.dbt_delta_guard.unique_dim_tool_efficiency_tool_name.324aec9482)
+[0m01:27:06.771489 [debug] [Thread-2 (]: Writing injected SQL for node "test.dbt_delta_guard.not_null_dim_tool_efficiency_tool_name.465ebd13b5"
+[0m01:27:06.841489 [debug] [Thread-1 (]: Writing injected SQL for node "test.dbt_delta_guard.not_null_dim_tool_efficiency_success_rate_pct.c2576d8e36"
+[0m01:27:06.855111 [debug] [Thread-3 (]: Began compiling node test.dbt_delta_guard.unique_dim_tool_efficiency_tool_name.324aec9482
+[0m01:27:06.859282 [debug] [Thread-4 (]: Began executing node test.dbt_delta_guard.not_null_dim_tool_efficiency_total_invocations.a983f65e38
+[0m01:27:06.873121 [debug] [Thread-2 (]: Began executing node test.dbt_delta_guard.not_null_dim_tool_efficiency_tool_name.465ebd13b5
+[0m01:27:06.909185 [debug] [Thread-3 (]: Writing injected SQL for node "test.dbt_delta_guard.unique_dim_tool_efficiency_tool_name.324aec9482"
+[0m01:27:06.925244 [debug] [Thread-4 (]: Finished running node test.dbt_delta_guard.not_null_dim_tool_efficiency_total_invocations.a983f65e38
+[0m01:27:06.933776 [debug] [Thread-1 (]: Began executing node test.dbt_delta_guard.not_null_dim_tool_efficiency_success_rate_pct.c2576d8e36
+[0m01:27:06.958392 [debug] [Thread-2 (]: Finished running node test.dbt_delta_guard.not_null_dim_tool_efficiency_tool_name.465ebd13b5
+[0m01:27:06.967146 [debug] [Thread-3 (]: Began executing node test.dbt_delta_guard.unique_dim_tool_efficiency_tool_name.324aec9482
+[0m01:27:06.979556 [debug] [Thread-1 (]: Finished running node test.dbt_delta_guard.not_null_dim_tool_efficiency_success_rate_pct.c2576d8e36
+[0m01:27:07.080846 [debug] [Thread-3 (]: Finished running node test.dbt_delta_guard.unique_dim_tool_efficiency_tool_name.324aec9482
+[0m01:27:07.102339 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m01:27:07.107441 [debug] [MainThread]: Connection 'list_dbt_delta_guard_main' was properly closed.
+[0m01:27:07.116609 [debug] [MainThread]: Connection 'test.dbt_delta_guard.not_null_dim_tool_efficiency_success_rate_pct.c2576d8e36' was properly closed.
+[0m01:27:07.123410 [debug] [MainThread]: Connection 'test.dbt_delta_guard.unique_dim_tool_efficiency_tool_name.324aec9482' was properly closed.
+[0m01:27:07.130542 [debug] [MainThread]: Connection 'test.dbt_delta_guard.not_null_dim_tool_efficiency_total_invocations.a983f65e38' was properly closed.
+[0m01:27:07.136730 [debug] [MainThread]: Connection 'test.dbt_delta_guard.not_null_dim_tool_efficiency_tool_name.465ebd13b5' was properly closed.
+[0m01:27:07.334301 [debug] [MainThread]: Command end result
+[0m01:27:07.959696 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\manifest.json
+[0m01:27:08.122720 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\semantic_manifest.json
+[0m01:27:08.332052 [debug] [MainThread]: Wrote artifact RunExecutionResult to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\run_results.json
+[0m01:27:08.420101 [debug] [MainThread]: Command `dbt compile` succeeded at 01:27:08.409121 after 26.39 seconds
+[0m01:27:08.439611 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001F6CD6CD390>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001F6CEAD3C70>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001F6CEAD3D60>]}
+[0m01:27:08.449252 [debug] [MainThread]: Flushing usage events
+[0m01:27:09.608959 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m01:27:36.292936 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001D3FF6BD3C0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001D381AB8430>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001D381AB8250>]}
+
+
+============================== 01:27:36.299526 | e7191827-6d4c-43ee-913d-1c352d2e8be1 ==============================
+[0m01:27:36.299526 [info ] [MainThread]: Running with dbt=1.11.11
+[0m01:27:36.300486 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'write_json': 'True', 'log_cache_events': 'False', 'partial_parse': 'True', 'cache_selected_only': 'False', 'warn_error': 'None', 'debug': 'False', 'profiles_dir': '.', 'log_path': 'C:\\Users\\kheza\\Desktop\\Data Engineering\\kafka_streaming_project\\dbt_delta_guard\\logs', 'version_check': 'True', 'fail_fast': 'False', 'use_colors': 'True', 'use_experimental_parser': 'False', 'empty': 'False', 'quiet': 'False', 'no_print': 'None', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'introspect': 'True', 'static_parser': 'True', 'invocation_command': 'dbt run --select fct_agent_activity dim_tool_efficiency --profiles-dir .', 'target_path': 'None', 'log_format': 'default', 'send_anonymous_usage_stats': 'True'}
+[0m01:27:37.232761 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': 'e7191827-6d4c-43ee-913d-1c352d2e8be1', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001D3819A5330>]}
+[0m01:27:37.406354 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': 'e7191827-6d4c-43ee-913d-1c352d2e8be1', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001D3FA977C40>]}
+[0m01:27:37.411882 [info ] [MainThread]: Registered adapter: duckdb=1.10.1
+[0m01:27:38.209554 [debug] [MainThread]: checksum: 30a8cc8fdcbf66701b0944d4ccce3fa46dd04b61e5df68b9f16d57b2e0e3f0be, vars: {}, profile: , target: , version: 1.11.11
+[0m01:27:38.601501 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m01:27:38.602501 [debug] [MainThread]: Nothing changed, skipping partial parsing.
+[0m01:27:38.603502 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m01:27:38.622073 [warn ] [MainThread]: [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 1 unused configuration paths:
+- models.dbt_delta_guard.intermediate
+[0m01:27:38.766722 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': 'e7191827-6d4c-43ee-913d-1c352d2e8be1', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001D383234B50>]}
+[0m01:27:38.999704 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\manifest.json
+[0m01:27:39.006343 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\semantic_manifest.json
+[0m01:27:39.054028 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': 'e7191827-6d4c-43ee-913d-1c352d2e8be1', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001D383284D60>]}
+[0m01:27:39.055649 [info ] [MainThread]: Found 3 models, 22 data tests, 601 macros
+[0m01:27:39.058730 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'e7191827-6d4c-43ee-913d-1c352d2e8be1', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001D383284820>]}
+[0m01:27:39.064538 [info ] [MainThread]: 
+[0m01:27:39.066171 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m01:27:39.068362 [info ] [MainThread]: 
+[0m01:27:39.070040 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m01:27:39.087036 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_dbt_delta_guard'
+[0m01:27:39.318581 [debug] [ThreadPool]: Using duckdb connection "list_dbt_delta_guard"
+[0m01:27:39.319590 [debug] [ThreadPool]: On list_dbt_delta_guard: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "connection_name": "list_dbt_delta_guard"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"dbt_delta_guard"'
+    
+  
+  
+[0m01:27:39.320587 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m01:27:39.353208 [debug] [ThreadPool]: SQL status: OK in 0.033 seconds
+[0m01:27:39.360709 [debug] [ThreadPool]: On list_dbt_delta_guard: Close
+[0m01:27:39.364970 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_dbt_delta_guard, now create_dbt_delta_guard_main)
+[0m01:27:39.369081 [debug] [ThreadPool]: Creating schema "database: "dbt_delta_guard"
+schema: "main"
+"
+[0m01:27:39.396668 [debug] [ThreadPool]: Using duckdb connection "create_dbt_delta_guard_main"
+[0m01:27:39.398681 [debug] [ThreadPool]: On create_dbt_delta_guard_main: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "connection_name": "create_dbt_delta_guard_main"} */
+
+    
+        select type from duckdb_databases()
+        where lower(database_name)='dbt_delta_guard'
+        and type='sqlite'
+    
+  
+[0m01:27:39.399682 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m01:27:39.401845 [debug] [ThreadPool]: SQL status: OK in 0.002 seconds
+[0m01:27:39.403894 [debug] [ThreadPool]: Using duckdb connection "create_dbt_delta_guard_main"
+[0m01:27:39.404893 [debug] [ThreadPool]: On create_dbt_delta_guard_main: BEGIN
+[0m01:27:39.406933 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m01:27:39.408960 [debug] [ThreadPool]: Using duckdb connection "create_dbt_delta_guard_main"
+[0m01:27:39.409957 [debug] [ThreadPool]: On create_dbt_delta_guard_main: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "connection_name": "create_dbt_delta_guard_main"} */
+
+    
+    
+        create schema if not exists "dbt_delta_guard"."main"
+    
+[0m01:27:39.413313 [debug] [ThreadPool]: SQL status: OK in 0.002 seconds
+[0m01:27:39.415342 [debug] [ThreadPool]: On create_dbt_delta_guard_main: COMMIT
+[0m01:27:39.415342 [debug] [ThreadPool]: Using duckdb connection "create_dbt_delta_guard_main"
+[0m01:27:39.416314 [debug] [ThreadPool]: On create_dbt_delta_guard_main: COMMIT
+[0m01:27:39.417493 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m01:27:39.418491 [debug] [ThreadPool]: On create_dbt_delta_guard_main: Close
+[0m01:27:39.420067 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_dbt_delta_guard_main'
+[0m01:27:39.429409 [debug] [ThreadPool]: Using duckdb connection "list_dbt_delta_guard_main"
+[0m01:27:39.430408 [debug] [ThreadPool]: On list_dbt_delta_guard_main: BEGIN
+[0m01:27:39.431408 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m01:27:39.432408 [debug] [ThreadPool]: SQL status: OK in 0.001 seconds
+[0m01:27:39.432408 [debug] [ThreadPool]: Using duckdb connection "list_dbt_delta_guard_main"
+[0m01:27:39.433407 [debug] [ThreadPool]: On list_dbt_delta_guard_main: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "connection_name": "list_dbt_delta_guard_main"} */
+select
+      'dbt_delta_guard' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main'
+    and lower(table_catalog) = 'dbt_delta_guard'
+  
+[0m01:27:39.438286 [debug] [ThreadPool]: SQL status: OK in 0.004 seconds
+[0m01:27:39.441287 [debug] [ThreadPool]: On list_dbt_delta_guard_main: ROLLBACK
+[0m01:27:39.442288 [debug] [ThreadPool]: Failed to rollback 'list_dbt_delta_guard_main'
+[0m01:27:39.443778 [debug] [ThreadPool]: On list_dbt_delta_guard_main: Close
+[0m01:27:39.445774 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'e7191827-6d4c-43ee-913d-1c352d2e8be1', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001D381B61D80>]}
+[0m01:27:39.446281 [debug] [MainThread]: Using duckdb connection "master"
+[0m01:27:39.447325 [debug] [MainThread]: On master: BEGIN
+[0m01:27:39.448294 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m01:27:39.449292 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m01:27:39.449292 [debug] [MainThread]: On master: COMMIT
+[0m01:27:39.450289 [debug] [MainThread]: Using duckdb connection "master"
+[0m01:27:39.451313 [debug] [MainThread]: On master: COMMIT
+[0m01:27:39.452288 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m01:27:39.452288 [debug] [MainThread]: On master: Close
+[0m01:27:39.460357 [debug] [Thread-1 (]: Began running node model.dbt_delta_guard.fct_agent_activity
+[0m01:27:39.461389 [info ] [Thread-1 (]: 1 of 2 START sql table model main.fct_agent_activity ........................... [RUN]
+[0m01:27:39.463390 [debug] [Thread-1 (]: Acquiring new duckdb connection 'model.dbt_delta_guard.fct_agent_activity'
+[0m01:27:39.463390 [debug] [Thread-1 (]: Began compiling node model.dbt_delta_guard.fct_agent_activity
+[0m01:27:39.474216 [debug] [Thread-1 (]: Writing injected SQL for node "model.dbt_delta_guard.fct_agent_activity"
+[0m01:27:39.479748 [debug] [Thread-1 (]: Began executing node model.dbt_delta_guard.fct_agent_activity
+[0m01:27:39.529262 [debug] [Thread-1 (]: Writing runtime sql for node "model.dbt_delta_guard.fct_agent_activity"
+[0m01:27:39.532716 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:27:39.533807 [debug] [Thread-1 (]: On model.dbt_delta_guard.fct_agent_activity: BEGIN
+[0m01:27:39.535510 [debug] [Thread-1 (]: Opening a new connection, currently in state init
+[0m01:27:39.537114 [debug] [Thread-1 (]: SQL status: OK in 0.002 seconds
+[0m01:27:39.538730 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:27:39.540271 [debug] [Thread-1 (]: On model.dbt_delta_guard.fct_agent_activity: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.fct_agent_activity"} */
+
+  
+    
+    
+
+    create  table
+      "dbt_delta_guard"."main"."fct_agent_activity__dbt_tmp"
+  
+    as (
+      
+
+select
+	*,
+	case
+		when execution_time_ms < 100 then 'FAST (<100ms)'
+		when execution_time_ms between 100 and 500 then 'NOMINAL (100-500ms)'
+		else 'SLOW (>500ms)'
+	end as latency_tier,
+	case
+		when cost_usd = 0.0 then 'FREE'
+		when cost_usd < 0.01 then 'LOW_COST (<$0.01)'
+		when cost_usd < 0.1 then 'MEDIUM_COST ($0.01-$0.10)'
+		else 'HIGH_COST (>=$0.10)'
+	end as cost_tier,
+	case when status = 'SUCCESS' then 1 else 0 end as is_success
+from "dbt_delta_guard"."main"."stg_agent_events"
+    );
+  
+  
+[0m01:27:39.568930 [debug] [Thread-1 (]: DuckDB adapter: duckdb error: Binder Error: Referenced column "status" not found in FROM clause!
+Candidate bindings: "cost_usd", "event_hour", "session_id", "timestamp"
+
+LINE 26: 	case when status = 'SUCCESS' then 1 else 0 end as is_success
+                   ^
+[0m01:27:39.570939 [debug] [Thread-1 (]: DuckDB adapter: Error running SQL: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.fct_agent_activity"} */
+
+  
+    
+    
+
+    create  table
+      "dbt_delta_guard"."main"."fct_agent_activity__dbt_tmp"
+  
+    as (
+      
+
+select
+	*,
+	case
+		when execution_time_ms < 100 then 'FAST (<100ms)'
+		when execution_time_ms between 100 and 500 then 'NOMINAL (100-500ms)'
+		else 'SLOW (>500ms)'
+	end as latency_tier,
+	case
+		when cost_usd = 0.0 then 'FREE'
+		when cost_usd < 0.01 then 'LOW_COST (<$0.01)'
+		when cost_usd < 0.1 then 'MEDIUM_COST ($0.01-$0.10)'
+		else 'HIGH_COST (>=$0.10)'
+	end as cost_tier,
+	case when status = 'SUCCESS' then 1 else 0 end as is_success
+from "dbt_delta_guard"."main"."stg_agent_events"
+    );
+  
+  
+[0m01:27:39.571940 [debug] [Thread-1 (]: DuckDB adapter: Rolling back transaction.
+[0m01:27:39.572937 [debug] [Thread-1 (]: On model.dbt_delta_guard.fct_agent_activity: ROLLBACK
+[0m01:27:39.609969 [debug] [Thread-1 (]: Failed to rollback 'model.dbt_delta_guard.fct_agent_activity'
+[0m01:27:39.610971 [debug] [Thread-1 (]: On model.dbt_delta_guard.fct_agent_activity: Close
+[0m01:27:39.705520 [debug] [Thread-1 (]: Runtime Error in model fct_agent_activity (models\marts\fct_agent_activity.sql)
+  Binder Error: Referenced column "status" not found in FROM clause!
+  Candidate bindings: "cost_usd", "event_hour", "session_id", "timestamp"
+  
+  LINE 26: 	case when status = 'SUCCESS' then 1 else 0 end as is_success
+                     ^
+[0m01:27:39.710819 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'e7191827-6d4c-43ee-913d-1c352d2e8be1', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001D38364F820>]}
+[0m01:27:39.711823 [error] [Thread-1 (]: 1 of 2 ERROR creating sql table model main.fct_agent_activity .................. [[31mERROR[0m in 0.24s]
+[0m01:27:39.713820 [debug] [Thread-1 (]: Finished running node model.dbt_delta_guard.fct_agent_activity
+[0m01:27:39.713820 [debug] [Thread-7 (]: Marking all children of 'model.dbt_delta_guard.fct_agent_activity' to be skipped because of status 'error'.  Reason: Runtime Error in model fct_agent_activity (models\marts\fct_agent_activity.sql)
+  Binder Error: Referenced column "status" not found in FROM clause!
+  Candidate bindings: "cost_usd", "event_hour", "session_id", "timestamp"
+  
+  LINE 26: 	case when status = 'SUCCESS' then 1 else 0 end as is_success
+                     ^.
+[0m01:27:39.716336 [debug] [Thread-3 (]: Began running node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:27:39.717424 [info ] [Thread-3 (]: 2 of 2 SKIP relation main.dim_tool_efficiency .................................. [[33mSKIP[0m]
+[0m01:27:39.718558 [debug] [Thread-3 (]: Finished running node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:27:39.721092 [debug] [MainThread]: Using duckdb connection "master"
+[0m01:27:39.721651 [debug] [MainThread]: On master: BEGIN
+[0m01:27:39.722660 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m01:27:39.724661 [debug] [MainThread]: SQL status: OK in 0.002 seconds
+[0m01:27:39.726661 [debug] [MainThread]: On master: COMMIT
+[0m01:27:39.728184 [debug] [MainThread]: Using duckdb connection "master"
+[0m01:27:39.731196 [debug] [MainThread]: On master: COMMIT
+[0m01:27:39.732198 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m01:27:39.733193 [debug] [MainThread]: On master: Close
+[0m01:27:39.734194 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m01:27:39.735194 [debug] [MainThread]: Connection 'create_dbt_delta_guard_main' was properly closed.
+[0m01:27:39.735194 [debug] [MainThread]: Connection 'list_dbt_delta_guard_main' was properly closed.
+[0m01:27:39.737319 [debug] [MainThread]: Connection 'model.dbt_delta_guard.fct_agent_activity' was properly closed.
+[0m01:27:39.738333 [info ] [MainThread]: 
+[0m01:27:39.738333 [info ] [MainThread]: Finished running 2 table models in 0 hours 0 minutes and 0.67 seconds (0.67s).
+[0m01:27:39.740327 [debug] [MainThread]: Command end result
+[0m01:27:39.810360 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\manifest.json
+[0m01:27:39.814382 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\semantic_manifest.json
+[0m01:27:39.826743 [debug] [MainThread]: Wrote artifact RunExecutionResult to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\run_results.json
+[0m01:27:39.827757 [info ] [MainThread]: 
+[0m01:27:39.828756 [info ] [MainThread]: [31mCompleted with 1 error, 0 partial successes, and 0 warnings:[0m
+[0m01:27:39.829318 [info ] [MainThread]: 
+[0m01:27:39.830334 [error] [MainThread]: [31mFailure in model fct_agent_activity (models\marts\fct_agent_activity.sql)[0m
+[0m01:27:39.831332 [error] [MainThread]:   Runtime Error in model fct_agent_activity (models\marts\fct_agent_activity.sql)
+  Binder Error: Referenced column "status" not found in FROM clause!
+  Candidate bindings: "cost_usd", "event_hour", "session_id", "timestamp"
+  
+  LINE 26: 	case when status = 'SUCCESS' then 1 else 0 end as is_success
+                     ^
+[0m01:27:39.832370 [info ] [MainThread]: 
+[0m01:27:39.834328 [info ] [MainThread]:   compiled code at target\compiled\dbt_delta_guard\models\marts\fct_agent_activity.sql
+[0m01:27:39.834839 [info ] [MainThread]: 
+[0m01:27:39.836349 [info ] [MainThread]: Done. PASS=0 WARN=0 ERROR=1 SKIP=1 NO-OP=0 TOTAL=2
+[0m01:27:39.838359 [debug] [MainThread]: Command `dbt run` failed at 01:27:39.838359 after 3.70 seconds
+[0m01:27:39.840357 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001D3FF6BD3C0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001D3FA9776D0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001D3FF9C55D0>]}
+[0m01:27:39.842358 [debug] [MainThread]: Flushing usage events
+[0m01:27:40.669286 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m01:27:54.887174 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000015CB3F1D390>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000015CB52A83A0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000015CB52A81C0>]}
+
+
+============================== 01:27:54.893786 | 7b003082-eb43-432d-91cb-5970fbbde7d6 ==============================
+[0m01:27:54.893786 [info ] [MainThread]: Running with dbt=1.11.11
+[0m01:27:54.894787 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'write_json': 'True', 'log_cache_events': 'False', 'partial_parse': 'True', 'cache_selected_only': 'False', 'warn_error': 'None', 'version_check': 'True', 'fail_fast': 'False', 'log_path': 'C:\\Users\\kheza\\Desktop\\Data Engineering\\kafka_streaming_project\\dbt_delta_guard\\logs', 'debug': 'False', 'profiles_dir': '.', 'use_colors': 'True', 'use_experimental_parser': 'False', 'empty': 'False', 'quiet': 'False', 'no_print': 'None', 'log_format': 'default', 'introspect': 'True', 'invocation_command': 'dbt run --select stg_agent_events fct_agent_activity dim_tool_efficiency --profiles-dir .', 'static_parser': 'True', 'target_path': 'None', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'send_anonymous_usage_stats': 'True'}
+[0m01:27:55.632525 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '7b003082-eb43-432d-91cb-5970fbbde7d6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000015CB51952D0>]}
+[0m01:27:55.850939 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '7b003082-eb43-432d-91cb-5970fbbde7d6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000015CAE1D7C40>]}
+[0m01:27:55.858574 [info ] [MainThread]: Registered adapter: duckdb=1.10.1
+[0m01:28:00.177449 [debug] [MainThread]: checksum: 30a8cc8fdcbf66701b0944d4ccce3fa46dd04b61e5df68b9f16d57b2e0e3f0be, vars: {}, profile: , target: , version: 1.11.11
+[0m01:28:02.479453 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m01:28:02.485655 [debug] [MainThread]: Nothing changed, skipping partial parsing.
+[0m01:28:02.491260 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m01:28:02.556713 [warn ] [MainThread]: [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 1 unused configuration paths:
+- models.dbt_delta_guard.intermediate
+[0m01:28:03.101041 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': '7b003082-eb43-432d-91cb-5970fbbde7d6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000015CB6A24B50>]}
+[0m01:28:04.995081 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\manifest.json
+[0m01:28:05.047353 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\semantic_manifest.json
+[0m01:28:05.224724 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': '7b003082-eb43-432d-91cb-5970fbbde7d6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000015CB6A74D60>]}
+[0m01:28:05.233840 [info ] [MainThread]: Found 3 models, 22 data tests, 601 macros
+[0m01:28:05.248718 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '7b003082-eb43-432d-91cb-5970fbbde7d6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000015CB6A74820>]}
+[0m01:28:05.280851 [info ] [MainThread]: 
+[0m01:28:05.301904 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m01:28:05.313590 [info ] [MainThread]: 
+[0m01:28:05.331455 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m01:28:05.500883 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_dbt_delta_guard'
+[0m01:28:13.085261 [debug] [ThreadPool]: Using duckdb connection "list_dbt_delta_guard"
+[0m01:28:13.091681 [debug] [ThreadPool]: On list_dbt_delta_guard: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "connection_name": "list_dbt_delta_guard"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"dbt_delta_guard"'
+    
+  
+  
+[0m01:28:13.096759 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m01:28:13.370811 [debug] [ThreadPool]: SQL status: OK in 0.274 seconds
+[0m01:28:13.384922 [debug] [ThreadPool]: On list_dbt_delta_guard: Close
+[0m01:28:13.392270 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_dbt_delta_guard, now create_dbt_delta_guard_main)
+[0m01:28:13.404381 [debug] [ThreadPool]: Creating schema "database: "dbt_delta_guard"
+schema: "main"
+"
+[0m01:28:13.510831 [debug] [ThreadPool]: Using duckdb connection "create_dbt_delta_guard_main"
+[0m01:28:13.531158 [debug] [ThreadPool]: On create_dbt_delta_guard_main: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "connection_name": "create_dbt_delta_guard_main"} */
+
+    
+        select type from duckdb_databases()
+        where lower(database_name)='dbt_delta_guard'
+        and type='sqlite'
+    
+  
+[0m01:28:13.559072 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m01:28:13.575547 [debug] [ThreadPool]: SQL status: OK in 0.024 seconds
+[0m01:28:13.589615 [debug] [ThreadPool]: Using duckdb connection "create_dbt_delta_guard_main"
+[0m01:28:13.600346 [debug] [ThreadPool]: On create_dbt_delta_guard_main: BEGIN
+[0m01:28:13.615232 [debug] [ThreadPool]: SQL status: OK in 0.002 seconds
+[0m01:28:13.634411 [debug] [ThreadPool]: Using duckdb connection "create_dbt_delta_guard_main"
+[0m01:28:13.646592 [debug] [ThreadPool]: On create_dbt_delta_guard_main: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "connection_name": "create_dbt_delta_guard_main"} */
+
+    
+    
+        create schema if not exists "dbt_delta_guard"."main"
+    
+[0m01:28:13.662409 [debug] [ThreadPool]: SQL status: OK in 0.002 seconds
+[0m01:28:13.686713 [debug] [ThreadPool]: On create_dbt_delta_guard_main: COMMIT
+[0m01:28:13.698438 [debug] [ThreadPool]: Using duckdb connection "create_dbt_delta_guard_main"
+[0m01:28:13.732243 [debug] [ThreadPool]: On create_dbt_delta_guard_main: COMMIT
+[0m01:28:13.746460 [debug] [ThreadPool]: SQL status: OK in 0.007 seconds
+[0m01:28:13.774747 [debug] [ThreadPool]: On create_dbt_delta_guard_main: Close
+[0m01:28:13.793585 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_dbt_delta_guard_main'
+[0m01:28:13.862168 [debug] [ThreadPool]: Using duckdb connection "list_dbt_delta_guard_main"
+[0m01:28:13.871814 [debug] [ThreadPool]: On list_dbt_delta_guard_main: BEGIN
+[0m01:28:13.891655 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m01:28:13.899789 [debug] [ThreadPool]: SQL status: OK in 0.010 seconds
+[0m01:28:13.905400 [debug] [ThreadPool]: Using duckdb connection "list_dbt_delta_guard_main"
+[0m01:28:13.946597 [debug] [ThreadPool]: On list_dbt_delta_guard_main: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "connection_name": "list_dbt_delta_guard_main"} */
+select
+      'dbt_delta_guard' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main'
+    and lower(table_catalog) = 'dbt_delta_guard'
+  
+[0m01:28:14.069968 [debug] [ThreadPool]: SQL status: OK in 0.062 seconds
+[0m01:28:14.096694 [debug] [ThreadPool]: On list_dbt_delta_guard_main: ROLLBACK
+[0m01:28:14.132314 [debug] [ThreadPool]: Failed to rollback 'list_dbt_delta_guard_main'
+[0m01:28:14.163594 [debug] [ThreadPool]: On list_dbt_delta_guard_main: Close
+[0m01:28:14.239377 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '7b003082-eb43-432d-91cb-5970fbbde7d6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000015CB6AB43A0>]}
+[0m01:28:14.249973 [debug] [MainThread]: Using duckdb connection "master"
+[0m01:28:14.259814 [debug] [MainThread]: On master: BEGIN
+[0m01:28:14.265208 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m01:28:14.273876 [debug] [MainThread]: SQL status: OK in 0.009 seconds
+[0m01:28:14.279738 [debug] [MainThread]: On master: COMMIT
+[0m01:28:14.293999 [debug] [MainThread]: Using duckdb connection "master"
+[0m01:28:14.298863 [debug] [MainThread]: On master: COMMIT
+[0m01:28:14.305587 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m01:28:14.309799 [debug] [MainThread]: On master: Close
+[0m01:28:14.396362 [debug] [Thread-1 (]: Began running node model.dbt_delta_guard.stg_agent_events
+[0m01:28:14.411034 [info ] [Thread-1 (]: 1 of 3 START sql view model main.stg_agent_events .............................. [RUN]
+[0m01:28:14.429462 [debug] [Thread-1 (]: Acquiring new duckdb connection 'model.dbt_delta_guard.stg_agent_events'
+[0m01:28:14.434413 [debug] [Thread-1 (]: Began compiling node model.dbt_delta_guard.stg_agent_events
+[0m01:28:14.521512 [debug] [Thread-1 (]: Writing injected SQL for node "model.dbt_delta_guard.stg_agent_events"
+[0m01:28:14.546318 [debug] [Thread-1 (]: Began executing node model.dbt_delta_guard.stg_agent_events
+[0m01:28:14.826863 [debug] [Thread-1 (]: Writing runtime sql for node "model.dbt_delta_guard.stg_agent_events"
+[0m01:28:14.891841 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.stg_agent_events"
+[0m01:28:14.930644 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: BEGIN
+[0m01:28:14.954997 [debug] [Thread-1 (]: Opening a new connection, currently in state init
+[0m01:28:14.973725 [debug] [Thread-1 (]: SQL status: OK in 0.012 seconds
+[0m01:28:14.998729 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.stg_agent_events"
+[0m01:28:15.032057 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.stg_agent_events"} */
+
+  
+  create view "dbt_delta_guard"."main"."stg_agent_events__dbt_tmp" as (
+    
+
+with source_events as (
+	select
+		cast(agent_id as varchar) as agent_id,
+		cast(session_id as varchar) as session_id,
+		cast(action_id as varchar) as action_id,
+		cast(timestamp as timestamp) as timestamp,
+		cast(tool_name as varchar) as tool_name,
+		cast(execution_time_ms as integer) as execution_time_ms,
+		cast(cost_usd as double) as cost_usd,
+		cast(status as varchar) as status,
+		tool_args,
+		row_number() over (
+			partition by agent_id, session_id, action_id
+			order by timestamp desc
+		) as row_num
+	from read_parquet('../data/bronze/agent_events/*.parquet')
+),
+
+deduplicated_events as (
+	select
+		agent_id,
+		session_id,
+		action_id,
+		timestamp,
+		tool_name,
+		execution_time_ms,
+		cost_usd,
+		status,
+		json_extract_string(tool_args, '$.query') as query,
+		cast(json_extract_string(tool_args, '$.limit') as integer) as "limit",
+		json_extract_string(tool_args, '$.url') as url
+	from source_events
+	where row_num = 1
+)
+
+select
+	agent_id,
+	session_id,
+	action_id,
+	timestamp,
+	tool_name,
+	execution_time_ms,
+	cost_usd,
+	status,
+	query,
+	"limit",
+	url,
+	date_trunc('hour', timestamp) as event_hour
+from deduplicated_events
+  );
+
+[0m01:28:15.066626 [debug] [Thread-1 (]: SQL status: OK in 0.020 seconds
+[0m01:28:15.152630 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.stg_agent_events"
+[0m01:28:15.158497 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.stg_agent_events"} */
+alter view "dbt_delta_guard"."main"."stg_agent_events" rename to "stg_agent_events__dbt_backup"
+[0m01:28:15.186382 [debug] [Thread-1 (]: SQL status: OK in 0.010 seconds
+[0m01:28:15.240121 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.stg_agent_events"
+[0m01:28:15.250537 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.stg_agent_events"} */
+alter view "dbt_delta_guard"."main"."stg_agent_events__dbt_tmp" rename to "stg_agent_events"
+[0m01:28:15.269393 [debug] [Thread-1 (]: SQL status: OK in 0.005 seconds
+[0m01:28:15.461956 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: COMMIT
+[0m01:28:15.510121 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.stg_agent_events"
+[0m01:28:15.518793 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: COMMIT
+[0m01:28:15.542129 [debug] [Thread-1 (]: SQL status: OK in 0.018 seconds
+[0m01:28:15.609160 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.stg_agent_events"
+[0m01:28:15.621809 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.stg_agent_events"} */
+
+      drop view if exists "dbt_delta_guard"."main"."stg_agent_events__dbt_backup" cascade
+    
+[0m01:28:15.639589 [debug] [Thread-1 (]: SQL status: OK in 0.010 seconds
+[0m01:28:15.668583 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: Close
+[0m01:28:15.690995 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '7b003082-eb43-432d-91cb-5970fbbde7d6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000015CB1E973A0>]}
+[0m01:28:15.718432 [info ] [Thread-1 (]: 1 of 3 OK created sql view model main.stg_agent_events ......................... [[32mOK[0m in 1.25s]
+[0m01:28:15.778016 [debug] [Thread-1 (]: Finished running node model.dbt_delta_guard.stg_agent_events
+[0m01:28:15.792722 [debug] [Thread-3 (]: Began running node model.dbt_delta_guard.fct_agent_activity
+[0m01:28:15.797822 [info ] [Thread-3 (]: 2 of 3 START sql table model main.fct_agent_activity ........................... [RUN]
+[0m01:28:15.808000 [debug] [Thread-3 (]: Acquiring new duckdb connection 'model.dbt_delta_guard.fct_agent_activity'
+[0m01:28:15.814568 [debug] [Thread-3 (]: Began compiling node model.dbt_delta_guard.fct_agent_activity
+[0m01:28:15.851447 [debug] [Thread-3 (]: Writing injected SQL for node "model.dbt_delta_guard.fct_agent_activity"
+[0m01:28:15.861469 [debug] [Thread-3 (]: Began executing node model.dbt_delta_guard.fct_agent_activity
+[0m01:28:16.076809 [debug] [Thread-3 (]: Writing runtime sql for node "model.dbt_delta_guard.fct_agent_activity"
+[0m01:28:16.084906 [debug] [Thread-3 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:28:16.090009 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: BEGIN
+[0m01:28:16.095505 [debug] [Thread-3 (]: Opening a new connection, currently in state init
+[0m01:28:16.106622 [debug] [Thread-3 (]: SQL status: OK in 0.011 seconds
+[0m01:28:16.126425 [debug] [Thread-3 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:28:16.132537 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.fct_agent_activity"} */
+
+  
+    
+    
+
+    create  table
+      "dbt_delta_guard"."main"."fct_agent_activity__dbt_tmp"
+  
+    as (
+      
+
+select
+	*,
+	case
+		when execution_time_ms < 100 then 'FAST (<100ms)'
+		when execution_time_ms between 100 and 500 then 'NOMINAL (100-500ms)'
+		else 'SLOW (>500ms)'
+	end as latency_tier,
+	case
+		when cost_usd = 0.0 then 'FREE'
+		when cost_usd < 0.01 then 'LOW_COST (<$0.01)'
+		when cost_usd < 0.1 then 'MEDIUM_COST ($0.01-$0.10)'
+		else 'HIGH_COST (>=$0.10)'
+	end as cost_tier,
+	case when status = 'SUCCESS' then 1 else 0 end as is_success
+from "dbt_delta_guard"."main"."stg_agent_events"
+    );
+  
+  
+[0m01:28:16.260455 [debug] [Thread-3 (]: SQL status: OK in 0.121 seconds
+[0m01:28:16.290143 [debug] [Thread-3 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:28:16.294147 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.fct_agent_activity"} */
+alter table "dbt_delta_guard"."main"."fct_agent_activity__dbt_tmp" rename to "fct_agent_activity"
+[0m01:28:16.301828 [debug] [Thread-3 (]: SQL status: OK in 0.002 seconds
+[0m01:28:16.341536 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: COMMIT
+[0m01:28:16.347047 [debug] [Thread-3 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:28:16.360033 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: COMMIT
+[0m01:28:16.374613 [debug] [Thread-3 (]: SQL status: OK in 0.007 seconds
+[0m01:28:16.412249 [debug] [Thread-3 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:28:16.419395 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.fct_agent_activity"} */
+
+      drop table if exists "dbt_delta_guard"."main"."fct_agent_activity__dbt_backup" cascade
+    
+[0m01:28:16.426427 [debug] [Thread-3 (]: SQL status: OK in 0.002 seconds
+[0m01:28:16.441721 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: Close
+[0m01:28:16.448829 [debug] [Thread-3 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '7b003082-eb43-432d-91cb-5970fbbde7d6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000015CB6F54BE0>]}
+[0m01:28:16.456903 [info ] [Thread-3 (]: 2 of 3 OK created sql table model main.fct_agent_activity ...................... [[32mOK[0m in 0.64s]
+[0m01:28:16.523521 [debug] [Thread-3 (]: Finished running node model.dbt_delta_guard.fct_agent_activity
+[0m01:28:16.538865 [debug] [Thread-2 (]: Began running node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:28:16.544895 [info ] [Thread-2 (]: 3 of 3 START sql table model main.dim_tool_efficiency .......................... [RUN]
+[0m01:28:16.563998 [debug] [Thread-2 (]: Acquiring new duckdb connection 'model.dbt_delta_guard.dim_tool_efficiency'
+[0m01:28:16.569147 [debug] [Thread-2 (]: Began compiling node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:28:16.601170 [debug] [Thread-2 (]: Writing injected SQL for node "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:28:16.618562 [debug] [Thread-2 (]: Began executing node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:28:16.654113 [debug] [Thread-2 (]: Writing runtime sql for node "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:28:16.664708 [debug] [Thread-2 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:28:16.671513 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: BEGIN
+[0m01:28:16.677035 [debug] [Thread-2 (]: Opening a new connection, currently in state init
+[0m01:28:16.684859 [debug] [Thread-2 (]: SQL status: OK in 0.007 seconds
+[0m01:28:16.690437 [debug] [Thread-2 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:28:16.699728 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.dim_tool_efficiency"} */
+
+  
+    
+    
+
+    create  table
+      "dbt_delta_guard"."main"."dim_tool_efficiency__dbt_tmp"
+  
+    as (
+      
+
+select
+	tool_name,
+	count(*) as total_invocations,
+	count(distinct agent_id) as unique_agents_using_tool,
+	round(sum(cost_usd), 4) as total_cost_usd,
+	round(avg(cost_usd), 6) as avg_cost_per_invocation_usd,
+	round(avg(execution_time_ms), 6) as avg_latency_ms,
+	approx_quantile(execution_time_ms, 0.95) as p95_latency_ms,
+	sum(is_success) as successful_executions,
+	sum(case when is_success = 0 then 1 else 0 end) as failed_executions,
+	round(100.0 * sum(is_success) / count(*), 6) as success_rate_pct,
+	round(100.0 * sum(case when cost_usd = 0.0 then 1 else 0 end) / count(*), 6) as free_invocation_pct,
+	round(avg(case when is_success = 1 then execution_time_ms end), 6) as avg_success_latency_ms,
+	round(avg(case when is_success = 0 then execution_time_ms end), 6) as avg_failure_latency_ms
+from "dbt_delta_guard"."main"."fct_agent_activity"
+group by tool_name
+    );
+  
+  
+[0m01:28:16.790898 [debug] [Thread-2 (]: SQL status: OK in 0.083 seconds
+[0m01:28:16.823430 [debug] [Thread-2 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:28:16.828563 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.dim_tool_efficiency"} */
+alter table "dbt_delta_guard"."main"."dim_tool_efficiency__dbt_tmp" rename to "dim_tool_efficiency"
+[0m01:28:16.835606 [debug] [Thread-2 (]: SQL status: OK in 0.002 seconds
+[0m01:28:16.853677 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: COMMIT
+[0m01:28:16.860910 [debug] [Thread-2 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:28:16.866436 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: COMMIT
+[0m01:28:16.881147 [debug] [Thread-2 (]: SQL status: OK in 0.009 seconds
+[0m01:28:16.902287 [debug] [Thread-2 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:28:16.907306 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.dim_tool_efficiency"} */
+
+      drop table if exists "dbt_delta_guard"."main"."dim_tool_efficiency__dbt_backup" cascade
+    
+[0m01:28:16.913113 [debug] [Thread-2 (]: SQL status: OK in 0.001 seconds
+[0m01:28:16.925016 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: Close
+[0m01:28:16.932590 [debug] [Thread-2 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '7b003082-eb43-432d-91cb-5970fbbde7d6', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000015CB6EE71F0>]}
+[0m01:28:16.939150 [info ] [Thread-2 (]: 3 of 3 OK created sql table model main.dim_tool_efficiency ..................... [[32mOK[0m in 0.37s]
+[0m01:28:16.946671 [debug] [Thread-2 (]: Finished running node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:28:16.956432 [debug] [MainThread]: Using duckdb connection "master"
+[0m01:28:16.960693 [debug] [MainThread]: On master: BEGIN
+[0m01:28:16.966244 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m01:28:16.974326 [debug] [MainThread]: SQL status: OK in 0.009 seconds
+[0m01:28:16.980400 [debug] [MainThread]: On master: COMMIT
+[0m01:28:16.991970 [debug] [MainThread]: Using duckdb connection "master"
+[0m01:28:17.000584 [debug] [MainThread]: On master: COMMIT
+[0m01:28:17.007101 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m01:28:17.011147 [debug] [MainThread]: On master: Close
+[0m01:28:17.016676 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m01:28:17.020897 [debug] [MainThread]: Connection 'create_dbt_delta_guard_main' was properly closed.
+[0m01:28:17.024910 [debug] [MainThread]: Connection 'list_dbt_delta_guard_main' was properly closed.
+[0m01:28:17.028472 [debug] [MainThread]: Connection 'model.dbt_delta_guard.stg_agent_events' was properly closed.
+[0m01:28:17.032806 [debug] [MainThread]: Connection 'model.dbt_delta_guard.fct_agent_activity' was properly closed.
+[0m01:28:17.038374 [debug] [MainThread]: Connection 'model.dbt_delta_guard.dim_tool_efficiency' was properly closed.
+[0m01:28:17.042398 [info ] [MainThread]: 
+[0m01:28:17.047503 [info ] [MainThread]: Finished running 2 table models, 1 view model in 0 hours 0 minutes and 11.71 seconds (11.71s).
+[0m01:28:17.061124 [debug] [MainThread]: Command end result
+[0m01:28:17.797156 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\manifest.json
+[0m01:28:17.820883 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\semantic_manifest.json
+[0m01:28:17.878033 [debug] [MainThread]: Wrote artifact RunExecutionResult to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\run_results.json
+[0m01:28:17.886582 [info ] [MainThread]: 
+[0m01:28:17.893635 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m01:28:17.903355 [info ] [MainThread]: 
+[0m01:28:17.909520 [info ] [MainThread]: Done. PASS=3 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=3
+[0m01:28:17.925594 [debug] [MainThread]: Command `dbt run` succeeded at 01:28:17.925594 after 23.20 seconds
+[0m01:28:17.930621 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000015CB3F1D390>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000015CB212F010>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000015CB4FEDDE0>]}
+[0m01:28:17.939732 [debug] [MainThread]: Flushing usage events
+[0m01:28:19.014344 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m01:28:57.843826 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000018A62B17880>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000018A642DCE50>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000018A642DF8E0>]}
+
+
+============================== 01:28:57.852249 | c7bc5058-fe26-4e83-a586-428dad437ef2 ==============================
+[0m01:28:57.852249 [info ] [MainThread]: Running with dbt=1.12.3
+[0m01:28:57.853789 [debug] [MainThread]: running dbt with arguments {'version_check': 'True', 'no_print': 'None', 'maximum_seed_size_mib': '1', 'target_path': 'None', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'static_parser': 'True', 'printer_width': '80', 'write_json': 'True', 'introspect': 'True', 'log_cache_events': 'False', 'empty': 'False', 'cache_selected_only': 'False', 'log_format': 'default', 'debug': 'False', 'fail_fast': 'False', 'partial_parse': 'True', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'warn_error': 'None', 'profiles_dir': '.', 'indirect_selection': 'eager', 'hints_enabled': 'True', 'use_colors': 'True', 'use_experimental_parser': 'False', 'invocation_command': 'dbt run --profiles-dir .', 'log_path': 'C:\\Users\\kheza\\Desktop\\Data Engineering\\kafka_streaming_project\\dbt_delta_guard\\logs'}
+[0m01:28:58.467336 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': 'c7bc5058-fe26-4e83-a586-428dad437ef2', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000018A65471690>]}
+[0m01:28:58.641376 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': 'c7bc5058-fe26-4e83-a586-428dad437ef2', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000018A640D87F0>]}
+[0m01:28:58.648533 [info ] [MainThread]: Registered adapter: duckdb=1.11.0
+[0m01:28:59.326503 [debug] [MainThread]: checksum: bc4a1fb1eda164bf08e9332b13a521d1e6270a0ccf7ef5af6b759793d06011fb, vars: {}, profile: dbt_delta_guard, target: dev, version: 1.12.3
+[0m01:28:59.548309 [info ] [MainThread]: Unable to do partial parsing because of a version mismatch
+[0m01:28:59.549274 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'partial_parser', 'label': 'c7bc5058-fe26-4e83-a586-428dad437ef2', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000018A6363AEF0>]}
+[0m01:29:02.770199 [warn ] [MainThread]: [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 1 unused configuration paths:
+- models.dbt_delta_guard.intermediate
+[0m01:29:02.776203 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': 'c7bc5058-fe26-4e83-a586-428dad437ef2', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000018A65EC6470>]}
+[0m01:29:03.014518 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\manifest.json
+[0m01:29:03.025218 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\semantic_manifest.json
+[0m01:29:03.073558 [debug] [MainThread]: Wrote artifact OsiDocument to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\osi_document.json
+[0m01:29:03.097583 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': 'c7bc5058-fe26-4e83-a586-428dad437ef2', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000018A65EDCC70>]}
+[0m01:29:03.098590 [info ] [MainThread]: Found 3 models, 22 data tests, 616 macros
+[0m01:29:03.099588 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'c7bc5058-fe26-4e83-a586-428dad437ef2', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000018A65EAA6B0>]}
+[0m01:29:03.102213 [info ] [MainThread]: 
+[0m01:29:03.103219 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m01:29:03.104220 [info ] [MainThread]: 
+[0m01:29:03.104882 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m01:29:03.114413 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_dbt_delta_guard'
+[0m01:29:03.357373 [debug] [ThreadPool]: Using duckdb connection "list_dbt_delta_guard"
+[0m01:29:03.358378 [debug] [ThreadPool]: On list_dbt_delta_guard: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "connection_name": "list_dbt_delta_guard"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"dbt_delta_guard"'
+    
+  
+  
+[0m01:29:03.358378 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m01:29:03.436279 [debug] [ThreadPool]: SQL status: OK in 0.077 seconds
+[0m01:29:03.438828 [debug] [ThreadPool]: On list_dbt_delta_guard: Close
+[0m01:29:03.440827 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_dbt_delta_guard, now create_dbt_delta_guard_main)
+[0m01:29:03.441828 [debug] [ThreadPool]: Creating schema "database: "dbt_delta_guard"
+schema: "main"
+"
+[0m01:29:03.450518 [debug] [ThreadPool]: Using duckdb connection "create_dbt_delta_guard_main"
+[0m01:29:03.451521 [debug] [ThreadPool]: On create_dbt_delta_guard_main: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "connection_name": "create_dbt_delta_guard_main"} */
+
+    
+        select type from duckdb_databases()
+        where lower(database_name)='dbt_delta_guard'
+        and type != 'duckdb'
+    
+  
+[0m01:29:03.452558 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m01:29:03.454557 [debug] [ThreadPool]: SQL status: OK in 0.002 seconds
+[0m01:29:03.457109 [debug] [ThreadPool]: Using duckdb connection "create_dbt_delta_guard_main"
+[0m01:29:03.458108 [debug] [ThreadPool]: On create_dbt_delta_guard_main: BEGIN
+[0m01:29:03.459114 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m01:29:03.460113 [debug] [ThreadPool]: Using duckdb connection "create_dbt_delta_guard_main"
+[0m01:29:03.460113 [debug] [ThreadPool]: On create_dbt_delta_guard_main: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "connection_name": "create_dbt_delta_guard_main"} */
+
+    
+    
+        create schema if not exists "dbt_delta_guard"."main"
+    
+[0m01:29:03.462668 [debug] [ThreadPool]: SQL status: OK in 0.002 seconds
+[0m01:29:03.464676 [debug] [ThreadPool]: On create_dbt_delta_guard_main: COMMIT
+[0m01:29:03.464676 [debug] [ThreadPool]: Using duckdb connection "create_dbt_delta_guard_main"
+[0m01:29:03.466182 [debug] [ThreadPool]: On create_dbt_delta_guard_main: COMMIT
+[0m01:29:03.466828 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m01:29:03.468343 [debug] [ThreadPool]: On create_dbt_delta_guard_main: Close
+[0m01:29:03.470873 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_dbt_delta_guard_main'
+[0m01:29:03.477961 [debug] [ThreadPool]: Using duckdb connection "list_dbt_delta_guard_main"
+[0m01:29:03.478971 [debug] [ThreadPool]: On list_dbt_delta_guard_main: BEGIN
+[0m01:29:03.479970 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m01:29:03.481969 [debug] [ThreadPool]: SQL status: OK in 0.001 seconds
+[0m01:29:03.482969 [debug] [ThreadPool]: Using duckdb connection "list_dbt_delta_guard_main"
+[0m01:29:03.483972 [debug] [ThreadPool]: On list_dbt_delta_guard_main: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "connection_name": "list_dbt_delta_guard_main"} */
+select
+      'dbt_delta_guard' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main'
+    and lower(table_catalog) = 'dbt_delta_guard'
+  
+[0m01:29:03.498129 [debug] [ThreadPool]: SQL status: OK in 0.014 seconds
+[0m01:29:03.501169 [debug] [ThreadPool]: On list_dbt_delta_guard_main: ROLLBACK
+[0m01:29:03.502131 [debug] [ThreadPool]: On list_dbt_delta_guard_main: Close
+[0m01:29:03.504168 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'c7bc5058-fe26-4e83-a586-428dad437ef2', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000018A643FB310>]}
+[0m01:29:03.505131 [debug] [MainThread]: Using duckdb connection "master"
+[0m01:29:03.505131 [debug] [MainThread]: On master: BEGIN
+[0m01:29:03.506644 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m01:29:03.509674 [debug] [MainThread]: SQL status: OK in 0.003 seconds
+[0m01:29:03.511674 [debug] [MainThread]: On master: COMMIT
+[0m01:29:03.512702 [debug] [MainThread]: Using duckdb connection "master"
+[0m01:29:03.513676 [debug] [MainThread]: On master: COMMIT
+[0m01:29:03.514708 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m01:29:03.514708 [debug] [MainThread]: On master: Close
+[0m01:29:03.521852 [debug] [Thread-1 (]: Began running node model.dbt_delta_guard.stg_agent_events
+[0m01:29:03.522852 [info ] [Thread-1 (]: 1 of 3 START sql view model main.stg_agent_events .............................. [RUN]
+[0m01:29:03.523855 [debug] [Thread-1 (]: Acquiring new duckdb connection 'model.dbt_delta_guard.stg_agent_events'
+[0m01:29:03.524813 [debug] [Thread-1 (]: Began compiling node model.dbt_delta_guard.stg_agent_events
+[0m01:29:03.535008 [debug] [Thread-1 (]: Writing injected SQL for node "model.dbt_delta_guard.stg_agent_events"
+[0m01:29:03.537564 [debug] [Thread-1 (]: Began executing node model.dbt_delta_guard.stg_agent_events
+[0m01:29:03.578598 [debug] [Thread-1 (]: Writing runtime sql for node "model.dbt_delta_guard.stg_agent_events"
+[0m01:29:03.581602 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.stg_agent_events"
+[0m01:29:03.582603 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: BEGIN
+[0m01:29:03.583600 [debug] [Thread-1 (]: Opening a new connection, currently in state init
+[0m01:29:03.586147 [debug] [Thread-1 (]: SQL status: OK in 0.002 seconds
+[0m01:29:03.587160 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.stg_agent_events"
+[0m01:29:03.588572 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.stg_agent_events"} */
+
+  
+  create view "dbt_delta_guard"."main"."stg_agent_events__dbt_tmp" as (
+    
+
+with source_events as (
+	select
+		cast(agent_id as varchar) as agent_id,
+		cast(session_id as varchar) as session_id,
+		cast(action_id as varchar) as action_id,
+		cast(timestamp as timestamp) as timestamp,
+		cast(tool_name as varchar) as tool_name,
+		cast(execution_time_ms as integer) as execution_time_ms,
+		cast(cost_usd as double) as cost_usd,
+		cast(status as varchar) as status,
+		tool_args,
+		row_number() over (
+			partition by agent_id, session_id, action_id
+			order by timestamp desc
+		) as row_num
+	from read_parquet('../data/bronze/agent_events/*.parquet')
+),
+
+deduplicated_events as (
+	select
+		agent_id,
+		session_id,
+		action_id,
+		timestamp,
+		tool_name,
+		execution_time_ms,
+		cost_usd,
+		status,
+		json_extract_string(tool_args, '$.query') as query,
+		cast(json_extract_string(tool_args, '$.limit') as integer) as "limit",
+		json_extract_string(tool_args, '$.url') as url
+	from source_events
+	where row_num = 1
+)
+
+select
+	agent_id,
+	session_id,
+	action_id,
+	timestamp,
+	tool_name,
+	execution_time_ms,
+	cost_usd,
+	status,
+	query,
+	"limit",
+	url,
+	date_trunc('hour', timestamp) as event_hour
+from deduplicated_events
+  );
+
+[0m01:29:03.602499 [debug] [Thread-1 (]: SQL status: OK in 0.013 seconds
+[0m01:29:03.609036 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.stg_agent_events"
+[0m01:29:03.610040 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.stg_agent_events"} */
+alter view "dbt_delta_guard"."main"."stg_agent_events" rename to "stg_agent_events__dbt_backup"
+[0m01:29:03.612000 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m01:29:03.615040 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.stg_agent_events"
+[0m01:29:03.616073 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.stg_agent_events"} */
+alter view "dbt_delta_guard"."main"."stg_agent_events__dbt_tmp" rename to "stg_agent_events"
+[0m01:29:03.617240 [debug] [Thread-1 (]: SQL status: OK in 0.000 seconds
+[0m01:29:03.634855 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: COMMIT
+[0m01:29:03.634855 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.stg_agent_events"
+[0m01:29:03.636377 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: COMMIT
+[0m01:29:03.640976 [debug] [Thread-1 (]: SQL status: OK in 0.003 seconds
+[0m01:29:03.647564 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.stg_agent_events"
+[0m01:29:03.648566 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.stg_agent_events"} */
+
+      drop view if exists "dbt_delta_guard"."main"."stg_agent_events__dbt_backup" cascade
+    
+[0m01:29:03.650548 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m01:29:03.654868 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: Close
+[0m01:29:03.658450 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'c7bc5058-fe26-4e83-a586-428dad437ef2', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000018A5FFBF940>]}
+[0m01:29:03.659502 [info ] [Thread-1 (]: 1 of 3 OK created sql view model main.stg_agent_events ......................... [[32mOK[0m in 0.13s]
+[0m01:29:03.660447 [debug] [Thread-1 (]: Finished running node model.dbt_delta_guard.stg_agent_events
+[0m01:29:03.661448 [debug] [Thread-3 (]: Began running node model.dbt_delta_guard.fct_agent_activity
+[0m01:29:03.662449 [info ] [Thread-3 (]: 2 of 3 START sql table model main.fct_agent_activity ........................... [RUN]
+[0m01:29:03.664448 [debug] [Thread-3 (]: Acquiring new duckdb connection 'model.dbt_delta_guard.fct_agent_activity'
+[0m01:29:03.664448 [debug] [Thread-3 (]: Began compiling node model.dbt_delta_guard.fct_agent_activity
+[0m01:29:03.668458 [debug] [Thread-3 (]: Writing injected SQL for node "model.dbt_delta_guard.fct_agent_activity"
+[0m01:29:03.670130 [debug] [Thread-3 (]: Began executing node model.dbt_delta_guard.fct_agent_activity
+[0m01:29:03.736991 [debug] [Thread-3 (]: Writing runtime sql for node "model.dbt_delta_guard.fct_agent_activity"
+[0m01:29:03.738993 [debug] [Thread-3 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:29:03.739991 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: BEGIN
+[0m01:29:03.740993 [debug] [Thread-3 (]: Opening a new connection, currently in state init
+[0m01:29:03.742991 [debug] [Thread-3 (]: SQL status: OK in 0.001 seconds
+[0m01:29:03.742991 [debug] [Thread-3 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:29:03.743992 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.fct_agent_activity"} */
+
+    
+
+    create  table
+      "dbt_delta_guard"."main"."fct_agent_activity__dbt_tmp"
+  
+    
+    as (
+      
+
+select
+	*,
+	case
+		when execution_time_ms < 100 then 'FAST (<100ms)'
+		when execution_time_ms between 100 and 500 then 'NOMINAL (100-500ms)'
+		else 'SLOW (>500ms)'
+	end as latency_tier,
+	case
+		when cost_usd = 0.0 then 'FREE'
+		when cost_usd < 0.01 then 'LOW_COST (<$0.01)'
+		when cost_usd < 0.1 then 'MEDIUM_COST ($0.01-$0.10)'
+		else 'HIGH_COST (>=$0.10)'
+	end as cost_tier,
+	case when status = 'SUCCESS' then 1 else 0 end as is_success
+from "dbt_delta_guard"."main"."stg_agent_events"
+    );
+    
+  
+[0m01:29:03.785353 [debug] [Thread-3 (]: SQL status: OK in 0.040 seconds
+[0m01:29:03.796155 [debug] [Thread-3 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:29:03.797669 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.fct_agent_activity"} */
+
+    SELECT index_name
+    FROM duckdb_indexes()
+    WHERE database_name = 'dbt_delta_guard'
+      AND schema_name = 'main'
+      AND table_name = 'fct_agent_activity'
+  
+[0m01:29:03.798679 [debug] [Thread-3 (]: SQL status: OK in 0.001 seconds
+[0m01:29:03.805411 [debug] [Thread-3 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:29:03.807504 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.fct_agent_activity"} */
+alter table "dbt_delta_guard"."main"."fct_agent_activity" rename to "fct_agent_activity__dbt_backup"
+[0m01:29:03.809726 [debug] [Thread-3 (]: SQL status: OK in 0.001 seconds
+[0m01:29:03.815220 [debug] [Thread-3 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:29:03.816841 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.fct_agent_activity"} */
+alter table "dbt_delta_guard"."main"."fct_agent_activity__dbt_tmp" rename to "fct_agent_activity"
+[0m01:29:03.820146 [debug] [Thread-3 (]: SQL status: OK in 0.001 seconds
+[0m01:29:03.862516 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: COMMIT
+[0m01:29:03.882191 [debug] [Thread-3 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:29:03.886710 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: COMMIT
+[0m01:29:03.904265 [debug] [Thread-3 (]: SQL status: OK in 0.008 seconds
+[0m01:29:03.909796 [debug] [Thread-3 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:29:03.911797 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.fct_agent_activity"} */
+
+      drop table if exists "dbt_delta_guard"."main"."fct_agent_activity__dbt_backup" cascade
+    
+[0m01:29:03.914798 [debug] [Thread-3 (]: SQL status: OK in 0.002 seconds
+[0m01:29:03.920333 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: Close
+[0m01:29:03.922333 [debug] [Thread-3 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'c7bc5058-fe26-4e83-a586-428dad437ef2', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000018A66478370>]}
+[0m01:29:03.925332 [info ] [Thread-3 (]: 2 of 3 OK created sql table model main.fct_agent_activity ...................... [[32mOK[0m in 0.26s]
+[0m01:29:03.948256 [debug] [Thread-3 (]: Finished running node model.dbt_delta_guard.fct_agent_activity
+[0m01:29:03.951273 [debug] [Thread-2 (]: Began running node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:29:03.953267 [info ] [Thread-2 (]: 3 of 3 START sql table model main.dim_tool_efficiency .......................... [RUN]
+[0m01:29:03.955270 [debug] [Thread-2 (]: Acquiring new duckdb connection 'model.dbt_delta_guard.dim_tool_efficiency'
+[0m01:29:03.957640 [debug] [Thread-2 (]: Began compiling node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:29:03.962675 [debug] [Thread-2 (]: Writing injected SQL for node "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:29:03.964636 [debug] [Thread-2 (]: Began executing node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:29:03.981209 [debug] [Thread-2 (]: Writing runtime sql for node "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:29:03.985396 [debug] [Thread-2 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:29:03.987852 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: BEGIN
+[0m01:29:03.989853 [debug] [Thread-2 (]: Opening a new connection, currently in state init
+[0m01:29:03.991859 [debug] [Thread-2 (]: SQL status: OK in 0.002 seconds
+[0m01:29:03.992851 [debug] [Thread-2 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:29:03.993854 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.dim_tool_efficiency"} */
+
+    
+
+    create  table
+      "dbt_delta_guard"."main"."dim_tool_efficiency__dbt_tmp"
+  
+    
+    as (
+      
+
+select
+	tool_name,
+	count(*) as total_invocations,
+	count(distinct agent_id) as unique_agents_using_tool,
+	round(sum(cost_usd), 4) as total_cost_usd,
+	round(avg(cost_usd), 6) as avg_cost_per_invocation_usd,
+	round(avg(execution_time_ms), 6) as avg_latency_ms,
+	approx_quantile(execution_time_ms, 0.95) as p95_latency_ms,
+	sum(is_success) as successful_executions,
+	sum(case when is_success = 0 then 1 else 0 end) as failed_executions,
+	round(100.0 * sum(is_success) / count(*), 6) as success_rate_pct,
+	round(100.0 * sum(case when cost_usd = 0.0 then 1 else 0 end) / count(*), 6) as free_invocation_pct,
+	round(avg(case when is_success = 1 then execution_time_ms end), 6) as avg_success_latency_ms,
+	round(avg(case when is_success = 0 then execution_time_ms end), 6) as avg_failure_latency_ms
+from "dbt_delta_guard"."main"."fct_agent_activity"
+group by tool_name
+    );
+    
+  
+[0m01:29:04.023680 [debug] [Thread-2 (]: SQL status: OK in 0.028 seconds
+[0m01:29:04.024688 [debug] [Thread-2 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:29:04.027208 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.dim_tool_efficiency"} */
+
+    SELECT index_name
+    FROM duckdb_indexes()
+    WHERE database_name = 'dbt_delta_guard'
+      AND schema_name = 'main'
+      AND table_name = 'dim_tool_efficiency'
+  
+[0m01:29:04.029210 [debug] [Thread-2 (]: SQL status: OK in 0.001 seconds
+[0m01:29:04.033383 [debug] [Thread-2 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:29:04.034385 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.dim_tool_efficiency"} */
+alter table "dbt_delta_guard"."main"."dim_tool_efficiency" rename to "dim_tool_efficiency__dbt_backup"
+[0m01:29:04.036384 [debug] [Thread-2 (]: SQL status: OK in 0.001 seconds
+[0m01:29:04.040504 [debug] [Thread-2 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:29:04.041507 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.dim_tool_efficiency"} */
+alter table "dbt_delta_guard"."main"."dim_tool_efficiency__dbt_tmp" rename to "dim_tool_efficiency"
+[0m01:29:04.043508 [debug] [Thread-2 (]: SQL status: OK in 0.000 seconds
+[0m01:29:04.047022 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: COMMIT
+[0m01:29:04.048026 [debug] [Thread-2 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:29:04.049023 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: COMMIT
+[0m01:29:04.052026 [debug] [Thread-2 (]: SQL status: OK in 0.002 seconds
+[0m01:29:04.056023 [debug] [Thread-2 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:29:04.057540 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.dim_tool_efficiency"} */
+
+      drop table if exists "dbt_delta_guard"."main"."dim_tool_efficiency__dbt_backup" cascade
+    
+[0m01:29:04.060133 [debug] [Thread-2 (]: SQL status: OK in 0.002 seconds
+[0m01:29:04.062646 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: Close
+[0m01:29:04.063645 [debug] [Thread-2 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'c7bc5058-fe26-4e83-a586-428dad437ef2', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000018A5FFBF940>]}
+[0m01:29:04.064648 [info ] [Thread-2 (]: 3 of 3 OK created sql table model main.dim_tool_efficiency ..................... [[32mOK[0m in 0.11s]
+[0m01:29:04.067170 [debug] [Thread-2 (]: Finished running node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:29:04.069169 [debug] [MainThread]: Using duckdb connection "master"
+[0m01:29:04.071370 [debug] [MainThread]: On master: BEGIN
+[0m01:29:04.071370 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m01:29:04.074036 [debug] [MainThread]: SQL status: OK in 0.002 seconds
+[0m01:29:04.075695 [debug] [MainThread]: On master: COMMIT
+[0m01:29:04.077326 [debug] [MainThread]: Using duckdb connection "master"
+[0m01:29:04.079001 [debug] [MainThread]: On master: COMMIT
+[0m01:29:04.080718 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m01:29:04.082594 [debug] [MainThread]: On master: Close
+[0m01:29:04.084240 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m01:29:04.085879 [debug] [MainThread]: Connection 'create_dbt_delta_guard_main' was properly closed.
+[0m01:29:04.087412 [debug] [MainThread]: Connection 'list_dbt_delta_guard_main' was properly closed.
+[0m01:29:04.088424 [debug] [MainThread]: Connection 'model.dbt_delta_guard.stg_agent_events' was properly closed.
+[0m01:29:04.089801 [debug] [MainThread]: Connection 'model.dbt_delta_guard.fct_agent_activity' was properly closed.
+[0m01:29:04.091396 [debug] [MainThread]: Connection 'model.dbt_delta_guard.dim_tool_efficiency' was properly closed.
+[0m01:29:04.092508 [info ] [MainThread]: 
+[0m01:29:04.094145 [info ] [MainThread]: Finished running 2 table models, 1 view model in 0 hours 0 minutes and 0.99 seconds (0.99s).
+[0m01:29:04.096871 [debug] [MainThread]: Command end result
+[0m01:29:04.225098 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\manifest.json
+[0m01:29:04.232944 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\semantic_manifest.json
+[0m01:29:04.241057 [debug] [MainThread]: Wrote artifact OsiDocument to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\osi_document.json
+[0m01:29:04.253490 [debug] [MainThread]: Wrote artifact RunExecutionResult to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\run_results.json
+[0m01:29:04.254494 [info ] [MainThread]: 
+[0m01:29:04.256521 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m01:29:04.258059 [info ] [MainThread]: 
+[0m01:29:04.260072 [info ] [MainThread]: Done. PASS=3 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=3
+[0m01:29:04.263606 [debug] [MainThread]: Command `dbt run` succeeded at 01:29:04.263606 after 6.66 seconds
+[0m01:29:04.266125 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000018A62B17880>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000018A65FEB3A0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000018A65B3CA60>]}
+[0m01:29:04.267212 [debug] [MainThread]: Flushing usage events
+[0m01:29:05.125557 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m01:32:46.173981 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029E64523940>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029E65C325F0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029E648CB3D0>]}
+
+
+============================== 01:32:46.178971 | fac7bb56-dd62-4ceb-989e-f2e1b1945815 ==============================
+[0m01:32:46.178971 [info ] [MainThread]: Running with dbt=1.12.3
+[0m01:32:46.179971 [debug] [MainThread]: running dbt with arguments {'maximum_seed_size_mib': '1', 'no_print': 'None', 'static_parser': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'target_path': 'None', 'version_check': 'True', 'printer_width': '80', 'write_json': 'True', 'empty': 'False', 'log_cache_events': 'False', 'introspect': 'True', 'cache_selected_only': 'False', 'log_format': 'default', 'debug': 'False', 'fail_fast': 'False', 'partial_parse': 'True', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'warn_error': 'None', 'profiles_dir': '.', 'use_colors': 'True', 'hints_enabled': 'True', 'invocation_command': 'dbt run --profiles-dir .', 'use_experimental_parser': 'False', 'indirect_selection': 'eager', 'log_path': 'C:\\Users\\kheza\\Desktop\\Data Engineering\\kafka_streaming_project\\dbt_delta_guard\\logs'}
+[0m01:32:46.721431 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': 'fac7bb56-dd62-4ceb-989e-f2e1b1945815', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029E65D0DED0>]}
+[0m01:32:46.903774 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': 'fac7bb56-dd62-4ceb-989e-f2e1b1945815', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029E649F2AA0>]}
+[0m01:32:46.910769 [info ] [MainThread]: Registered adapter: duckdb=1.11.0
+[0m01:32:47.689353 [debug] [MainThread]: checksum: bc4a1fb1eda164bf08e9332b13a521d1e6270a0ccf7ef5af6b759793d06011fb, vars: {}, profile: dbt_delta_guard, target: dev, version: 1.12.3
+[0m01:32:48.232336 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m01:32:48.234339 [debug] [MainThread]: Nothing changed, skipping partial parsing.
+[0m01:32:48.235341 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m01:32:48.264518 [warn ] [MainThread]: [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 1 unused configuration paths:
+- models.dbt_delta_guard.intermediate
+[0m01:32:48.278064 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': 'fac7bb56-dd62-4ceb-989e-f2e1b1945815', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029E67233E50>]}
+[0m01:32:48.692947 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\manifest.json
+[0m01:32:48.699954 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\semantic_manifest.json
+[0m01:32:48.752909 [debug] [MainThread]: Wrote artifact OsiDocument to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\osi_document.json
+[0m01:32:48.783061 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': 'fac7bb56-dd62-4ceb-989e-f2e1b1945815', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029E676166E0>]}
+[0m01:32:48.784632 [info ] [MainThread]: Found 3 models, 22 data tests, 616 macros
+[0m01:32:48.785641 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'fac7bb56-dd62-4ceb-989e-f2e1b1945815', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029E67614FD0>]}
+[0m01:32:48.789948 [info ] [MainThread]: 
+[0m01:32:48.791456 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m01:32:48.793012 [info ] [MainThread]: 
+[0m01:32:48.795007 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m01:32:48.807311 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_dbt_delta_guard'
+[0m01:32:48.978825 [debug] [ThreadPool]: Using duckdb connection "list_dbt_delta_guard"
+[0m01:32:48.979828 [debug] [ThreadPool]: On list_dbt_delta_guard: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "connection_name": "list_dbt_delta_guard"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"dbt_delta_guard"'
+    
+  
+  
+[0m01:32:48.979828 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m01:32:49.010594 [debug] [ThreadPool]: SQL status: OK in 0.030 seconds
+[0m01:32:49.013148 [debug] [ThreadPool]: On list_dbt_delta_guard: Close
+[0m01:32:49.014148 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_dbt_delta_guard, now create_dbt_delta_guard_main)
+[0m01:32:49.015192 [debug] [ThreadPool]: Creating schema "database: "dbt_delta_guard"
+schema: "main"
+"
+[0m01:32:49.024934 [debug] [ThreadPool]: Using duckdb connection "create_dbt_delta_guard_main"
+[0m01:32:49.025931 [debug] [ThreadPool]: On create_dbt_delta_guard_main: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "connection_name": "create_dbt_delta_guard_main"} */
+
+    
+        select type from duckdb_databases()
+        where lower(database_name)='dbt_delta_guard'
+        and type != 'duckdb'
+    
+  
+[0m01:32:49.026890 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m01:32:49.028271 [debug] [ThreadPool]: SQL status: OK in 0.002 seconds
+[0m01:32:49.030318 [debug] [ThreadPool]: Using duckdb connection "create_dbt_delta_guard_main"
+[0m01:32:49.031318 [debug] [ThreadPool]: On create_dbt_delta_guard_main: BEGIN
+[0m01:32:49.032414 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m01:32:49.032414 [debug] [ThreadPool]: Using duckdb connection "create_dbt_delta_guard_main"
+[0m01:32:49.033414 [debug] [ThreadPool]: On create_dbt_delta_guard_main: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "connection_name": "create_dbt_delta_guard_main"} */
+
+    
+    
+        create schema if not exists "dbt_delta_guard"."main"
+    
+[0m01:32:49.034451 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m01:32:49.035451 [debug] [ThreadPool]: On create_dbt_delta_guard_main: COMMIT
+[0m01:32:49.036450 [debug] [ThreadPool]: Using duckdb connection "create_dbt_delta_guard_main"
+[0m01:32:49.037460 [debug] [ThreadPool]: On create_dbt_delta_guard_main: COMMIT
+[0m01:32:49.038427 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m01:32:49.039417 [debug] [ThreadPool]: On create_dbt_delta_guard_main: Close
+[0m01:32:49.041447 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_dbt_delta_guard_main'
+[0m01:32:49.048580 [debug] [ThreadPool]: Using duckdb connection "list_dbt_delta_guard_main"
+[0m01:32:49.049583 [debug] [ThreadPool]: On list_dbt_delta_guard_main: BEGIN
+[0m01:32:49.050543 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m01:32:49.052093 [debug] [ThreadPool]: SQL status: OK in 0.001 seconds
+[0m01:32:49.053093 [debug] [ThreadPool]: Using duckdb connection "list_dbt_delta_guard_main"
+[0m01:32:49.054094 [debug] [ThreadPool]: On list_dbt_delta_guard_main: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "connection_name": "list_dbt_delta_guard_main"} */
+select
+      'dbt_delta_guard' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main'
+    and lower(table_catalog) = 'dbt_delta_guard'
+  
+[0m01:32:49.059092 [debug] [ThreadPool]: SQL status: OK in 0.005 seconds
+[0m01:32:49.061600 [debug] [ThreadPool]: On list_dbt_delta_guard_main: ROLLBACK
+[0m01:32:49.062608 [debug] [ThreadPool]: On list_dbt_delta_guard_main: Close
+[0m01:32:49.064649 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'fac7bb56-dd62-4ceb-989e-f2e1b1945815', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029E65E0B220>]}
+[0m01:32:49.064649 [debug] [MainThread]: Using duckdb connection "master"
+[0m01:32:49.065609 [debug] [MainThread]: On master: BEGIN
+[0m01:32:49.066647 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m01:32:49.067609 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m01:32:49.068648 [debug] [MainThread]: On master: COMMIT
+[0m01:32:49.068648 [debug] [MainThread]: Using duckdb connection "master"
+[0m01:32:49.069869 [debug] [MainThread]: On master: COMMIT
+[0m01:32:49.069869 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m01:32:49.071376 [debug] [MainThread]: On master: Close
+[0m01:32:49.077385 [debug] [Thread-1 (]: Began running node model.dbt_delta_guard.stg_agent_events
+[0m01:32:49.078384 [info ] [Thread-1 (]: 1 of 3 START sql view model main.stg_agent_events .............................. [RUN]
+[0m01:32:49.079382 [debug] [Thread-1 (]: Acquiring new duckdb connection 'model.dbt_delta_guard.stg_agent_events'
+[0m01:32:49.080384 [debug] [Thread-1 (]: Began compiling node model.dbt_delta_guard.stg_agent_events
+[0m01:32:49.089959 [debug] [Thread-1 (]: Writing injected SQL for node "model.dbt_delta_guard.stg_agent_events"
+[0m01:32:49.092020 [debug] [Thread-1 (]: Began executing node model.dbt_delta_guard.stg_agent_events
+[0m01:32:49.140318 [debug] [Thread-1 (]: Writing runtime sql for node "model.dbt_delta_guard.stg_agent_events"
+[0m01:32:49.141823 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.stg_agent_events"
+[0m01:32:49.142832 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: BEGIN
+[0m01:32:49.143840 [debug] [Thread-1 (]: Opening a new connection, currently in state init
+[0m01:32:49.145840 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m01:32:49.146838 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.stg_agent_events"
+[0m01:32:49.147839 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.stg_agent_events"} */
+
+  
+  create view "dbt_delta_guard"."main"."stg_agent_events__dbt_tmp" as (
+    
+
+with source_events as (
+	select
+		cast(agent_id as varchar) as agent_id,
+		cast(session_id as varchar) as session_id,
+		cast(action_id as varchar) as action_id,
+		cast(timestamp as timestamp) as timestamp,
+		cast(tool_name as varchar) as tool_name,
+		cast(execution_time_ms as integer) as execution_time_ms,
+		cast(cost_usd as double) as cost_usd,
+		cast(status as varchar) as status,
+		tool_args,
+		row_number() over (
+			partition by agent_id, session_id, action_id
+			order by timestamp desc
+		) as row_num
+	from read_parquet('../data/bronze/agent_events/*.parquet')
+),
+
+deduplicated_events as (
+	select
+		agent_id,
+		session_id,
+		action_id,
+		timestamp,
+		tool_name,
+		execution_time_ms,
+		cost_usd,
+		status,
+		json_extract_string(tool_args, '$.query') as query,
+		cast(json_extract_string(tool_args, '$.limit') as integer) as "limit",
+		json_extract_string(tool_args, '$.url') as url
+	from source_events
+	where row_num = 1
+)
+
+select
+	agent_id,
+	session_id,
+	action_id,
+	timestamp,
+	tool_name,
+	execution_time_ms,
+	cost_usd,
+	status,
+	query,
+	"limit",
+	url,
+	date_trunc('hour', timestamp) as event_hour
+from deduplicated_events
+  );
+
+[0m01:32:49.151366 [debug] [Thread-1 (]: SQL status: OK in 0.002 seconds
+[0m01:32:49.159384 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.stg_agent_events"
+[0m01:32:49.160382 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.stg_agent_events"} */
+alter view "dbt_delta_guard"."main"."stg_agent_events" rename to "stg_agent_events__dbt_backup"
+[0m01:32:49.162901 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m01:32:49.169595 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.stg_agent_events"
+[0m01:32:49.170603 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.stg_agent_events"} */
+alter view "dbt_delta_guard"."main"."stg_agent_events__dbt_tmp" rename to "stg_agent_events"
+[0m01:32:49.172630 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m01:32:49.201266 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: COMMIT
+[0m01:32:49.202341 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.stg_agent_events"
+[0m01:32:49.203400 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: COMMIT
+[0m01:32:49.212007 [debug] [Thread-1 (]: SQL status: OK in 0.008 seconds
+[0m01:32:49.222236 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.stg_agent_events"
+[0m01:32:49.223359 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.stg_agent_events"} */
+
+      drop view if exists "dbt_delta_guard"."main"."stg_agent_events__dbt_backup" cascade
+    
+[0m01:32:49.226103 [debug] [Thread-1 (]: SQL status: OK in 0.001 seconds
+[0m01:32:49.230485 [debug] [Thread-1 (]: On model.dbt_delta_guard.stg_agent_events: Close
+[0m01:32:49.237329 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'fac7bb56-dd62-4ceb-989e-f2e1b1945815', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029E61A3BA00>]}
+[0m01:32:49.240057 [info ] [Thread-1 (]: 1 of 3 OK created sql view model main.stg_agent_events ......................... [[32mOK[0m in 0.15s]
+[0m01:32:49.242816 [debug] [Thread-1 (]: Finished running node model.dbt_delta_guard.stg_agent_events
+[0m01:32:49.245020 [debug] [Thread-3 (]: Began running node model.dbt_delta_guard.fct_agent_activity
+[0m01:32:49.247118 [info ] [Thread-3 (]: 2 of 3 START sql table model main.fct_agent_activity ........................... [RUN]
+[0m01:32:49.250114 [debug] [Thread-3 (]: Acquiring new duckdb connection 'model.dbt_delta_guard.fct_agent_activity'
+[0m01:32:49.251622 [debug] [Thread-3 (]: Began compiling node model.dbt_delta_guard.fct_agent_activity
+[0m01:32:49.257649 [debug] [Thread-3 (]: Writing injected SQL for node "model.dbt_delta_guard.fct_agent_activity"
+[0m01:32:49.260643 [debug] [Thread-3 (]: Began executing node model.dbt_delta_guard.fct_agent_activity
+[0m01:32:49.330093 [debug] [Thread-3 (]: Writing runtime sql for node "model.dbt_delta_guard.fct_agent_activity"
+[0m01:32:49.333613 [debug] [Thread-3 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:32:49.334614 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: BEGIN
+[0m01:32:49.335615 [debug] [Thread-3 (]: Opening a new connection, currently in state init
+[0m01:32:49.336615 [debug] [Thread-3 (]: SQL status: OK in 0.001 seconds
+[0m01:32:49.337614 [debug] [Thread-3 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:32:49.337614 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.fct_agent_activity"} */
+
+    
+
+    create  table
+      "dbt_delta_guard"."main"."fct_agent_activity__dbt_tmp"
+  
+    
+    as (
+      
+
+select
+	*,
+	case
+		when execution_time_ms < 100 then 'FAST (<100ms)'
+		when execution_time_ms between 100 and 500 then 'NOMINAL (100-500ms)'
+		else 'SLOW (>500ms)'
+	end as latency_tier,
+	case
+		when cost_usd = 0.0 then 'FREE'
+		when cost_usd < 0.01 then 'LOW_COST (<$0.01)'
+		when cost_usd < 0.1 then 'MEDIUM_COST ($0.01-$0.10)'
+		else 'HIGH_COST (>=$0.10)'
+	end as cost_tier,
+	case when status = 'SUCCESS' then 1 else 0 end as is_success
+from "dbt_delta_guard"."main"."stg_agent_events"
+    );
+    
+  
+[0m01:32:49.348259 [debug] [Thread-3 (]: SQL status: OK in 0.008 seconds
+[0m01:32:49.355081 [debug] [Thread-3 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:32:49.356081 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.fct_agent_activity"} */
+
+    SELECT index_name
+    FROM duckdb_indexes()
+    WHERE database_name = 'dbt_delta_guard'
+      AND schema_name = 'main'
+      AND table_name = 'fct_agent_activity'
+  
+[0m01:32:49.358079 [debug] [Thread-3 (]: SQL status: OK in 0.001 seconds
+[0m01:32:49.361586 [debug] [Thread-3 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:32:49.362593 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.fct_agent_activity"} */
+alter table "dbt_delta_guard"."main"."fct_agent_activity" rename to "fct_agent_activity__dbt_backup"
+[0m01:32:49.363593 [debug] [Thread-3 (]: SQL status: OK in 0.000 seconds
+[0m01:32:49.366108 [debug] [Thread-3 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:32:49.367613 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.fct_agent_activity"} */
+alter table "dbt_delta_guard"."main"."fct_agent_activity__dbt_tmp" rename to "fct_agent_activity"
+[0m01:32:49.369136 [debug] [Thread-3 (]: SQL status: OK in 0.001 seconds
+[0m01:32:49.375779 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: COMMIT
+[0m01:32:49.377779 [debug] [Thread-3 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:32:49.377779 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: COMMIT
+[0m01:32:49.385754 [debug] [Thread-3 (]: SQL status: OK in 0.007 seconds
+[0m01:32:49.388399 [debug] [Thread-3 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:32:49.389398 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.fct_agent_activity"} */
+
+      drop table if exists "dbt_delta_guard"."main"."fct_agent_activity__dbt_backup" cascade
+    
+[0m01:32:49.392395 [debug] [Thread-3 (]: SQL status: OK in 0.002 seconds
+[0m01:32:49.394440 [debug] [Thread-3 (]: On model.dbt_delta_guard.fct_agent_activity: Close
+[0m01:32:49.395403 [debug] [Thread-3 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'fac7bb56-dd62-4ceb-989e-f2e1b1945815', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029E67AAFA30>]}
+[0m01:32:49.396402 [info ] [Thread-3 (]: 2 of 3 OK created sql table model main.fct_agent_activity ...................... [[32mOK[0m in 0.15s]
+[0m01:32:49.397402 [debug] [Thread-3 (]: Finished running node model.dbt_delta_guard.fct_agent_activity
+[0m01:32:49.398401 [debug] [Thread-2 (]: Began running node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:32:49.399442 [info ] [Thread-2 (]: 3 of 3 START sql table model main.dim_tool_efficiency .......................... [RUN]
+[0m01:32:49.400407 [debug] [Thread-2 (]: Acquiring new duckdb connection 'model.dbt_delta_guard.dim_tool_efficiency'
+[0m01:32:49.401441 [debug] [Thread-2 (]: Began compiling node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:32:49.404992 [debug] [Thread-2 (]: Writing injected SQL for node "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:32:49.406995 [debug] [Thread-2 (]: Began executing node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:32:49.412621 [debug] [Thread-2 (]: Writing runtime sql for node "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:32:49.414582 [debug] [Thread-2 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:32:49.414582 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: BEGIN
+[0m01:32:49.415582 [debug] [Thread-2 (]: Opening a new connection, currently in state init
+[0m01:32:49.416582 [debug] [Thread-2 (]: SQL status: OK in 0.001 seconds
+[0m01:32:49.418581 [debug] [Thread-2 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:32:49.418581 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.dim_tool_efficiency"} */
+
+    
+
+    create  table
+      "dbt_delta_guard"."main"."dim_tool_efficiency__dbt_tmp"
+  
+    
+    as (
+      
+
+select
+	tool_name,
+	count(*) as total_invocations,
+	count(distinct agent_id) as unique_agents_using_tool,
+	round(sum(cost_usd), 4) as total_cost_usd,
+	round(avg(cost_usd), 6) as avg_cost_per_invocation_usd,
+	round(avg(execution_time_ms), 6) as avg_latency_ms,
+	approx_quantile(execution_time_ms, 0.95) as p95_latency_ms,
+	sum(is_success) as successful_executions,
+	sum(case when is_success = 0 then 1 else 0 end) as failed_executions,
+	round(100.0 * sum(is_success) / count(*), 6) as success_rate_pct,
+	round(100.0 * sum(case when cost_usd = 0.0 then 1 else 0 end) / count(*), 6) as free_invocation_pct,
+	round(avg(case when is_success = 1 then execution_time_ms end), 6) as avg_success_latency_ms,
+	round(avg(case when is_success = 0 then execution_time_ms end), 6) as avg_failure_latency_ms
+from "dbt_delta_guard"."main"."fct_agent_activity"
+group by tool_name
+    );
+    
+  
+[0m01:32:49.430583 [debug] [Thread-2 (]: SQL status: OK in 0.010 seconds
+[0m01:32:49.432824 [debug] [Thread-2 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:32:49.433443 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.dim_tool_efficiency"} */
+
+    SELECT index_name
+    FROM duckdb_indexes()
+    WHERE database_name = 'dbt_delta_guard'
+      AND schema_name = 'main'
+      AND table_name = 'dim_tool_efficiency'
+  
+[0m01:32:49.435566 [debug] [Thread-2 (]: SQL status: OK in 0.001 seconds
+[0m01:32:49.439433 [debug] [Thread-2 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:32:49.440429 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.dim_tool_efficiency"} */
+alter table "dbt_delta_guard"."main"."dim_tool_efficiency" rename to "dim_tool_efficiency__dbt_backup"
+[0m01:32:49.442798 [debug] [Thread-2 (]: SQL status: OK in 0.001 seconds
+[0m01:32:49.445801 [debug] [Thread-2 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:32:49.446835 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.dim_tool_efficiency"} */
+alter table "dbt_delta_guard"."main"."dim_tool_efficiency__dbt_tmp" rename to "dim_tool_efficiency"
+[0m01:32:49.448835 [debug] [Thread-2 (]: SQL status: OK in 0.000 seconds
+[0m01:32:49.451379 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: COMMIT
+[0m01:32:49.452425 [debug] [Thread-2 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:32:49.453427 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: COMMIT
+[0m01:32:49.461563 [debug] [Thread-2 (]: SQL status: OK in 0.007 seconds
+[0m01:32:49.465121 [debug] [Thread-2 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:32:49.466120 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.dim_tool_efficiency"} */
+
+      drop table if exists "dbt_delta_guard"."main"."dim_tool_efficiency__dbt_backup" cascade
+    
+[0m01:32:49.468710 [debug] [Thread-2 (]: SQL status: OK in 0.002 seconds
+[0m01:32:49.471723 [debug] [Thread-2 (]: On model.dbt_delta_guard.dim_tool_efficiency: Close
+[0m01:32:49.472762 [debug] [Thread-2 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': 'fac7bb56-dd62-4ceb-989e-f2e1b1945815', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029E679CD210>]}
+[0m01:32:49.474775 [info ] [Thread-2 (]: 3 of 3 OK created sql table model main.dim_tool_efficiency ..................... [[32mOK[0m in 0.07s]
+[0m01:32:49.475772 [debug] [Thread-2 (]: Finished running node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:32:49.477775 [debug] [MainThread]: Using duckdb connection "master"
+[0m01:32:49.477775 [debug] [MainThread]: On master: BEGIN
+[0m01:32:49.478775 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m01:32:49.480402 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m01:32:49.481411 [debug] [MainThread]: On master: COMMIT
+[0m01:32:49.481411 [debug] [MainThread]: Using duckdb connection "master"
+[0m01:32:49.481411 [debug] [MainThread]: On master: COMMIT
+[0m01:32:49.482896 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m01:32:49.483928 [debug] [MainThread]: On master: Close
+[0m01:32:49.484927 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m01:32:49.485929 [debug] [MainThread]: Connection 'create_dbt_delta_guard_main' was properly closed.
+[0m01:32:49.485929 [debug] [MainThread]: Connection 'list_dbt_delta_guard_main' was properly closed.
+[0m01:32:49.486892 [debug] [MainThread]: Connection 'model.dbt_delta_guard.stg_agent_events' was properly closed.
+[0m01:32:49.487891 [debug] [MainThread]: Connection 'model.dbt_delta_guard.fct_agent_activity' was properly closed.
+[0m01:32:49.488895 [debug] [MainThread]: Connection 'model.dbt_delta_guard.dim_tool_efficiency' was properly closed.
+[0m01:32:49.489895 [info ] [MainThread]: 
+[0m01:32:49.489895 [info ] [MainThread]: Finished running 2 table models, 1 view model in 0 hours 0 minutes and 0.69 seconds (0.69s).
+[0m01:32:49.493960 [debug] [MainThread]: Command end result
+[0m01:32:49.576982 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\manifest.json
+[0m01:32:49.582608 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\semantic_manifest.json
+[0m01:32:49.588212 [debug] [MainThread]: Wrote artifact OsiDocument to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\osi_document.json
+[0m01:32:49.599827 [debug] [MainThread]: Wrote artifact RunExecutionResult to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\run_results.json
+[0m01:32:49.599827 [info ] [MainThread]: 
+[0m01:32:49.602383 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m01:32:49.603431 [info ] [MainThread]: 
+[0m01:32:49.604384 [info ] [MainThread]: Done. PASS=3 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=3
+[0m01:32:49.606429 [debug] [MainThread]: Command `dbt run` succeeded at 01:32:49.606429 after 3.61 seconds
+[0m01:32:49.607384 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029E64523940>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029E675DC460>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000029E62A104F0>]}
+[0m01:32:49.607384 [debug] [MainThread]: Flushing usage events
+[0m01:32:50.526686 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m01:36:37.067012 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000203D12B3940>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000203D2A74520>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000203D2A75480>]}
+
+
+============================== 01:36:37.072689 | cdf9dab0-9b59-4f90-8576-8d3a97d02af8 ==============================
+[0m01:36:37.072689 [info ] [MainThread]: Running with dbt=1.12.3
+[0m01:36:37.073696 [debug] [MainThread]: running dbt with arguments {'static_parser': 'True', 'no_print': 'None', 'version_check': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'maximum_seed_size_mib': '1', 'target_path': 'None', 'printer_width': '80', 'write_json': 'True', 'empty': 'None', 'log_cache_events': 'False', 'introspect': 'True', 'cache_selected_only': 'False', 'log_format': 'default', 'debug': 'False', 'fail_fast': 'False', 'profiles_dir': '.', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'warn_error': 'None', 'partial_parse': 'True', 'indirect_selection': 'eager', 'hints_enabled': 'True', 'use_colors': 'True', 'use_experimental_parser': 'False', 'invocation_command': 'dbt show --select fct_agent_activity --limit 5 --profiles-dir .', 'log_path': 'C:\\Users\\kheza\\Desktop\\Data Engineering\\kafka_streaming_project\\dbt_delta_guard\\logs'}
+[0m01:36:37.611154 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': 'cdf9dab0-9b59-4f90-8576-8d3a97d02af8', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000203D16B9990>]}
+[0m01:36:37.778877 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': 'cdf9dab0-9b59-4f90-8576-8d3a97d02af8', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000203D1DB10C0>]}
+[0m01:36:37.807962 [info ] [MainThread]: Registered adapter: duckdb=1.11.0
+[0m01:36:38.585758 [debug] [MainThread]: checksum: bc4a1fb1eda164bf08e9332b13a521d1e6270a0ccf7ef5af6b759793d06011fb, vars: {}, profile: dbt_delta_guard, target: dev, version: 1.12.3
+[0m01:36:39.167409 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m01:36:39.172939 [debug] [MainThread]: Nothing changed, skipping partial parsing.
+[0m01:36:39.176946 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m01:36:39.203146 [warn ] [MainThread]: [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 1 unused configuration paths:
+- models.dbt_delta_guard.intermediate
+[0m01:36:39.212664 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': 'cdf9dab0-9b59-4f90-8576-8d3a97d02af8', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000203D4163F40>]}
+[0m01:36:39.574014 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\manifest.json
+[0m01:36:39.580815 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\semantic_manifest.json
+[0m01:36:39.708809 [debug] [MainThread]: Wrote artifact OsiDocument to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\osi_document.json
+[0m01:36:39.748889 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': 'cdf9dab0-9b59-4f90-8576-8d3a97d02af8', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000203D400B9D0>]}
+[0m01:36:39.760452 [info ] [MainThread]: Found 3 models, 22 data tests, 616 macros
+[0m01:36:39.763424 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'cdf9dab0-9b59-4f90-8576-8d3a97d02af8', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000203D400A3E0>]}
+[0m01:36:39.769058 [info ] [MainThread]: 
+[0m01:36:39.771284 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m01:36:39.773236 [info ] [MainThread]: 
+[0m01:36:39.776038 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m01:36:39.810402 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_dbt_delta_guard_main'
+[0m01:36:40.005881 [debug] [ThreadPool]: Using duckdb connection "list_dbt_delta_guard_main"
+[0m01:36:40.006881 [debug] [ThreadPool]: On list_dbt_delta_guard_main: BEGIN
+[0m01:36:40.008275 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m01:36:40.034255 [debug] [ThreadPool]: SQL status: OK in 0.026 seconds
+[0m01:36:40.035255 [debug] [ThreadPool]: Using duckdb connection "list_dbt_delta_guard_main"
+[0m01:36:40.036256 [debug] [ThreadPool]: On list_dbt_delta_guard_main: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "connection_name": "list_dbt_delta_guard_main"} */
+select
+      'dbt_delta_guard' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main'
+    and lower(table_catalog) = 'dbt_delta_guard'
+  
+[0m01:36:40.042780 [debug] [ThreadPool]: SQL status: OK in 0.006 seconds
+[0m01:36:40.045778 [debug] [ThreadPool]: On list_dbt_delta_guard_main: ROLLBACK
+[0m01:36:40.047783 [debug] [ThreadPool]: On list_dbt_delta_guard_main: Close
+[0m01:36:40.049295 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'cdf9dab0-9b59-4f90-8576-8d3a97d02af8', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000203D2B971F0>]}
+[0m01:36:40.056301 [debug] [Thread-1 (]: Began running node model.dbt_delta_guard.fct_agent_activity
+[0m01:36:40.057803 [debug] [Thread-1 (]: Acquiring new duckdb connection 'model.dbt_delta_guard.fct_agent_activity'
+[0m01:36:40.058811 [debug] [Thread-1 (]: Began compiling node model.dbt_delta_guard.fct_agent_activity
+[0m01:36:40.069016 [debug] [Thread-1 (]: Writing injected SQL for node "model.dbt_delta_guard.fct_agent_activity"
+[0m01:36:40.071026 [debug] [Thread-1 (]: Began executing node model.dbt_delta_guard.fct_agent_activity
+[0m01:36:40.081545 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.fct_agent_activity"
+[0m01:36:40.082660 [debug] [Thread-1 (]: On model.dbt_delta_guard.fct_agent_activity: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.fct_agent_activity"} */
+
+  
+  
+
+select
+	*,
+	case
+		when execution_time_ms < 100 then 'FAST (<100ms)'
+		when execution_time_ms between 100 and 500 then 'NOMINAL (100-500ms)'
+		else 'SLOW (>500ms)'
+	end as latency_tier,
+	case
+		when cost_usd = 0.0 then 'FREE'
+		when cost_usd < 0.01 then 'LOW_COST (<$0.01)'
+		when cost_usd < 0.1 then 'MEDIUM_COST ($0.01-$0.10)'
+		else 'HIGH_COST (>=$0.10)'
+	end as cost_tier,
+	case when status = 'SUCCESS' then 1 else 0 end as is_success
+from "dbt_delta_guard"."main"."stg_agent_events"
+  
+  limit 5
+
+[0m01:36:40.083711 [debug] [Thread-1 (]: Opening a new connection, currently in state init
+[0m01:36:40.099831 [debug] [Thread-1 (]: SQL status: OK in 0.015 seconds
+[0m01:36:40.104966 [debug] [Thread-1 (]: On model.dbt_delta_guard.fct_agent_activity: Close
+[0m01:36:40.106927 [debug] [Thread-1 (]: Finished running node model.dbt_delta_guard.fct_agent_activity
+[0m01:36:40.107926 [debug] [Thread-3 (]: Began running node test.dbt_delta_guard.accepted_values_fct_agent_activity_cost_tier__FREE__LOW_COST_0_01___MEDIUM_COST_0_01_0_10___HIGH_COST_0_10_.d399c505be
+[0m01:36:40.108964 [debug] [Thread-4 (]: Began running node test.dbt_delta_guard.accepted_values_fct_agent_activity_latency_tier__FAST_100ms___NOMINAL_100_500ms___SLOW_500ms_.0db74b34f3
+[0m01:36:40.108964 [debug] [Thread-2 (]: Began running node test.dbt_delta_guard.assert_no_duplicates
+[0m01:36:40.110436 [debug] [Thread-1 (]: Began running node test.dbt_delta_guard.not_null_fct_agent_activity_action_id.fc73ef0796
+[0m01:36:40.111194 [debug] [Thread-3 (]: Acquiring new duckdb connection 'test.dbt_delta_guard.accepted_values_fct_agent_activity_cost_tier__FREE__LOW_COST_0_01___MEDIUM_COST_0_01_0_10___HIGH_COST_0_10_.d399c505be'
+[0m01:36:40.113208 [debug] [Thread-4 (]: Acquiring new duckdb connection 'test.dbt_delta_guard.accepted_values_fct_agent_activity_latency_tier__FAST_100ms___NOMINAL_100_500ms___SLOW_500ms_.0db74b34f3'
+[0m01:36:40.114208 [debug] [Thread-2 (]: Acquiring new duckdb connection 'test.dbt_delta_guard.assert_no_duplicates'
+[0m01:36:40.115205 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly model.dbt_delta_guard.fct_agent_activity, now test.dbt_delta_guard.not_null_fct_agent_activity_action_id.fc73ef0796)
+[0m01:36:40.115861 [debug] [Thread-3 (]: Began compiling node test.dbt_delta_guard.accepted_values_fct_agent_activity_cost_tier__FREE__LOW_COST_0_01___MEDIUM_COST_0_01_0_10___HIGH_COST_0_10_.d399c505be
+[0m01:36:40.116908 [debug] [Thread-4 (]: Began compiling node test.dbt_delta_guard.accepted_values_fct_agent_activity_latency_tier__FAST_100ms___NOMINAL_100_500ms___SLOW_500ms_.0db74b34f3
+[0m01:36:40.117870 [debug] [Thread-2 (]: Began compiling node test.dbt_delta_guard.assert_no_duplicates
+[0m01:36:40.118873 [debug] [Thread-1 (]: Began compiling node test.dbt_delta_guard.not_null_fct_agent_activity_action_id.fc73ef0796
+[0m01:36:40.156757 [debug] [Thread-3 (]: Writing injected SQL for node "test.dbt_delta_guard.accepted_values_fct_agent_activity_cost_tier__FREE__LOW_COST_0_01___MEDIUM_COST_0_01_0_10___HIGH_COST_0_10_.d399c505be"
+[0m01:36:40.180167 [debug] [Thread-4 (]: Writing injected SQL for node "test.dbt_delta_guard.accepted_values_fct_agent_activity_latency_tier__FAST_100ms___NOMINAL_100_500ms___SLOW_500ms_.0db74b34f3"
+[0m01:36:40.183206 [debug] [Thread-2 (]: Writing injected SQL for node "test.dbt_delta_guard.assert_no_duplicates"
+[0m01:36:40.203419 [debug] [Thread-1 (]: Writing injected SQL for node "test.dbt_delta_guard.not_null_fct_agent_activity_action_id.fc73ef0796"
+[0m01:36:40.205734 [debug] [Thread-3 (]: Began executing node test.dbt_delta_guard.accepted_values_fct_agent_activity_cost_tier__FREE__LOW_COST_0_01___MEDIUM_COST_0_01_0_10___HIGH_COST_0_10_.d399c505be
+[0m01:36:40.207952 [debug] [Thread-4 (]: Began executing node test.dbt_delta_guard.accepted_values_fct_agent_activity_latency_tier__FAST_100ms___NOMINAL_100_500ms___SLOW_500ms_.0db74b34f3
+[0m01:36:40.209473 [debug] [Thread-2 (]: Began executing node test.dbt_delta_guard.assert_no_duplicates
+[0m01:36:40.218703 [debug] [Thread-3 (]: Using duckdb connection "test.dbt_delta_guard.accepted_values_fct_agent_activity_cost_tier__FREE__LOW_COST_0_01___MEDIUM_COST_0_01_0_10___HIGH_COST_0_10_.d399c505be"
+[0m01:36:40.229288 [debug] [Thread-4 (]: Using duckdb connection "test.dbt_delta_guard.accepted_values_fct_agent_activity_latency_tier__FAST_100ms___NOMINAL_100_500ms___SLOW_500ms_.0db74b34f3"
+[0m01:36:40.230296 [debug] [Thread-1 (]: Began executing node test.dbt_delta_guard.not_null_fct_agent_activity_action_id.fc73ef0796
+[0m01:36:40.237131 [debug] [Thread-2 (]: Using duckdb connection "test.dbt_delta_guard.assert_no_duplicates"
+[0m01:36:40.238317 [debug] [Thread-3 (]: On test.dbt_delta_guard.accepted_values_fct_agent_activity_cost_tier__FREE__LOW_COST_0_01___MEDIUM_COST_0_01_0_10___HIGH_COST_0_10_.d399c505be: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "test.dbt_delta_guard.accepted_values_fct_agent_activity_cost_tier__FREE__LOW_COST_0_01___MEDIUM_COST_0_01_0_10___HIGH_COST_0_10_.d399c505be"} */
+
+  
+  
+    
+    
+
+with all_values as (
+
+    select
+        cost_tier as value_field,
+        count(*) as n_records
+
+    from "dbt_delta_guard"."main"."fct_agent_activity"
+    group by cost_tier
+
+)
+
+select *
+from all_values
+where value_field not in (
+    'FREE','LOW_COST (<$0.01)','MEDIUM_COST ($0.01-$0.10)','HIGH_COST (>=$0.10)'
+)
+
+
+
+  
+  limit 5
+
+[0m01:36:40.239946 [debug] [Thread-4 (]: On test.dbt_delta_guard.accepted_values_fct_agent_activity_latency_tier__FAST_100ms___NOMINAL_100_500ms___SLOW_500ms_.0db74b34f3: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "test.dbt_delta_guard.accepted_values_fct_agent_activity_latency_tier__FAST_100ms___NOMINAL_100_500ms___SLOW_500ms_.0db74b34f3"} */
+
+  
+  
+    
+    
+
+with all_values as (
+
+    select
+        latency_tier as value_field,
+        count(*) as n_records
+
+    from "dbt_delta_guard"."main"."fct_agent_activity"
+    group by latency_tier
+
+)
+
+select *
+from all_values
+where value_field not in (
+    'FAST (<100ms)','NOMINAL (100-500ms)','SLOW (>500ms)'
+)
+
+
+
+  
+  limit 5
+
+[0m01:36:40.248793 [debug] [Thread-1 (]: Using duckdb connection "test.dbt_delta_guard.not_null_fct_agent_activity_action_id.fc73ef0796"
+[0m01:36:40.249972 [debug] [Thread-2 (]: On test.dbt_delta_guard.assert_no_duplicates: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "test.dbt_delta_guard.assert_no_duplicates"} */
+
+  
+  select
+    action_id,
+    count(*) as duplicate_count
+from "dbt_delta_guard"."main"."fct_agent_activity"
+group by action_id
+having count(*) > 1
+  
+  limit 5
+
+[0m01:36:40.250982 [debug] [Thread-3 (]: Opening a new connection, currently in state init
+[0m01:36:40.252991 [debug] [Thread-4 (]: Opening a new connection, currently in state init
+[0m01:36:40.254993 [debug] [Thread-1 (]: On test.dbt_delta_guard.not_null_fct_agent_activity_action_id.fc73ef0796: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "test.dbt_delta_guard.not_null_fct_agent_activity_action_id.fc73ef0796"} */
+
+  
+  
+    
+    
+
+
+
+select action_id
+from "dbt_delta_guard"."main"."fct_agent_activity"
+where action_id is null
+
+
+
+  
+  limit 5
+
+[0m01:36:40.256990 [debug] [Thread-2 (]: Opening a new connection, currently in state init
+[0m01:36:40.260453 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m01:36:40.266444 [debug] [Thread-1 (]: SQL status: OK in 0.006 seconds
+[0m01:36:40.267446 [debug] [Thread-2 (]: SQL status: OK in 0.010 seconds
+[0m01:36:40.268444 [debug] [Thread-4 (]: SQL status: OK in 0.015 seconds
+[0m01:36:40.268954 [debug] [Thread-3 (]: SQL status: OK in 0.018 seconds
+[0m01:36:40.271003 [debug] [Thread-1 (]: On test.dbt_delta_guard.not_null_fct_agent_activity_action_id.fc73ef0796: Close
+[0m01:36:40.272985 [debug] [Thread-2 (]: On test.dbt_delta_guard.assert_no_duplicates: Close
+[0m01:36:40.275979 [debug] [Thread-4 (]: On test.dbt_delta_guard.accepted_values_fct_agent_activity_latency_tier__FAST_100ms___NOMINAL_100_500ms___SLOW_500ms_.0db74b34f3: Close
+[0m01:36:40.277964 [debug] [Thread-3 (]: On test.dbt_delta_guard.accepted_values_fct_agent_activity_cost_tier__FREE__LOW_COST_0_01___MEDIUM_COST_0_01_0_10___HIGH_COST_0_10_.d399c505be: Close
+[0m01:36:40.279470 [debug] [Thread-1 (]: Finished running node test.dbt_delta_guard.not_null_fct_agent_activity_action_id.fc73ef0796
+[0m01:36:40.281488 [debug] [Thread-2 (]: Finished running node test.dbt_delta_guard.assert_no_duplicates
+[0m01:36:40.282488 [debug] [Thread-4 (]: Finished running node test.dbt_delta_guard.accepted_values_fct_agent_activity_latency_tier__FAST_100ms___NOMINAL_100_500ms___SLOW_500ms_.0db74b34f3
+[0m01:36:40.284125 [debug] [Thread-3 (]: Finished running node test.dbt_delta_guard.accepted_values_fct_agent_activity_cost_tier__FREE__LOW_COST_0_01___MEDIUM_COST_0_01_0_10___HIGH_COST_0_10_.d399c505be
+[0m01:36:40.285169 [debug] [Thread-1 (]: Began running node test.dbt_delta_guard.not_null_fct_agent_activity_agent_id.5edf30bb07
+[0m01:36:40.286168 [debug] [Thread-2 (]: Began running node test.dbt_delta_guard.unique_fct_agent_activity_action_id.30604fbd49
+[0m01:36:40.288941 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.not_null_fct_agent_activity_action_id.fc73ef0796, now test.dbt_delta_guard.not_null_fct_agent_activity_agent_id.5edf30bb07)
+[0m01:36:40.289950 [debug] [Thread-2 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.assert_no_duplicates, now test.dbt_delta_guard.unique_fct_agent_activity_action_id.30604fbd49)
+[0m01:36:40.290954 [debug] [Thread-1 (]: Began compiling node test.dbt_delta_guard.not_null_fct_agent_activity_agent_id.5edf30bb07
+[0m01:36:40.291983 [debug] [Thread-2 (]: Began compiling node test.dbt_delta_guard.unique_fct_agent_activity_action_id.30604fbd49
+[0m01:36:40.305687 [debug] [Thread-1 (]: Writing injected SQL for node "test.dbt_delta_guard.not_null_fct_agent_activity_agent_id.5edf30bb07"
+[0m01:36:40.318765 [debug] [Thread-2 (]: Writing injected SQL for node "test.dbt_delta_guard.unique_fct_agent_activity_action_id.30604fbd49"
+[0m01:36:40.321302 [debug] [Thread-1 (]: Began executing node test.dbt_delta_guard.not_null_fct_agent_activity_agent_id.5edf30bb07
+[0m01:36:40.323298 [debug] [Thread-2 (]: Began executing node test.dbt_delta_guard.unique_fct_agent_activity_action_id.30604fbd49
+[0m01:36:40.332380 [debug] [Thread-1 (]: Using duckdb connection "test.dbt_delta_guard.not_null_fct_agent_activity_agent_id.5edf30bb07"
+[0m01:36:40.338999 [debug] [Thread-2 (]: Using duckdb connection "test.dbt_delta_guard.unique_fct_agent_activity_action_id.30604fbd49"
+[0m01:36:40.341008 [debug] [Thread-1 (]: On test.dbt_delta_guard.not_null_fct_agent_activity_agent_id.5edf30bb07: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "test.dbt_delta_guard.not_null_fct_agent_activity_agent_id.5edf30bb07"} */
+
+  
+  
+    
+    
+
+
+
+select agent_id
+from "dbt_delta_guard"."main"."fct_agent_activity"
+where agent_id is null
+
+
+
+  
+  limit 5
+
+[0m01:36:40.342010 [debug] [Thread-2 (]: On test.dbt_delta_guard.unique_fct_agent_activity_action_id.30604fbd49: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "test.dbt_delta_guard.unique_fct_agent_activity_action_id.30604fbd49"} */
+
+  
+  
+    
+    
+
+select
+    action_id as unique_field,
+    count(*) as n_records
+
+from "dbt_delta_guard"."main"."fct_agent_activity"
+where action_id is not null
+group by action_id
+having count(*) > 1
+
+
+
+  
+  limit 5
+
+[0m01:36:40.344009 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m01:36:40.345009 [debug] [Thread-2 (]: Opening a new connection, currently in state closed
+[0m01:36:40.347017 [debug] [Thread-1 (]: SQL status: OK in 0.003 seconds
+[0m01:36:40.349541 [debug] [Thread-1 (]: On test.dbt_delta_guard.not_null_fct_agent_activity_agent_id.5edf30bb07: Close
+[0m01:36:40.350550 [debug] [Thread-2 (]: SQL status: OK in 0.006 seconds
+[0m01:36:40.352549 [debug] [Thread-1 (]: Finished running node test.dbt_delta_guard.not_null_fct_agent_activity_agent_id.5edf30bb07
+[0m01:36:40.354575 [debug] [Thread-2 (]: On test.dbt_delta_guard.unique_fct_agent_activity_action_id.30604fbd49: Close
+[0m01:36:40.357546 [debug] [Thread-2 (]: Finished running node test.dbt_delta_guard.unique_fct_agent_activity_action_id.30604fbd49
+[0m01:36:40.360084 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m01:36:40.361099 [debug] [MainThread]: Connection 'list_dbt_delta_guard_main' was properly closed.
+[0m01:36:40.362100 [debug] [MainThread]: Connection 'test.dbt_delta_guard.not_null_fct_agent_activity_agent_id.5edf30bb07' was properly closed.
+[0m01:36:40.363093 [debug] [MainThread]: Connection 'test.dbt_delta_guard.accepted_values_fct_agent_activity_cost_tier__FREE__LOW_COST_0_01___MEDIUM_COST_0_01_0_10___HIGH_COST_0_10_.d399c505be' was properly closed.
+[0m01:36:40.364092 [debug] [MainThread]: Connection 'test.dbt_delta_guard.accepted_values_fct_agent_activity_latency_tier__FAST_100ms___NOMINAL_100_500ms___SLOW_500ms_.0db74b34f3' was properly closed.
+[0m01:36:40.365102 [debug] [MainThread]: Connection 'test.dbt_delta_guard.unique_fct_agent_activity_action_id.30604fbd49' was properly closed.
+[0m01:36:40.368612 [debug] [MainThread]: Command end result
+[0m01:36:40.452606 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\manifest.json
+[0m01:36:40.459113 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\semantic_manifest.json
+[0m01:36:40.465126 [debug] [MainThread]: Wrote artifact OsiDocument to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\osi_document.json
+[0m01:36:40.479159 [debug] [MainThread]: Wrote artifact RunExecutionResult to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\run_results.json
+[0m01:36:40.480167 [debug] [MainThread]: Excluded node 'not_null_fct_agent_activity_action_id' from results
+[0m01:36:40.481174 [debug] [MainThread]: Excluded node 'assert_no_duplicates' from results
+[0m01:36:40.482173 [debug] [MainThread]: Excluded node 'accepted_values_fct_agent_activity_latency_tier__FAST_100ms___NOMINAL_100_500ms___SLOW_500ms_' from results
+[0m01:36:40.483176 [debug] [MainThread]: Excluded node 'accepted_values_fct_agent_activity_cost_tier__FREE__LOW_COST_0_01___MEDIUM_COST_0_01_0_10___HIGH_COST_0_10_' from results
+[0m01:36:40.483176 [debug] [MainThread]: Excluded node 'not_null_fct_agent_activity_agent_id' from results
+[0m01:36:40.484177 [debug] [MainThread]: Excluded node 'unique_fct_agent_activity_action_id' from results
+[0m01:36:40.485175 [info ] [MainThread]: Previewing node 'fct_agent_activity':
+| agent_id  | session_id | action_id |           timestamp | tool_name          | execution_time_ms | ... |
+| --------- | ---------- | --------- | ------------------- | ------------------ | ----------------- | --- |
+| agent_001 | sess_01    | act_01    | 2026-09-05 12:00:00 | sql_query_executor |               150 | ... |
+
+[0m01:36:40.486716 [debug] [MainThread]: Command `dbt show` succeeded at 01:36:40.486716 after 3.60 seconds
+[0m01:36:40.487761 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000203D12B3940>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000203D2AF30A0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000203CF7704F0>]}
+[0m01:36:40.488725 [debug] [MainThread]: Flushing usage events
+[0m01:36:41.224596 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m01:36:45.845895 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000024D14053940>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000024D15824520>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000024D15825480>]}
+
+
+============================== 01:36:45.856104 | 4610b6a5-4b6f-40f5-85fc-1ea3e7f6dabd ==============================
+[0m01:36:45.856104 [info ] [MainThread]: Running with dbt=1.12.3
+[0m01:36:45.858123 [debug] [MainThread]: running dbt with arguments {'static_parser': 'True', 'no_print': 'None', 'maximum_seed_size_mib': '1', 'target_path': 'None', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'version_check': 'True', 'printer_width': '80', 'write_json': 'True', 'introspect': 'True', 'log_cache_events': 'False', 'empty': 'None', 'cache_selected_only': 'False', 'fail_fast': 'False', 'debug': 'False', 'log_format': 'default', 'profiles_dir': '.', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'warn_error': 'None', 'partial_parse': 'True', 'invocation_command': 'dbt show --select dim_tool_efficiency --profiles-dir .', 'hints_enabled': 'True', 'indirect_selection': 'eager', 'use_experimental_parser': 'False', 'use_colors': 'True', 'log_path': 'C:\\Users\\kheza\\Desktop\\Data Engineering\\kafka_streaming_project\\dbt_delta_guard\\logs'}
+[0m01:36:46.446489 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '4610b6a5-4b6f-40f5-85fc-1ea3e7f6dabd', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000024D14459990>]}
+[0m01:36:46.605496 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '4610b6a5-4b6f-40f5-85fc-1ea3e7f6dabd', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000024D14B510C0>]}
+[0m01:36:46.631812 [info ] [MainThread]: Registered adapter: duckdb=1.11.0
+[0m01:36:47.309991 [debug] [MainThread]: checksum: bc4a1fb1eda164bf08e9332b13a521d1e6270a0ccf7ef5af6b759793d06011fb, vars: {}, profile: dbt_delta_guard, target: dev, version: 1.12.3
+[0m01:36:47.657477 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m01:36:47.658982 [debug] [MainThread]: Nothing changed, skipping partial parsing.
+[0m01:36:47.658982 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m01:36:47.670102 [warn ] [MainThread]: [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 1 unused configuration paths:
+- models.dbt_delta_guard.intermediate
+[0m01:36:47.676138 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': '4610b6a5-4b6f-40f5-85fc-1ea3e7f6dabd', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000024D16F13F40>]}
+[0m01:36:47.986995 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\manifest.json
+[0m01:36:47.992166 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\semantic_manifest.json
+[0m01:36:48.047189 [debug] [MainThread]: Wrote artifact OsiDocument to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\osi_document.json
+[0m01:36:48.056939 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': '4610b6a5-4b6f-40f5-85fc-1ea3e7f6dabd', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000024D16DBB9D0>]}
+[0m01:36:48.058936 [info ] [MainThread]: Found 3 models, 22 data tests, 616 macros
+[0m01:36:48.060458 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '4610b6a5-4b6f-40f5-85fc-1ea3e7f6dabd', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000024D16DBA3E0>]}
+[0m01:36:48.064475 [info ] [MainThread]: 
+[0m01:36:48.065467 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m01:36:48.067470 [info ] [MainThread]: 
+[0m01:36:48.070000 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m01:36:48.084256 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_dbt_delta_guard_main'
+[0m01:36:48.304499 [debug] [ThreadPool]: Using duckdb connection "list_dbt_delta_guard_main"
+[0m01:36:48.306497 [debug] [ThreadPool]: On list_dbt_delta_guard_main: BEGIN
+[0m01:36:48.307499 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m01:36:48.353301 [debug] [ThreadPool]: SQL status: OK in 0.045 seconds
+[0m01:36:48.355074 [debug] [ThreadPool]: Using duckdb connection "list_dbt_delta_guard_main"
+[0m01:36:48.356702 [debug] [ThreadPool]: On list_dbt_delta_guard_main: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "connection_name": "list_dbt_delta_guard_main"} */
+select
+      'dbt_delta_guard' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main'
+    and lower(table_catalog) = 'dbt_delta_guard'
+  
+[0m01:36:48.366223 [debug] [ThreadPool]: SQL status: OK in 0.008 seconds
+[0m01:36:48.369024 [debug] [ThreadPool]: On list_dbt_delta_guard_main: ROLLBACK
+[0m01:36:48.371174 [debug] [ThreadPool]: On list_dbt_delta_guard_main: Close
+[0m01:36:48.374717 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '4610b6a5-4b6f-40f5-85fc-1ea3e7f6dabd', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000024D1594F1F0>]}
+[0m01:36:48.384334 [debug] [Thread-1 (]: Began running node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:36:48.386560 [debug] [Thread-1 (]: Acquiring new duckdb connection 'model.dbt_delta_guard.dim_tool_efficiency'
+[0m01:36:48.388211 [debug] [Thread-1 (]: Began compiling node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:36:48.401195 [debug] [Thread-1 (]: Writing injected SQL for node "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:36:48.403957 [debug] [Thread-1 (]: Began executing node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:36:48.416939 [debug] [Thread-1 (]: Using duckdb connection "model.dbt_delta_guard.dim_tool_efficiency"
+[0m01:36:48.419092 [debug] [Thread-1 (]: On model.dbt_delta_guard.dim_tool_efficiency: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "model.dbt_delta_guard.dim_tool_efficiency"} */
+
+  
+  
+
+select
+	tool_name,
+	count(*) as total_invocations,
+	count(distinct agent_id) as unique_agents_using_tool,
+	round(sum(cost_usd), 4) as total_cost_usd,
+	round(avg(cost_usd), 6) as avg_cost_per_invocation_usd,
+	round(avg(execution_time_ms), 6) as avg_latency_ms,
+	approx_quantile(execution_time_ms, 0.95) as p95_latency_ms,
+	sum(is_success) as successful_executions,
+	sum(case when is_success = 0 then 1 else 0 end) as failed_executions,
+	round(100.0 * sum(is_success) / count(*), 6) as success_rate_pct,
+	round(100.0 * sum(case when cost_usd = 0.0 then 1 else 0 end) / count(*), 6) as free_invocation_pct,
+	round(avg(case when is_success = 1 then execution_time_ms end), 6) as avg_success_latency_ms,
+	round(avg(case when is_success = 0 then execution_time_ms end), 6) as avg_failure_latency_ms
+from "dbt_delta_guard"."main"."fct_agent_activity"
+group by tool_name
+  
+  limit 5
+
+[0m01:36:48.420103 [debug] [Thread-1 (]: Opening a new connection, currently in state init
+[0m01:36:48.436296 [debug] [Thread-1 (]: SQL status: OK in 0.016 seconds
+[0m01:36:48.442854 [debug] [Thread-1 (]: On model.dbt_delta_guard.dim_tool_efficiency: Close
+[0m01:36:48.444855 [debug] [Thread-1 (]: Finished running node model.dbt_delta_guard.dim_tool_efficiency
+[0m01:36:48.446853 [debug] [Thread-3 (]: Began running node test.dbt_delta_guard.dbt_utils_accepted_range_dim_tool_efficiency_success_rate_pct__100__0.7e491bff04
+[0m01:36:48.448441 [debug] [Thread-4 (]: Began running node test.dbt_delta_guard.not_null_dim_tool_efficiency_success_rate_pct.c2576d8e36
+[0m01:36:48.448969 [debug] [Thread-2 (]: Began running node test.dbt_delta_guard.not_null_dim_tool_efficiency_tool_name.465ebd13b5
+[0m01:36:48.449992 [debug] [Thread-1 (]: Began running node test.dbt_delta_guard.not_null_dim_tool_efficiency_total_invocations.a983f65e38
+[0m01:36:48.450980 [debug] [Thread-3 (]: Acquiring new duckdb connection 'test.dbt_delta_guard.dbt_utils_accepted_range_dim_tool_efficiency_success_rate_pct__100__0.7e491bff04'
+[0m01:36:48.453094 [debug] [Thread-4 (]: Acquiring new duckdb connection 'test.dbt_delta_guard.not_null_dim_tool_efficiency_success_rate_pct.c2576d8e36'
+[0m01:36:48.455101 [debug] [Thread-2 (]: Acquiring new duckdb connection 'test.dbt_delta_guard.not_null_dim_tool_efficiency_tool_name.465ebd13b5'
+[0m01:36:48.456102 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly model.dbt_delta_guard.dim_tool_efficiency, now test.dbt_delta_guard.not_null_dim_tool_efficiency_total_invocations.a983f65e38)
+[0m01:36:48.457103 [debug] [Thread-3 (]: Began compiling node test.dbt_delta_guard.dbt_utils_accepted_range_dim_tool_efficiency_success_rate_pct__100__0.7e491bff04
+[0m01:36:48.458104 [debug] [Thread-4 (]: Began compiling node test.dbt_delta_guard.not_null_dim_tool_efficiency_success_rate_pct.c2576d8e36
+[0m01:36:48.459608 [debug] [Thread-2 (]: Began compiling node test.dbt_delta_guard.not_null_dim_tool_efficiency_tool_name.465ebd13b5
+[0m01:36:48.460617 [debug] [Thread-1 (]: Began compiling node test.dbt_delta_guard.not_null_dim_tool_efficiency_total_invocations.a983f65e38
+[0m01:36:48.484281 [debug] [Thread-3 (]: Writing injected SQL for node "test.dbt_delta_guard.dbt_utils_accepted_range_dim_tool_efficiency_success_rate_pct__100__0.7e491bff04"
+[0m01:36:48.500825 [debug] [Thread-4 (]: Writing injected SQL for node "test.dbt_delta_guard.not_null_dim_tool_efficiency_success_rate_pct.c2576d8e36"
+[0m01:36:48.512334 [debug] [Thread-2 (]: Writing injected SQL for node "test.dbt_delta_guard.not_null_dim_tool_efficiency_tool_name.465ebd13b5"
+[0m01:36:48.523900 [debug] [Thread-1 (]: Writing injected SQL for node "test.dbt_delta_guard.not_null_dim_tool_efficiency_total_invocations.a983f65e38"
+[0m01:36:48.525900 [debug] [Thread-3 (]: Began executing node test.dbt_delta_guard.dbt_utils_accepted_range_dim_tool_efficiency_success_rate_pct__100__0.7e491bff04
+[0m01:36:48.527477 [debug] [Thread-4 (]: Began executing node test.dbt_delta_guard.not_null_dim_tool_efficiency_success_rate_pct.c2576d8e36
+[0m01:36:48.529007 [debug] [Thread-2 (]: Began executing node test.dbt_delta_guard.not_null_dim_tool_efficiency_tool_name.465ebd13b5
+[0m01:36:48.533022 [debug] [Thread-3 (]: Using duckdb connection "test.dbt_delta_guard.dbt_utils_accepted_range_dim_tool_efficiency_success_rate_pct__100__0.7e491bff04"
+[0m01:36:48.534060 [debug] [Thread-1 (]: Began executing node test.dbt_delta_guard.not_null_dim_tool_efficiency_total_invocations.a983f65e38
+[0m01:36:48.539572 [debug] [Thread-4 (]: Using duckdb connection "test.dbt_delta_guard.not_null_dim_tool_efficiency_success_rate_pct.c2576d8e36"
+[0m01:36:48.544612 [debug] [Thread-2 (]: Using duckdb connection "test.dbt_delta_guard.not_null_dim_tool_efficiency_tool_name.465ebd13b5"
+[0m01:36:48.545573 [debug] [Thread-3 (]: On test.dbt_delta_guard.dbt_utils_accepted_range_dim_tool_efficiency_success_rate_pct__100__0.7e491bff04: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "test.dbt_delta_guard.dbt_utils_accepted_range_dim_tool_efficiency_success_rate_pct__100__0.7e491bff04"} */
+
+  
+  
+
+with meet_condition as(
+  select *
+  from "dbt_delta_guard"."main"."dim_tool_efficiency"
+),
+
+validation_errors as (
+  select *
+  from meet_condition
+  where
+    -- never true, defaults to an empty result set. Exists to ensure any combo of the `or` clauses below succeeds
+    1 = 2
+    -- records with a value >= min_value are permitted. The `not` flips this to find records that don't meet the rule.
+    or not success_rate_pct >= 0
+    -- records with a value <= max_value are permitted. The `not` flips this to find records that don't meet the rule.
+    or not success_rate_pct <= 100
+)
+
+select *
+from validation_errors
+
+
+  
+  limit 5
+
+[0m01:36:48.552179 [debug] [Thread-1 (]: Using duckdb connection "test.dbt_delta_guard.not_null_dim_tool_efficiency_total_invocations.a983f65e38"
+[0m01:36:48.553178 [debug] [Thread-4 (]: On test.dbt_delta_guard.not_null_dim_tool_efficiency_success_rate_pct.c2576d8e36: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "test.dbt_delta_guard.not_null_dim_tool_efficiency_success_rate_pct.c2576d8e36"} */
+
+  
+  
+    
+    
+
+
+
+select success_rate_pct
+from "dbt_delta_guard"."main"."dim_tool_efficiency"
+where success_rate_pct is null
+
+
+
+  
+  limit 5
+
+[0m01:36:48.554180 [debug] [Thread-2 (]: On test.dbt_delta_guard.not_null_dim_tool_efficiency_tool_name.465ebd13b5: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "test.dbt_delta_guard.not_null_dim_tool_efficiency_tool_name.465ebd13b5"} */
+
+  
+  
+    
+    
+
+
+
+select tool_name
+from "dbt_delta_guard"."main"."dim_tool_efficiency"
+where tool_name is null
+
+
+
+  
+  limit 5
+
+[0m01:36:48.555179 [debug] [Thread-3 (]: Opening a new connection, currently in state init
+[0m01:36:48.557178 [debug] [Thread-1 (]: On test.dbt_delta_guard.not_null_dim_tool_efficiency_total_invocations.a983f65e38: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "test.dbt_delta_guard.not_null_dim_tool_efficiency_total_invocations.a983f65e38"} */
+
+  
+  
+    
+    
+
+
+
+select total_invocations
+from "dbt_delta_guard"."main"."dim_tool_efficiency"
+where total_invocations is null
+
+
+
+  
+  limit 5
+
+[0m01:36:48.557178 [debug] [Thread-4 (]: Opening a new connection, currently in state init
+[0m01:36:48.558690 [debug] [Thread-2 (]: Opening a new connection, currently in state init
+[0m01:36:48.560701 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m01:36:48.564474 [debug] [Thread-4 (]: SQL status: OK in 0.006 seconds
+[0m01:36:48.565499 [debug] [Thread-2 (]: SQL status: OK in 0.007 seconds
+[0m01:36:48.566477 [debug] [Thread-1 (]: SQL status: OK in 0.006 seconds
+[0m01:36:48.569051 [debug] [Thread-4 (]: On test.dbt_delta_guard.not_null_dim_tool_efficiency_success_rate_pct.c2576d8e36: Close
+[0m01:36:48.570061 [debug] [Thread-3 (]: SQL status: OK in 0.014 seconds
+[0m01:36:48.571063 [debug] [Thread-2 (]: On test.dbt_delta_guard.not_null_dim_tool_efficiency_tool_name.465ebd13b5: Close
+[0m01:36:48.573063 [debug] [Thread-1 (]: On test.dbt_delta_guard.not_null_dim_tool_efficiency_total_invocations.a983f65e38: Close
+[0m01:36:48.575105 [debug] [Thread-4 (]: Finished running node test.dbt_delta_guard.not_null_dim_tool_efficiency_success_rate_pct.c2576d8e36
+[0m01:36:48.577098 [debug] [Thread-3 (]: On test.dbt_delta_guard.dbt_utils_accepted_range_dim_tool_efficiency_success_rate_pct__100__0.7e491bff04: Close
+[0m01:36:48.578072 [debug] [Thread-2 (]: Finished running node test.dbt_delta_guard.not_null_dim_tool_efficiency_tool_name.465ebd13b5
+[0m01:36:48.579575 [debug] [Thread-1 (]: Finished running node test.dbt_delta_guard.not_null_dim_tool_efficiency_total_invocations.a983f65e38
+[0m01:36:48.580621 [debug] [Thread-4 (]: Began running node test.dbt_delta_guard.unique_dim_tool_efficiency_tool_name.324aec9482
+[0m01:36:48.583236 [debug] [Thread-3 (]: Finished running node test.dbt_delta_guard.dbt_utils_accepted_range_dim_tool_efficiency_success_rate_pct__100__0.7e491bff04
+[0m01:36:48.585229 [debug] [Thread-4 (]: Re-using an available connection from the pool (formerly test.dbt_delta_guard.not_null_dim_tool_efficiency_success_rate_pct.c2576d8e36, now test.dbt_delta_guard.unique_dim_tool_efficiency_tool_name.324aec9482)
+[0m01:36:48.587232 [debug] [Thread-4 (]: Began compiling node test.dbt_delta_guard.unique_dim_tool_efficiency_tool_name.324aec9482
+[0m01:36:48.603025 [debug] [Thread-4 (]: Writing injected SQL for node "test.dbt_delta_guard.unique_dim_tool_efficiency_tool_name.324aec9482"
+[0m01:36:48.604996 [debug] [Thread-4 (]: Began executing node test.dbt_delta_guard.unique_dim_tool_efficiency_tool_name.324aec9482
+[0m01:36:48.611746 [debug] [Thread-4 (]: Using duckdb connection "test.dbt_delta_guard.unique_dim_tool_efficiency_tool_name.324aec9482"
+[0m01:36:48.612746 [debug] [Thread-4 (]: On test.dbt_delta_guard.unique_dim_tool_efficiency_tool_name.324aec9482: /* {"app": "dbt", "dbt_version": "1.12.3", "profile_name": "dbt_delta_guard", "target_name": "dev", "node_id": "test.dbt_delta_guard.unique_dim_tool_efficiency_tool_name.324aec9482"} */
+
+  
+  
+    
+    
+
+select
+    tool_name as unique_field,
+    count(*) as n_records
+
+from "dbt_delta_guard"."main"."dim_tool_efficiency"
+where tool_name is not null
+group by tool_name
+having count(*) > 1
+
+
+
+  
+  limit 5
+
+[0m01:36:48.613752 [debug] [Thread-4 (]: Opening a new connection, currently in state closed
+[0m01:36:48.617719 [debug] [Thread-4 (]: SQL status: OK in 0.003 seconds
+[0m01:36:48.619264 [debug] [Thread-4 (]: On test.dbt_delta_guard.unique_dim_tool_efficiency_tool_name.324aec9482: Close
+[0m01:36:48.621266 [debug] [Thread-4 (]: Finished running node test.dbt_delta_guard.unique_dim_tool_efficiency_tool_name.324aec9482
+[0m01:36:48.623413 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m01:36:48.624444 [debug] [MainThread]: Connection 'list_dbt_delta_guard_main' was properly closed.
+[0m01:36:48.625410 [debug] [MainThread]: Connection 'test.dbt_delta_guard.not_null_dim_tool_efficiency_total_invocations.a983f65e38' was properly closed.
+[0m01:36:48.626410 [debug] [MainThread]: Connection 'test.dbt_delta_guard.dbt_utils_accepted_range_dim_tool_efficiency_success_rate_pct__100__0.7e491bff04' was properly closed.
+[0m01:36:48.626410 [debug] [MainThread]: Connection 'test.dbt_delta_guard.unique_dim_tool_efficiency_tool_name.324aec9482' was properly closed.
+[0m01:36:48.629070 [debug] [MainThread]: Connection 'test.dbt_delta_guard.not_null_dim_tool_efficiency_tool_name.465ebd13b5' was properly closed.
+[0m01:36:48.632447 [debug] [MainThread]: Command end result
+[0m01:36:48.726208 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\manifest.json
+[0m01:36:48.732764 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\semantic_manifest.json
+[0m01:36:48.738785 [debug] [MainThread]: Wrote artifact OsiDocument to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\osi_document.json
+[0m01:36:48.754238 [debug] [MainThread]: Wrote artifact RunExecutionResult to C:\Users\kheza\Desktop\Data Engineering\kafka_streaming_project\dbt_delta_guard\target\run_results.json
+[0m01:36:48.755239 [debug] [MainThread]: Excluded node 'not_null_dim_tool_efficiency_success_rate_pct' from results
+[0m01:36:48.756238 [debug] [MainThread]: Excluded node 'not_null_dim_tool_efficiency_tool_name' from results
+[0m01:36:48.757237 [debug] [MainThread]: Excluded node 'not_null_dim_tool_efficiency_total_invocations' from results
+[0m01:36:48.757237 [debug] [MainThread]: Excluded node 'dbt_utils_accepted_range_dim_tool_efficiency_success_rate_pct__100__0' from results
+[0m01:36:48.758745 [debug] [MainThread]: Excluded node 'unique_dim_tool_efficiency_tool_name' from results
+[0m01:36:48.765761 [info ] [MainThread]: Previewing node 'dim_tool_efficiency':
+| tool_name          | total_invocations | unique_agents_usi... | total_cost_usd | avg_cost_per_invo... | avg_latency_ms | ... |
+| ------------------ | ----------------- | -------------------- | -------------- | -------------------- | -------------- | --- |
+| sql_query_executor |                 1 |                    1 |          0.002 |                0.002 |            150 | ... |
+
+[0m01:36:48.768795 [debug] [MainThread]: Command `dbt show` succeeded at 01:36:48.768795 after 3.15 seconds
+[0m01:36:48.769803 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000024D14053940>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000024D16D75870>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000024D1251CD90>]}
+[0m01:36:48.770841 [debug] [MainThread]: Flushing usage events
+[0m01:36:49.487532 [debug] [MainThread]: An error was encountered while trying to flush usage events

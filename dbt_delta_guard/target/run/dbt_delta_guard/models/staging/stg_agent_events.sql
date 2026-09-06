@@ -12,6 +12,7 @@ with source_events as (
 		cast(tool_name as varchar) as tool_name,
 		cast(execution_time_ms as integer) as execution_time_ms,
 		cast(cost_usd as double) as cost_usd,
+		cast(status as varchar) as status,
 		tool_args,
 		row_number() over (
 			partition by agent_id, session_id, action_id
@@ -29,6 +30,7 @@ deduplicated_events as (
 		tool_name,
 		execution_time_ms,
 		cost_usd,
+		status,
 		json_extract_string(tool_args, '$.query') as query,
 		cast(json_extract_string(tool_args, '$.limit') as integer) as "limit",
 		json_extract_string(tool_args, '$.url') as url
@@ -44,6 +46,7 @@ select
 	tool_name,
 	execution_time_ms,
 	cost_usd,
+	status,
 	query,
 	"limit",
 	url,

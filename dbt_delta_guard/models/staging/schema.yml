@@ -47,6 +47,11 @@ models:
         tests:
           - not_null
 
+      - name: status
+        description: "Execution status of the tool invocation."
+        tests:
+          - not_null
+
       - name: query
         description: "Optional query extracted from tool_args."
 
