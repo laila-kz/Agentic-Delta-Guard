@@ -1,6 +1,6 @@
 # Agent Events Incident Log
 
-Generated: 2026-09-06T03:18:45.763025+00:00
+Generated: 2026-09-06T13:57:06.041255+00:00
 Quarantined records: 1
 Diagnosis provider: deterministic
 
@@ -10,6 +10,7 @@ Found 1 quarantined records across 1 error signatures.
 
 ## Findings
 
+- Timestamps violate the rolling freshness window.
 - Observed quarantine columns differ from the contract schema.
 
 ## Error Signatures
@@ -18,4 +19,4 @@ Found 1 quarantined records across 1 error signatures.
 
 ## Recommended Contract Patches
 
-- None
+- `timestamp_freshness`

@@ -1,0 +1,101 @@
+name: Agentic Delta Guard CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  validate-and-test:
+    name: Build, Validate and Chaos Test
+    runs-on: ubuntu-latest
+
+    services:
+      zookeeper:
+        image: confluentinc/cp-zookeeper:7.5.0
+        ports:
+          - 2181:2181
+        env:
+          ZOOKEEPER_CLIENT_PORT: 2181
+          ZOOKEEPER_TICK_TIME: 2000
+
+      kafka:
+        image: confluentinc/cp-kafka:7.5.0
+        ports:
+          - 9092:9092
+        env:
+          KAFKA_BROKER_ID: 1
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+          KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+          KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+          KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+          KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install --upgrade "typing_extensions>=4.12.2"
+          pip install dbt-core dbt-duckdb duckdb pytest
+          pip check
+
+      - name: Validate data contract
+        run: |
+          python -c "import yaml; yaml.safe_load(open('configs/agent_contract.yaml'))"
+
+      - name: Install dbt packages
+        working-directory: dbt_delta_guard
+        run: dbt deps --profiles-dir .
+
+      - name: Compile dbt project
+        working-directory: dbt_delta_guard
+        run: dbt compile --profiles-dir .
+
+      - name: Run chaos tests
+        env:
+          KAFKA_BOOTSTRAP_SERVERS: localhost:9092
+        run: pytest tests/test_chaos_suite.py -v --tb=short
+
+      - name: Verify sandbox isolation
+        run: python src/delta_guard/sandbox_guard.py
+
+      - name: Verify triage engine
+        run: |
+          python src/delta_guard/triage.py
+          test -f docs/INCIDENT_LOG.md
+
+      - name: Run benchmark
+        run: |
+          python src/delta_guard/benchmark.py
+          test -f docs/reports/storage_benchmark.md
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: delta-guard-audit-reports
+          path: |
+            dbt_delta_guard/logs/
+            dbt_delta_guard/target/run_results.json
+            docs/reports/
+            docs/INCIDENT_LOG.md
+          if-no-files-found: ignore
