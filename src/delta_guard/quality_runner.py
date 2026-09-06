@@ -9,7 +9,8 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DBT_PROJECT_DIR = REPO_ROOT / "dbt_delta_guard"
-DEFAULT_REPORT_PATH = REPO_ROOT / "docs" / "reports" / "quality_report.json"
+DEFAULT_MARKDOWN_REPORT_PATH = REPO_ROOT / "docs" / "reports" / "quality_audit.md"
+JSON_REPORT_PATH = REPO_ROOT / "docs" / "reports" / "quality_report.json"
 SUMMARY_PATTERN = re.compile(
 	r"PASS=(?P<pass>\d+)\s+WARN=(?P<warn>\d+)\s+"
 	r"ERROR=(?P<error>\d+)\s+SKIP=(?P<skip>\d+)\s+"
@@ -44,6 +45,50 @@ def build_report(
 	}
 
 
+def render_markdown(report: dict) -> str:
+	lines = [
+		"# Week 2 Quality Audit",
+		"",
+		f"- **Status:** {report['status'].upper()}",
+		f"- **Return code:** {report['returncode']}",
+		f"- **Started:** {report['started_at']}",
+		f"- **Finished:** {report['finished_at']}",
+		f"- **Duration:** {report['duration_seconds']} seconds",
+		"",
+		"## Test Summary",
+		"",
+	]
+
+	if report["summary"]:
+		lines.extend(
+			[
+				"| Result | Count |",
+				"| --- | ---: |",
+				f"| Passed | {report['summary'].get('pass', 0)} |",
+				f"| Warnings | {report['summary'].get('warn', 0)} |",
+				f"| Errors | {report['summary'].get('error', 0)} |",
+				f"| Skipped | {report['summary'].get('skip', 0)} |",
+				f"| Total | {report['summary'].get('total', 0)} |",
+			]
+		)
+	else:
+		lines.append("No dbt test summary was found in the command output.")
+
+	lines.extend(
+		[
+			"",
+			"## dbt Output",
+			"",
+			"```text",
+			report["stdout"].rstrip(),
+			report["stderr"].rstrip(),
+			"```",
+			"",
+		]
+	)
+	return "\n".join(lines)
+
+
 def run_quality_checks(report_path: Path) -> int:
 	started_at = datetime.now(timezone.utc)
 	result = subprocess.run(
@@ -57,7 +102,8 @@ def run_quality_checks(report_path: Path) -> int:
 
 	report = build_report(result, started_at, finished_at)
 	report_path.parent.mkdir(parents=True, exist_ok=True)
-	report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+	report_path.write_text(render_markdown(report), encoding="utf-8")
+	JSON_REPORT_PATH.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
 
 	print(f"Quality checks: {report['status'].upper()}")
 	print(f"Report: {report_path}")
@@ -71,8 +117,8 @@ def main() -> int:
 	parser.add_argument(
 		"--report-path",
 		type=Path,
-		default=DEFAULT_REPORT_PATH,
-		help="Path for the generated JSON report.",
+		default=DEFAULT_MARKDOWN_REPORT_PATH,
+		help="Path for the generated Markdown report.",
 	)
 	args = parser.parse_args()
 	return run_quality_checks(args.report_path)
