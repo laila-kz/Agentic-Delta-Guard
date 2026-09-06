@@ -1,0 +1,49 @@
+version: 1.0.0
+contract_id: agent_events_v1
+description: 'Data contract governing real-time AI agent tool execution logs ingested
+  from Apache Kafka into Delta Lake Bronze.
+
+  '
+schema:
+  fields:
+  - name: agent_id
+    type: string
+    nullable: false
+  - name: session_id
+    type: string
+    nullable: false
+  - name: action_id
+    type: string
+    nullable: false
+  - name: timestamp
+    type: timestamp
+    nullable: false
+  - name: tool_name
+    type: string
+    nullable: false
+    allowed_values:
+    - sql_query_executor
+    - vector_search
+    - web_scraper
+    - db_writer
+  - name: execution_time_ms
+    type: integer
+    nullable: false
+  - name: cost_usd
+    type: double
+    nullable: false
+semantic_rules:
+- id: cost_non_negative
+  rule: cost_usd >= 0.0 AND cost_usd <= 50.0
+  message: cost_usd out of valid boundaries [0.0, 50.0]
+- id: timestamp_freshness
+  rule: timestamp >= (current_timestamp() - INTERVAL 24 HOURS) AND timestamp <= (current_timestamp()
+    + INTERVAL 5 MINUTES)
+  message: timestamp violates rolling 24h freshness window or is in future
+idempotency:
+  key_fields:
+  - agent_id
+  - session_id
+  - action_id
+  strategy: merge_upsert
+proposed_at: '2026-09-06T03:08:46.641974+00:00'
