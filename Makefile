@@ -1,4 +1,35 @@
-.PHONY: up down produce gatekeeper hud query-bronze query-quarantine dbt-run dbt-test quality-report test-week2 test-week2-clean install-deps clean-week2 shallow-clone triage chaos-test test-week3 clean-week3 help
+.PHONY: help install up down produce gatekeeper hud query-bronze query-quarantine \
+	dbt-deps dbt-run dbt-compile dbt-test quality-report benchmark sandbox triage \
+	chaos-test validate test ci-local clean
+
+PYTHON ?= python
+DBT ?= dbt
+DBT_DIR := dbt_delta_guard
+
+help:
+	@echo "Agentic Delta Guard commands:"
+	@echo "  make install          Install runtime and development dependencies"
+	@echo "  make up               Start Kafka, ZooKeeper, and Kafka UI"
+	@echo "  make down             Stop Docker services"
+	@echo "  make produce          Start the sample event producer"
+	@echo "  make gatekeeper       Start the PySpark streaming gatekeeper"
+	@echo "  make hud              Open the real-time terminal HUD"
+	@echo "  make dbt-compile      Install packages and compile dbt"
+	@echo "  make dbt-run          Build dbt models"
+	@echo "  make dbt-test         Run dbt data tests"
+	@echo "  make quality-report   Generate the dbt quality report"
+	@echo "  make benchmark        Generate the storage benchmark report"
+	@echo "  make sandbox          Run sandbox assertions"
+	@echo "  make triage           Run deterministic incident triage"
+	@echo "  make validate         Validate the data contract and Python tests"
+	@echo "  make test             Run the complete repository test set"
+	@echo "  make ci-local         Run the Windows local CI script"
+	@echo "  make clean            Remove generated reports and build artifacts"
+
+install:
+	$(PYTHON) -m pip install --upgrade pip
+	$(PYTHON) -m pip install -r requirements.txt
+	$(PYTHON) -m pip install dbt-core dbt-duckdb pytest
 
 up:
 	docker compose up -d
@@ -7,84 +38,56 @@ down:
 	docker compose down
 
 produce:
-	python src/delta_guard/producer.py
+	$(PYTHON) src/delta_guard/producer.py
 
 gatekeeper:
-	python src/delta_guard/gatekeeper.py
+	$(PYTHON) src/delta_guard/gatekeeper.py
 
 hud:
-	python src/delta_guard/hud.py
+	$(PYTHON) src/delta_guard/hud.py
 
 query-bronze:
-	python -c "from delta_guard.query_utils import show_bronze; show_bronze()"
+	$(PYTHON) -c "from src.delta_guard.query_utils import show_bronze; show_bronze()"
 
 query-quarantine:
-	python -c "from delta_guard.query_utils import show_quarantine; show_quarantine()"
+	$(PYTHON) -c "from src.delta_guard.query_utils import show_quarantine; show_quarantine()"
 
-# Week 2 Commands
-install-deps:
-	pip install -r requirements.txt dbt-core dbt-duckdb pytest jinja2
+dbt-deps:
+	cd $(DBT_DIR) && $(DBT) deps --profiles-dir .
 
-dbt-run:
-	@echo "=== Running dbt models ==="
-	cd dbt_delta_guard && dbt run --profiles-dir .
+dbt-compile: dbt-deps
+	cd $(DBT_DIR) && $(DBT) compile --profiles-dir .
 
-dbt-test:
-	@echo "=== Running dbt tests ==="
-	cd dbt_delta_guard && dbt test --profiles-dir .
+dbt-run: dbt-deps
+	cd $(DBT_DIR) && $(DBT) run --profiles-dir .
+
+dbt-test: dbt-deps
+	cd $(DBT_DIR) && $(DBT) test --profiles-dir .
 
 quality-report:
-	@echo "=== Generating quality report ==="
-	python src/delta_guard/quality_runner.py
+	$(PYTHON) src/delta_guard/quality_runner.py
 
-test-week2: dbt-run dbt-test quality-report
-	@echo ""
-	@echo "Week 2 Medallion Pipeline & Quality Tests Passed!"
-	@echo "Report available at: docs/reports/quality_audit.md"
+benchmark:
+	$(PYTHON) src/delta_guard/benchmark.py
 
-test-week2-clean: clean-week2
-	$(MAKE) test-week2
-
-clean-week2:
-	@echo "Cleaning Week 2 artifacts..."
-	rm -rf data/delta_guard.duckdb
-	rm -rf data/silver/*
-	rm -rf data/gold/*
-	rm -rf dbt_delta_guard/target
-	rm -rf docs/reports/*
-
-# Week 3 Commands
-shallow-clone:
-	@echo "=== Creating Zero-Copy Shallow Clone ==="
-	python src/delta_guard/sandbox_guard.py
+sandbox:
+	$(PYTHON) src/delta_guard/sandbox_guard.py
 
 triage:
-	@echo "=== Running LLM Incident Triage ==="
-	python src/delta_guard/triage.py
+	$(PYTHON) src/delta_guard/triage.py
 
 chaos-test:
-	@echo "=== Running Chaos Test Suite ==="
-	pytest tests/test_chaos_suite.py -v
+	$(PYTHON) -m pytest tests/test_chaos_suite.py -v --tb=short
 
-test-week3: shallow-clone triage chaos-test
-	@echo ""
-	@echo "Week 3: Sandbox, Triage & Chaos Suite Passed!"
-	@echo "Incident Report: docs/INCIDENT_LOG.md"
-	@echo "Proposed Contract: configs/agent_contract_proposed.yaml"
+validate:
+	$(PYTHON) -c "import yaml; yaml.safe_load(open('configs/agent_contract.yaml'))"
+	$(PYTHON) -m pytest tests/test_chaos_suite.py -v --tb=short
 
-clean-week3:
-	@echo "Cleaning Week 3 artifacts..."
-	rm -rf data/gold/agent_sandbox
-	rm -rf docs/INCIDENT_LOG.md
-	rm -rf configs/agent_contract_proposed.yaml
-	rm -rf .pytest_cache
+test: validate dbt-compile dbt-test quality-report sandbox triage benchmark
+	@echo "All validation, modeling, governance, and reporting checks passed."
 
-help:
-	@echo "Available Week 2 commands:"
-	@echo "  make install-deps       - Install dbt dependencies"
-	@echo "  make dbt-run            - Run all dbt models"
-	@echo "  make dbt-test           - Run all dbt tests"
-	@echo "  make quality-report     - Generate quality report"
-	@echo "  make test-week2         - Full Week 2 test suite"
-	@echo "  make test-week2-clean   - Full test with cleanup"
-	@echo "  make clean-week2        - Clean Week 2 artifacts"
+ci-local:
+	powershell -ExecutionPolicy Bypass -File .\test_ci_locally.ps1
+
+clean:
+	$(PYTHON) -c "from pathlib import Path; import shutil; paths = ['.pytest_cache', 'dbt_delta_guard/target', 'docs/reports/quality_audit.md', 'docs/reports/quality_report.json', 'docs/reports/storage_benchmark.md', 'docs/INCIDENT_LOG.md', 'configs/agent_contract_proposed.yaml', 'data/gold/agent_sandbox']; [shutil.rmtree(p) if Path(p).is_dir() else Path(p).unlink(missing_ok=True) for p in paths]"
