@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import duckdb
 import pandas as pd
 from deltalake import DeltaTable, write_deltalake
 
@@ -118,9 +119,105 @@ class SandboxGuard:
         write_deltalake(
             str(self.sandbox_path),
             experimental_df,
-            mode="overwrite",
-            schema_mode="overwrite",
+            mode="append",
         )
+
+    @staticmethod
+    def _delta_scan_sql(path: Path) -> str:
+        escaped_path = str(path).replace("'", "''")
+        return f"delta_scan('{escaped_path}')"
+
+    def run_comprehensive_assertions(self) -> dict[str, Any]:
+        """Compare Gold and Sandbox and return promotion-readiness metrics."""
+        if not self._table_exists(self.gold_path):
+            raise FileNotFoundError(f"Gold Delta table does not exist: {self.gold_path}")
+        if not self._table_exists(self.sandbox_path):
+            raise FileNotFoundError(
+                f"Sandbox Delta table does not exist: {self.sandbox_path}"
+            )
+
+        gold_table = self._delta_scan_sql(self.gold_path)
+        sandbox_table = self._delta_scan_sql(self.sandbox_path)
+        connection = duckdb.connect()
+        try:
+            gold_schema_rows = connection.execute(
+                f"describe select * from {gold_table}"
+            ).fetchall()
+            sandbox_schema_rows = connection.execute(
+                f"describe select * from {sandbox_table}"
+            ).fetchall()
+            gold_row_count = connection.execute(
+                f"select count(*) from {gold_table}"
+            ).fetchone()[0]
+            sandbox_row_count = connection.execute(
+                f"select count(*) from {sandbox_table}"
+            ).fetchone()[0]
+            cost_stats = connection.execute(
+                f"""
+                select
+                    min(total_cost_usd),
+                    avg(total_cost_usd),
+                    max(total_cost_usd),
+                    stddev_pop(total_cost_usd)
+                from {sandbox_table}
+                """
+            ).fetchone()
+            low_success_count = connection.execute(
+                f"select count(*) from {sandbox_table} "
+                "where success_rate_pct < 50.0"
+            ).fetchone()[0]
+            null_tool_name_count = connection.execute(
+                f"select count(*) from {sandbox_table} where tool_name is null"
+            ).fetchone()[0]
+            invalid_success_rate_count = connection.execute(
+                f"select count(*) from {sandbox_table} "
+                "where success_rate_pct < 0.0 or success_rate_pct > 100.0"
+            ).fetchone()[0]
+        finally:
+            connection.close()
+
+        gold_schema = {row[0]: row[1] for row in gold_schema_rows}
+        sandbox_schema = {row[0]: row[1] for row in sandbox_schema_rows}
+        schema_differences = {
+            "missing_from_sandbox": sorted(set(gold_schema) - set(sandbox_schema)),
+            "extra_in_sandbox": sorted(set(sandbox_schema) - set(gold_schema)),
+            "type_mismatches": sorted(
+                column
+                for column in set(gold_schema) & set(sandbox_schema)
+                if gold_schema[column] != sandbox_schema[column]
+            ),
+        }
+        checks = {
+            "schema_matches": not any(schema_differences.values()),
+            "positive_row_growth": sandbox_row_count > gold_row_count,
+            "tool_name_not_null": null_tool_name_count == 0,
+            "costs_within_bounds": cost_stats[0] is not None
+            and cost_stats[0] >= 0.0
+            and cost_stats[2] <= 50.0,
+            "no_low_success_rates": low_success_count == 0,
+            "success_rates_valid": invalid_success_rate_count == 0,
+        }
+
+        return {
+            "passed": all(checks.values()),
+            "checks": checks,
+            "schema_differences": schema_differences,
+            "row_counts": {
+                "gold": gold_row_count,
+                "sandbox": sandbox_row_count,
+                "growth": sandbox_row_count - gold_row_count,
+            },
+            "cost_statistics": {
+                "min": cost_stats[0],
+                "avg": cost_stats[1],
+                "max": cost_stats[2],
+                "stddev": cost_stats[3],
+            },
+            "low_success_rate_rows": low_success_count,
+            "null_tool_name_rows": null_tool_name_count,
+            "invalid_success_rate_rows": invalid_success_rate_count,
+            "evaluated_at": datetime.now(timezone.utc).isoformat(),
+        }
 
     def run_post_execution_assertions(self) -> dict[str, Any]:
         if not self._table_exists(self.sandbox_path):
@@ -171,7 +268,7 @@ class SandboxGuard:
         }
 
     def promote_sandbox_to_production(self) -> bool:
-        assertions = self.run_post_execution_assertions()
+        assertions = self.run_comprehensive_assertions()
         if not assertions["passed"]:
             return False
 
