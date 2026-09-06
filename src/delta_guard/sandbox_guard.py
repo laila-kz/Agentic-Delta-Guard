@@ -116,9 +116,11 @@ class SandboxGuard:
         if experimental_df.empty:
             raise ValueError("Mutation must contain at least one row")
 
+        existing_columns = DeltaTable(str(self.sandbox_path)).to_pandas().columns.tolist()
+        mutation = experimental_df.reindex(columns=existing_columns).reset_index(drop=True)
         write_deltalake(
             str(self.sandbox_path),
-            experimental_df,
+            mutation,
             mode="append",
         )
 
