@@ -1,4 +1,4 @@
-.PHONY: up down produce gatekeeper query-bronze query-quarantine dbt-run dbt-test quality-report test-week2 test-week2-clean install-deps clean-week2 help
+.PHONY: up down produce gatekeeper query-bronze query-quarantine dbt-run dbt-test quality-report test-week2 test-week2-clean install-deps clean-week2 shallow-clone triage chaos-test test-week3 clean-week3 help
 
 up:
 	docker compose up -d
@@ -49,6 +49,32 @@ clean-week2:
 	rm -rf data/gold/*
 	rm -rf dbt_delta_guard/target
 	rm -rf docs/reports/*
+
+# Week 3 Commands
+shallow-clone:
+	@echo "=== Creating Zero-Copy Shallow Clone ==="
+	python src/delta_guard/sandbox_guard.py
+
+triage:
+	@echo "=== Running LLM Incident Triage ==="
+	python src/delta_guard/triage.py
+
+chaos-test:
+	@echo "=== Running Chaos Test Suite ==="
+	pytest tests/test_chaos_suite.py -v
+
+test-week3: shallow-clone triage chaos-test
+	@echo ""
+	@echo "Week 3: Sandbox, Triage & Chaos Suite Passed!"
+	@echo "Incident Report: docs/INCIDENT_LOG.md"
+	@echo "Proposed Contract: configs/agent_contract_proposed.yaml"
+
+clean-week3:
+	@echo "Cleaning Week 3 artifacts..."
+	rm -rf data/gold/agent_sandbox
+	rm -rf docs/INCIDENT_LOG.md
+	rm -rf configs/agent_contract_proposed.yaml
+	rm -rf .pytest_cache
 
 help:
 	@echo "Available Week 2 commands:"
