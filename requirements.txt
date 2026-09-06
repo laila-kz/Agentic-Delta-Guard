@@ -7,3 +7,5 @@ duckdb>=1.0.0
 deltalake>=0.17.0
 pandas>=2.0.0
 pyarrow>=14.0.0
+psutil>=7.0.0
+textual>=8.0.0

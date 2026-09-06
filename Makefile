@@ -1,4 +1,4 @@
-.PHONY: up down produce gatekeeper query-bronze query-quarantine dbt-run dbt-test quality-report test-week2 test-week2-clean install-deps clean-week2 shallow-clone triage chaos-test test-week3 clean-week3 help
+.PHONY: up down produce gatekeeper hud query-bronze query-quarantine dbt-run dbt-test quality-report test-week2 test-week2-clean install-deps clean-week2 shallow-clone triage chaos-test test-week3 clean-week3 help
 
 up:
 	docker compose up -d
@@ -11,6 +11,9 @@ produce:
 
 gatekeeper:
 	python src/delta_guard/gatekeeper.py
+
+hud:
+	python src/delta_guard/hud.py
 
 query-bronze:
 	python -c "from delta_guard.query_utils import show_bronze; show_bronze()"
