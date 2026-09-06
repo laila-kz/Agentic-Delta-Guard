@@ -20,7 +20,7 @@ query-quarantine:
 
 # Week 2 Commands
 install-deps:
-	pip install dbt-core dbt-duckdb duckdb pytest jinja2
+	pip install -r requirements.txt dbt-core dbt-duckdb pytest jinja2
 
 dbt-run:
 	@echo "=== Running dbt models ==="
