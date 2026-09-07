@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 """
 Week 1 Verification Script for Apache Kafka
 """
@@ -26,13 +26,13 @@ def test_kafka_running():
             capture_output=True, text=True
         )
         if "Up" in result.stdout:
-            print("✅ Kafka container is running")
+            print("âœ… Kafka container is running")
             return True
         else:
-            print("❌ Kafka container is not running")
+            print("âŒ Kafka container is not running")
             return False
     except Exception as e:
-        print(f"❌ Docker check failed: {e}")
+        print(f"âŒ Docker check failed: {e}")
         return False
 
 def test_topic_exists():
@@ -47,14 +47,14 @@ def test_topic_exists():
         topics = result.stdout.strip().split('\n')
         target_topic = next((t for t in ['agent-events', 'agent.events.v1'] if t in topics), None)
         if target_topic:
-            print(f"✅ Topic '{target_topic}' exists")
+            print(f"âœ… Topic '{target_topic}' exists")
             return True
         else:
-            print("❌ Topic does not exist")
+            print("âŒ Topic does not exist")
             print(f"   Available topics: {topics}")
             return False
     except Exception as e:
-        print(f"❌ Topic check failed: {e}")
+        print(f"âŒ Topic check failed: {e}")
         return False
 
 def test_consume_messages():
@@ -72,11 +72,11 @@ def test_consume_messages():
             ]
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=8)
             if result.stdout.strip():
-                print(f"✅ Can consume messages from topic '{topic}'")
+                print(f"âœ… Can consume messages from topic '{topic}'")
                 return True
         except Exception:
             continue
-    print("❌ No messages found in topic")
+    print("âŒ No messages found in topic")
     return False
 
 # ============ DELTA TABLE TESTS ============
@@ -110,17 +110,17 @@ def test_delta_tables():
     try:
         bronze_df = _read_delta_df("data/bronze/agent_events")
         bronze_count = len(bronze_df)
-        print(f"✅ Bronze table exists with {bronze_count} rows")
+        print(f"âœ… Bronze table exists with {bronze_count} rows")
     except Exception as e:
-        print(f"❌ Bronze table missing or empty: {e}")
+        print(f"âŒ Bronze table missing or empty: {e}")
         return False
     
     try:
         quarantine_df = _read_delta_df("data/quarantine/agent_events")
         quarantine_count = len(quarantine_df)
-        print(f"✅ Quarantine table exists with {quarantine_count} rows")
+        print(f"âœ… Quarantine table exists with {quarantine_count} rows")
     except Exception as e:
-        print(f"❌ Quarantine table missing or empty: {e}")
+        print(f"âŒ Quarantine table missing or empty: {e}")
         return False
     
     return True
@@ -135,7 +135,7 @@ def test_split_ratio():
     total = bronze_count + quarantine_count
     
     if total == 0:
-        print("❌ No data found")
+        print("âŒ No data found")
         return False
     
     bronze_pct = bronze_count / total * 100
@@ -145,10 +145,10 @@ def test_split_ratio():
     print(f"Quarantine: {quarantine_pct:.1f}% ({quarantine_count} rows)")
     
     if 70 < bronze_pct < 95:
-        print("✅ Split ratio looks correct (~85% Bronze)")
+        print("âœ… Split ratio looks correct (~85% Bronze)")
         return True
     else:
-        print(f"⚠️ Split ratio off: expected ~85%, got {bronze_pct:.1f}%")
+        print(f"âš ï¸ Split ratio off: expected ~85%, got {bronze_pct:.1f}%")
         return True  # Still passes, just warning
 
 def test_no_duplicates():
@@ -160,10 +160,10 @@ def test_no_duplicates():
     
     duplicates = total - distinct
     if duplicates == 0:
-        print("✅ No duplicates found")
+        print("âœ… No duplicates found")
         return True
     else:
-        print(f"⚠️ Found {duplicates} duplicates")
+        print(f"âš ï¸ Found {duplicates} duplicates")
         return False
 
 def test_poison_types():
@@ -172,7 +172,7 @@ def test_poison_types():
         df = _read_delta_df("data/quarantine/agent_events")
         
         if "error_summary" not in df.columns:
-            print("⚠️ 'error_summary' column not found in quarantine table")
+            print("âš ï¸ 'error_summary' column not found in quarantine table")
             return False
             
         error_types = df["error_summary"].dropna().unique().tolist()
@@ -193,14 +193,14 @@ def test_poison_types():
             matched = any(expected in error for error in error_types)
             if matched:
                 found_any = True
-                print(f"  ✅ Found {expected}")
+                print(f"  âœ… Found {expected}")
             else:
-                print(f"  ⚠️ Missing {expected} (may be okay if no events of this type)")
+                print(f"  âš ï¸ Missing {expected} (may be okay if no events of this type)")
         
         return found_any
         
     except Exception as e:
-        print(f"❌ Poison types check failed: {e}")
+        print(f"âŒ Poison types check failed: {e}")
         return False
 
 def test_no_error_columns_in_bronze():
@@ -210,10 +210,10 @@ def test_no_error_columns_in_bronze():
     
     has_errors = "errors" in columns or "error_summary" in columns
     if not has_errors:
-        print("✅ Bronze has no error columns")
+        print("âœ… Bronze has no error columns")
         return True
     else:
-        print("❌ Bronze has error columns!")
+        print("âŒ Bronze has error columns!")
         return False
 
 # ============ MAIN ============
@@ -250,7 +250,7 @@ def run_all_tests():
     
     passed = 0
     for name, result in results:
-        status = "✅" if result else "❌"
+        status = "âœ…" if result else "âŒ"
         print(f"{status} {name}")
         if result:
             passed += 1
@@ -258,10 +258,10 @@ def run_all_tests():
     print(f"\nPassed {passed}/{len(results)} tests")
     
     if passed == len(results):
-        print("\n🎉 🎉 🎉 Week 1 is fully working!")
+        print("\nðŸŽ‰ ðŸŽ‰ ðŸŽ‰ Week 1 is fully working!")
         return True
     else:
-        print("\n⚠️ Some tests failed. Check the output above.")
+        print("\nâš ï¸ Some tests failed. Check the output above.")
         return False
 
 if __name__ == "__main__":

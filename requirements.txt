@@ -9,3 +9,8 @@ pandas>=2.0.0
 pyarrow>=14.0.0
 psutil>=7.0.0
 textual>=8.0.0
+mcp
+duckdb
+pyyaml>=6.0.1
+pydantic>=2.10.0
+httpx>=0.30.0

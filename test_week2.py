@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 """
 Week 2 Verification Script
 """
@@ -121,3 +121,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+

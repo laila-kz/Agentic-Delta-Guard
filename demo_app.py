@@ -1,4 +1,4 @@
-"""
+﻿"""
 demo_app.py - Interactive Live Demo of Agentic Delta Guard
 Deployable to Streamlit Community Cloud (100% free) with zero heavy Spark dependencies.
 """
@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 
 st.set_page_config(
     page_title="Agentic Delta Guard | Live Demo",
-    page_icon="🛡️",
+    page_icon="ðŸ›¡ï¸",
     layout="wide"
 )
 
@@ -41,7 +41,7 @@ def load_contract():
 
 contract = load_contract()
 
-st.title("🛡️ Agentic Delta Guard — Live Governance Gateway")
+st.title("ðŸ›¡ï¸ Agentic Delta Guard â€” Live Governance Gateway")
 st.markdown("""
 **Production-Grade Streaming Data Gateway & Automated LLM Triage for Multi-Agent AI Systems.**  
 *Live demonstration of zero-collect contract enforcement, dead-letter quarantine, and automated incident triage.*
@@ -58,7 +58,7 @@ col4.metric("Active Rules", f"{len(contract.get('schema', {}).get('fields', []))
 st.divider()
 
 # Interactive Section
-tab1, tab2, tab3 = st.tabs(["⚡ Live Agent Stream & Gateway", "🪓 Quarantine & LLM Triage", "📜 Active Data Contract"])
+tab1, tab2, tab3 = st.tabs(["âš¡ Live Agent Stream & Gateway", "ðŸª“ Quarantine & LLM Triage", "ðŸ“œ Active Data Contract"])
 
 with tab1:
     st.subheader("Simulate Incoming AI Agent Event")
@@ -80,7 +80,7 @@ with tab1:
             "payload": {"query": "Analyze financial quarterly report", "size_bytes": payload_size}
         }
         st.json(simulated_event)
-        evaluate_btn = st.button("🚀 Push to Gateway", type="primary")
+        evaluate_btn = st.button("ðŸš€ Push to Gateway", type="primary")
 
     with c2:
         st.subheader("Gateway Decision Engine")
@@ -96,13 +96,13 @@ with tab1:
                 violations.append(f"PAYLOAD_TOO_LARGE: {payload_size} bytes (Max: {contract.get('max_payload_bytes')})")
             
             if violations:
-                st.error("❌ ROUTED TO DEAD-LETTER QUARANTINE")
+                st.error("âŒ ROUTED TO DEAD-LETTER QUARANTINE")
                 st.write("**Detected Violations:**")
                 for v in violations:
                     st.write(f"- `{v}`")
-                st.info("💡 Production Stream Unaffected — Healthy batches continue downstream without stalling.")
+                st.info("ðŸ’¡ Production Stream Unaffected â€” Healthy batches continue downstream without stalling.")
             else:
-                st.success("✅ CONTRACT VERIFIED — INGESTED TO DELTA SILVER")
+                st.success("âœ… CONTRACT VERIFIED â€” INGESTED TO DELTA SILVER")
                 st.write("Event merged cleanly into `silver_agent_events` with idempotent deduplication.")
 
 with tab2:
@@ -118,10 +118,10 @@ with tab2:
         ]
     )
     
-    if st.button("🤖 Trigger LLM Root Cause Triage"):
+    if st.button("ðŸ¤– Trigger LLM Root Cause Triage"):
         with st.spinner("Analyzing quarantine batch against active contract..."):
             time.sleep(1.0)
-            st.markdown("### 📋 Triage Incident Report")
+            st.markdown("### ðŸ“‹ Triage Incident Report")
             if "Tool Overflow" in sample_incident:
                 st.markdown("""
 > **Severity:** High  
@@ -154,3 +154,4 @@ allowed_tools:
 with tab3:
     st.subheader("Active Data Contract (`configs/agent_contract.yaml`)")
     st.code(yaml.dump(contract, sort_keys=False), language="yaml")
+
