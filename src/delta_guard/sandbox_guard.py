@@ -1,19 +1,26 @@
 """
 sandbox_guard.py — Delta sandbox and post-execution assertion suite.
 
-The sandbox is an isolated Delta snapshot. It is not a zero-copy shallow clone:
-writing the snapshot creates independent Delta files.
+The sandbox is an isolated Delta snapshot using zero-copy shallow cloning
+when running on Spark/Delta, or independent copies when using DuckDB.
 """
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import duckdb
 import pandas as pd
+import pyarrow as pa
 from deltalake import DeltaTable, write_deltalake
+
+try:
+    from delta_clone_utils import DeltaCloneUtils
+    HAS_DELTA_CLONE_UTILS = True
+except ImportError:
+    HAS_DELTA_CLONE_UTILS = False
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -57,19 +64,46 @@ class SandboxGuard:
     def _table_exists(path: Path) -> bool:
         return (path / "_delta_log").is_dir()
 
-    def create_shallow_clone(self) -> str:
+    def create_shallow_clone(self, use_delta_api: bool = True) -> str:
         """
         Create an isolated snapshot of the Gold table.
 
-        Despite the historical method name, this is not a zero-copy Delta clone.
+        When running on Spark/Delta with use_delta_api=True, creates a zero-copy
+        shallow clone using Delta Lake's clone API. Otherwise falls back to
+        copying data via pandas/write_deltalake (compatible with DuckDB).
+
+        Args:
+            use_delta_api: If True, attempt to use Delta's native clone API.
+                          Falls back to copy method if Delta not available.
+
+        Returns:
+            Path to the sandbox table
+
+        See Also:
+            docs/DELTA_TIME_TRAVEL_AND_CLONING.md for shallow clone details
         """
         self._bootstrap_gold_table()
         self.sandbox_path.parent.mkdir(parents=True, exist_ok=True)
 
+        if use_delta_api and HAS_DELTA_CLONE_UTILS:
+            try:
+                clone_utils = DeltaCloneUtils()
+                result = clone_utils.create_shallow_clone(
+                    source_table_path=str(self.gold_path),
+                    target_table_path=str(self.sandbox_path),
+                    replace=True,
+                )
+                print(f"✓ Shallow clone created (zero-copy, {result['clone_duration_seconds']:.2f}s)")
+                return str(self.sandbox_path)
+            except Exception as e:
+                # Fall back to copy method
+                print(f"Note: Delta API unavailable ({e}), using copy method")
+
+        # Fallback: Copy via pandas/deltalake (works with DuckDB)
         source_df = DeltaTable(str(self.gold_path)).to_pandas()
         write_deltalake(
             str(self.sandbox_path),
-            source_df,
+            pa.Table.from_pandas(source_df, preserve_index=False),
             mode="overwrite",
             schema_mode="overwrite",
         )
@@ -83,7 +117,7 @@ class SandboxGuard:
         self.gold_path.parent.mkdir(parents=True, exist_ok=True)
         write_deltalake(
             str(self.gold_path),
-            self._create_sample_gold_data(),
+            pa.Table.from_pandas(self._create_sample_gold_data(), preserve_index=False),
             mode="overwrite",
         )
 
@@ -120,7 +154,7 @@ class SandboxGuard:
         mutation = experimental_df.reindex(columns=existing_columns).reset_index(drop=True)
         write_deltalake(
             str(self.sandbox_path),
-            mutation,
+            pa.Table.from_pandas(mutation, preserve_index=False),
             mode="append",
         )
 
@@ -277,7 +311,7 @@ class SandboxGuard:
         sandbox_df = DeltaTable(str(self.sandbox_path)).to_pandas()
         write_deltalake(
             str(self.gold_path),
-            sandbox_df,
+            pa.Table.from_pandas(sandbox_df, preserve_index=False),
             mode="overwrite",
             schema_mode="overwrite",
         )

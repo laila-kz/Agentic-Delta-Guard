@@ -1,9 +1,9 @@
 pyspark==3.5.1
 delta-spark==3.2.0
+dbt-spark[session]>=1.7.0
 kafka-python==2.0.2
 pyyaml==6.0.1
 faker==24.4.0
-duckdb>=1.0.0
 deltalake>=0.17.0
 pandas>=2.0.0
 pyarrow>=14.0.0

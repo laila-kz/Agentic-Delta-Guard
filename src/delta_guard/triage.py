@@ -155,8 +155,15 @@ class LLMTriageEngine:
             "recommended_patches": patches,
         }
 
-    def _call_llm(self, prompt: str) -> dict[str, Any] | None:
-        """Call an available provider using its HTTP API, returning None on failure."""
+    def _call_llm(self, prompt: str, max_retries: int = 3) -> dict[str, Any] | None:
+        """Call an available LLM provider with exponential-backoff retry.
+
+        Retries up to `max_retries` times on transient network/rate-limit errors
+        before giving up and returning None (caller falls back to deterministic
+        triage). The backoff is 2^attempt seconds (1s, 2s, 4s).
+        """
+        import time
+
         if os.getenv("OPENAI_API_KEY"):
             url = "https://api.openai.com/v1/chat/completions"
             headers = {"Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}"}
@@ -185,16 +192,38 @@ class LLMTriageEngine:
             headers={**headers, "Content-Type": "application/json"},
             method="POST",
         )
-        try:
-            with urllib.request.urlopen(request, timeout=30) as response:
-                body = json.loads(response.read().decode("utf-8"))
-            if "choices" in body:
-                content = body["choices"][0]["message"]["content"]
-            else:
-                content = body["content"][0]["text"]
-            return json.loads(content)
-        except (OSError, ValueError, KeyError, IndexError, urllib.error.URLError):
-            return None
+
+        last_error: Exception | None = None
+        for attempt in range(max_retries):
+            try:
+                with urllib.request.urlopen(request, timeout=30) as response:
+                    body = json.loads(response.read().decode("utf-8"))
+                if "choices" in body:
+                    content = body["choices"][0]["message"]["content"]
+                else:
+                    content = body["content"][0]["text"]
+                return json.loads(content)
+            except urllib.error.HTTPError as exc:
+                # 429 = rate limit; 5xx = server error — both are retryable
+                if exc.code in (429, 500, 502, 503, 504):
+                    last_error = exc
+                    if attempt < max_retries - 1:
+                        time.sleep(2 ** attempt)
+                    continue
+                # 4xx that are not 429 are not retryable (bad key, bad request…)
+                return None
+            except (OSError, ValueError, KeyError, IndexError, urllib.error.URLError) as exc:
+                last_error = exc
+                if attempt < max_retries - 1:
+                    time.sleep(2 ** attempt)
+
+        import logging
+        logging.getLogger(__name__).warning(
+            "LLM call failed after %d attempts, falling back to deterministic triage: %s",
+            max_retries,
+            last_error,
+        )
+        return None
 
     def generate_llm_diagnosis(
         self, records: pd.DataFrame, clusters: list[dict[str, Any]]

@@ -1,4 +1,7 @@
-{{ config(materialized='table') }}
+{{ config(
+    materialized='table',
+    file_format='delta'
+) }}
 
 select
 	tool_name,

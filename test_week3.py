@@ -24,11 +24,16 @@ def test_triage_module_exists():
 
 
 def test_chaos_suite_exists():
-    if os.path.exists("tests/test_chaos_suite.py"):
-        print("test_chaos_suite.py exists")
-        return True
-    print("test_chaos_suite.py not found")
-    return False
+    found = False
+    if os.path.exists("tests/test_contract_validation.py"):
+        print("test_contract_validation.py exists")
+        found = True
+    if os.path.exists("tests/test_chaos_infra.py"):
+        print("test_chaos_infra.py exists")
+        found = True
+    if not found:
+        print("test_contract_validation.py / test_chaos_infra.py not found")
+    return found
 
 
 def test_incident_log_exists():

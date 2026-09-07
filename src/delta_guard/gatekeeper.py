@@ -48,6 +48,61 @@ EVENT_SCHEMA = StructType(
 )
 
 
+def _load_contract_thresholds() -> dict:
+    """
+    Load cost and freshness thresholds from agent_contract.yaml.
+
+    This is the single source of truth for contract bounds — both the
+    PySpark gatekeeper and the dbt tests (via sync_contract_to_dbt_vars.py)
+    derive their limits from this file.
+
+    Returns a dict with keys:
+        max_cost_usd          (float, default 50.0)
+        max_event_age_hours   (int,   default 24)
+        max_future_skew_mins  (int,   default 5)
+        watermark_minutes     (int,   default 10)
+    """
+    import re
+
+    defaults = {
+        "max_cost_usd": 50.0,
+        "max_event_age_hours": 24,
+        "max_future_skew_mins": 5,
+        "watermark_minutes": 10,
+    }
+
+    contract_file = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        CONTRACT_PATH,
+    )
+    if not os.path.exists(contract_file):
+        return defaults
+
+    with open(contract_file, "r", encoding="utf-8") as fh:
+        contract = yaml.safe_load(fh) or {}
+
+    for rule in contract.get("semantic_rules", []):
+        rule_text = rule.get("rule", "")
+        # Extract max cost bound: cost_usd <= <value>
+        m = re.search(r"cost_usd\s*<=\s*([\d.]+)", rule_text)
+        if m:
+            defaults["max_cost_usd"] = float(m.group(1))
+        # Extract freshness window: INTERVAL <N> HOURS
+        m = re.search(r"INTERVAL\s+(\d+)\s+HOURS", rule_text)
+        if m:
+            defaults["max_event_age_hours"] = int(m.group(1))
+        # Extract future skew: INTERVAL <N> MINUTES
+        m = re.search(r"INTERVAL\s+(\d+)\s+MINUTES", rule_text)
+        if m:
+            defaults["max_future_skew_mins"] = int(m.group(1))
+
+    return defaults
+
+
+# Load thresholds at module import time so they are consistent across batches
+_THRESHOLDS = _load_contract_thresholds()
+
+
 from delta import configure_spark_with_delta_pip
 
 
@@ -73,18 +128,51 @@ def build_spark() -> SparkSession:
 
 
 def process_batch(batch_df: DataFrame, batch_id: int):
+    """
+    Validate a micro-batch of Kafka events against the agent contract.
+
+    Contract thresholds are loaded from agent_contract.yaml at startup so
+    there is a single source of truth shared with the dbt tests.
+
+    Watermarking (10 minutes) is applied via event_timestamp before
+    deduplication so out-of-order events beyond the watermark are dropped
+    rather than silently merged as new rows.
+    """
     if batch_df.isEmpty():
         return
+
+    max_cost = _THRESHOLDS["max_cost_usd"]
+    age_hours = _THRESHOLDS["max_event_age_hours"]
+    skew_mins = _THRESHOLDS["max_future_skew_mins"]
+    watermark_mins = _THRESHOLDS["watermark_minutes"]
 
     # 1. Parse JSON payload
     parsed_df = batch_df.select(
         F.from_json(F.col("value").cast("string"), EVENT_SCHEMA).alias("payload")
     ).select("payload.*")
 
-    # 2. Add validation metadata & cast numerical fields safely
+    # 2. Parse event timestamp early so we can apply watermarking.
+    #    withWatermark() tells Spark to drop state for events older than
+    #    <watermark_mins> minutes relative to the max seen event_timestamp.
+    #    Events arriving beyond this window are dropped, not duplicated.
+    parsed_with_ts = parsed_df.withColumn(
+        "event_timestamp",
+        F.to_timestamp(F.col("timestamp")),
+    )
+    watermarked_df = parsed_with_ts.withWatermark(
+        "event_timestamp", f"{watermark_mins} minutes"
+    )
+
+    # 3. Deduplicate within the watermark window on the idempotency key
+    deduplicated_df = watermarked_df.dropDuplicates(
+        ["agent_id", "session_id", "action_id"]
+    )
+
+    # 4. Add validation metadata and cast numerical fields safely
     validated_df = (
-        parsed_df.withColumn("cost_usd_double", F.col("cost_usd").cast(DoubleType()))
-        .withColumn("timestamp_ts", F.to_timestamp(F.col("timestamp")))
+        deduplicated_df
+        .withColumn("cost_usd_double", F.col("cost_usd").cast(DoubleType()))
+        .withColumn("timestamp_ts", F.col("event_timestamp"))
         .withColumn(
             "errors",
             F.array_remove(
@@ -94,16 +182,16 @@ def process_batch(batch_df: DataFrame, batch_id: int):
                     F.when(F.col("action_id").isNull(), "missing_required_field:action_id"),
                     F.when(F.col("cost_usd_double").isNull(), "type_mismatch:cost_usd_not_double"),
                     F.when(
-                        (F.col("cost_usd_double") < 0.0) | (F.col("cost_usd_double") > 50.0),
+                        (F.col("cost_usd_double") < 0.0) | (F.col("cost_usd_double") > max_cost),
                         "semantic_rule:cost_out_of_bounds",
                     ),
                     F.when(F.col("timestamp_ts").isNull(), "parse_error:invalid_timestamp_format"),
                     F.when(
-                        F.col("timestamp_ts") < (F.current_timestamp() - F.expr("INTERVAL 24 HOURS")),
+                        F.col("timestamp_ts") < (F.current_timestamp() - F.expr(f"INTERVAL {age_hours} HOURS")),
                         "freshness:stale_timestamp",
                     ),
                     F.when(
-                        F.col("timestamp_ts") > (F.current_timestamp() + F.expr("INTERVAL 5 MINUTES")),
+                        F.col("timestamp_ts") > (F.current_timestamp() + F.expr(f"INTERVAL {skew_mins} MINUTES")),
                         "freshness:future_timestamp",
                     ),
                 ),
@@ -112,22 +200,22 @@ def process_batch(batch_df: DataFrame, batch_id: int):
         )
     )
 
-    # 3. Distributed Split: Valid vs Quarantine (Executes on Workers)
+    # 5. Distributed Split: Valid vs Quarantine (executes on workers)
     valid_df = (
         validated_df.filter(F.size(F.col("errors")) == 0)
         .withColumn("cost_usd", F.col("cost_usd_double"))
         .withColumn("timestamp", F.col("timestamp_ts"))
-        .drop("cost_usd_double", "timestamp_ts", "errors")
+        .drop("cost_usd_double", "timestamp_ts", "errors", "event_timestamp")
     )
 
     quarantine_df = (
         validated_df.filter(F.size(F.col("errors")) > 0)
         .withColumn("quarantined_at", F.current_timestamp())
         .withColumn("error_summary", F.concat_ws("; ", F.col("errors")))
-        .drop("cost_usd_double", "timestamp_ts")
+        .drop("cost_usd_double", "timestamp_ts", "event_timestamp")
     )
 
-    # 4. Distributed Delta Writes
+    # 6. Distributed Delta Writes
     if not valid_df.isEmpty():
         merge_into_bronze(batch_df.sparkSession, valid_df)
 
@@ -164,6 +252,8 @@ def merge_into_bronze(spark: SparkSession, valid_df: DataFrame):
 def main():
     spark = build_spark()
     spark.sparkContext.setLogLevel("WARN")
+
+    print(f"[gatekeeper] Contract thresholds loaded: {_THRESHOLDS}")
 
     raw_stream = (
         spark.readStream.format("kafka")

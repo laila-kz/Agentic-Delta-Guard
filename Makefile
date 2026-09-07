@@ -91,3 +91,9 @@ ci-local:
 
 clean:
 	$(PYTHON) -c "from pathlib import Path; import shutil; paths = ['.pytest_cache', 'dbt_delta_guard/target', 'docs/reports/quality_audit.md', 'docs/reports/quality_report.json', 'docs/reports/storage_benchmark.md', 'docs/INCIDENT_LOG.md', 'configs/agent_contract_proposed.yaml', 'data/gold/agent_sandbox']; [shutil.rmtree(p) if Path(p).is_dir() else Path(p).unlink(missing_ok=True) for p in paths]"
+
+
+.PHONY: sync-contract
+
+sync-contract:
+	python scripts/sync_contract_to_dbt_vars.py

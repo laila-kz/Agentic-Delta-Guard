@@ -1,10 +1,11 @@
 
+  
+    
     
 
     create  table
       "dbt_delta_guard"."main"."dim_tool_efficiency__dbt_tmp"
   
-    
     as (
       
 
@@ -25,5 +26,5 @@ select
 from "dbt_delta_guard"."main"."fct_agent_activity"
 group by tool_name
     );
-    
+  
   

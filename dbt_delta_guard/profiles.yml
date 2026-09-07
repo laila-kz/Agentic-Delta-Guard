@@ -1,7 +1,19 @@
 dbt_delta_guard:
-  target: dev
+  target: duckdb_dev  # Use duckdb locally on Windows, switch to spark in Docker/CI
   outputs:
-    dev:
+    # Local development on Windows (fast iteration)
+    duckdb_dev:
       type: duckdb
       path: ../data/bronze/dbt_delta_guard.duckdb
       threads: 4
+
+    # Production/CI - real Spark + Delta (when running in Docker or Linux)
+    spark_prod:
+      type: spark
+      method: session
+      schema: default
+      host: NA
+      threads: 4
+      user: local
+      connect_retries: 5
+      connect_timeout: 60

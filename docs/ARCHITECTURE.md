@@ -324,11 +324,98 @@ dbt deps --profiles-dir .
 dbt compile --profiles-dir .
 dbt test --profiles-dir .
 
-# Run the focused chaos suite
-pytest tests/test_chaos_suite.py -v
+# Run the contract-validation and invariant suite
+pytest tests/test_contract_validation.py -v
+
+# Run infrastructure chaos tests (broker kill, checkpoint wipe)
+pytest tests/test_chaos_infra.py -v
 ```
 
 The local CI helper also validates the contract, compiles dbt, runs the chaos suite, checks sandbox isolation, runs deterministic triage, and generates the storage benchmark report.
+
+## Delta Lake Time Travel and Shallow Cloning
+
+The project leverages Delta Lake 3.x capabilities for production-grade data governance and safe experimentation:
+
+### Time Travel (Point-in-Time Recovery)
+
+All Delta tables maintain a complete transaction log. Query any historical version by version number or timestamp:
+
+```python
+# Read as of 3 versions ago
+df = clone_utils.read_at_version(
+	table_path="data/gold/agent_analytics",
+	version=42
+)
+
+# Read as of 1 hour ago (ISO timestamp)
+df = clone_utils.read_at_timestamp(
+	table_path="data/gold/agent_analytics",
+	timestamp="2024-12-15T10:30:00Z"
+)
+
+# Restore table to specific version (destructive)
+clone_utils.restore_to_version(
+	table_path="data/gold/agent_analytics",
+	version=42
+)
+```
+
+**Use cases:**
+- **Incident response:** recover from accidental deletes or model errors
+- **Audit trail:** prove what data existed at a specific point in time
+- **A/B testing:** compare outputs from different model versions on the same input snapshot
+- **Debugging:** investigate when and how specific records entered the system
+
+Time travel retention is controlled by Delta configuration (`delta.logRetentionDays`, default 30 days).
+
+### Shallow Cloning (Zero-Copy Sandbox)
+
+Create independent read-write copies of Delta tables without replicating underlying data files:
+
+```python
+# Create a fast, isolated sandbox
+result = clone_utils.create_shallow_clone(
+	source_table_path="data/gold/agent_analytics",
+	target_table_path="data/sandbox/test_experiment",
+	replace=True
+)
+# Typical clone time: < 1 second
+# Storage overhead: negligible (metadata only)
+```
+
+Shallow clones share underlying Parquet files via copy-on-write semantics. Mutations (INSERT, UPDATE, DELETE) only write new files, leaving the source table and other clones unaffected.
+
+**Use cases:**
+- **Safe testing:** mutate dbt models or run arbitrary queries without affecting production
+- **Developer environments:** each team member gets a lightweight independent snapshot
+- **CI/CD validation:** test data quality checks on production-scale data with zero storage cost
+- **Sandbox promotion workflow:** experiment in a sandbox, assert correctness, promote only when ready
+
+**Example workflow:**
+
+```python
+# 1. Create a quick snapshot for testing
+clone_utils.create_shallow_clone(
+	source_table_path="data/gold/agent_analytics",
+	target_table_path="data/sandbox/agent_analytics_test",
+	replace=True
+)
+
+# 2. Run experiments on the sandbox (no impact on source)
+# DELETE FROM sandbox.agent_analytics WHERE cost_usd > 50.0
+# UPDATE sandbox.agent_analytics SET cost_tier = 'high' WHERE ...
+
+# 3. Validate via assertions (see SandboxGuard in sandbox_guard.py)
+# - Schema matches expected structure
+# - Costs remain within bounds
+# - No unexpected row deletions
+
+# 4. If assertions pass, promote results
+# COPY sandbox.agent_analytics TO gold.agent_analytics
+```
+
+See [docs/DELTA_TIME_TRAVEL_AND_CLONING.md](DELTA_TIME_TRAVEL_AND_CLONING.md) for detailed examples and advanced workflows.
 
 ## Design Boundaries
 
@@ -337,3 +424,42 @@ The local CI helper also validates the contract, compiles dbt, runs the chaos su
 - dbt owns analytical transformations and assertions, not streaming ingestion.
 - Triage owns quarantine diagnosis and proposed contract changes, not automatic production promotion.
 - The HUD reports health and volume; it does not acknowledge, delete, or repair events.
+
+---
+
+## Storage Layer Boundary (Deliberate Trade-off)
+
+Bronze and Quarantine are true Delta Lake tables (ACID writes, MERGE INTO, time travel)
+written directly by the PySpark Structured Streaming gatekeeper.
+
+Silver and Gold are DuckDB-native tables built from Bronze via dbt, materialized as Parquet
+rather than Delta. This was a deliberate choice to keep local iteration fast during a 4-week
+build — DuckDB has near-zero setup cost and sub-second query turnaround compared to spinning
+up a local Spark SQL engine for every dbt run.
+
+**Trade-off accepted:** Silver/Gold do not have ACID guarantees, time travel, or true
+storage-level shallow-clone support. If this pipeline moved to production, Silver/Gold would
+need to move to Delta (via dbt-spark or Databricks) before any concurrent writers or
+SLA-backed consumers depended on them.
+
+**What this means for shallow clones:** `SandboxGuard.create_shallow_clone()` is a
+compatibility wrapper — on Spark+Delta it uses the real `CLONE` API; on DuckDB it copies
+the data via pandas/write_deltalake. The copy-based path does not share underlying files.
+The documentation that described it as "zero-copy" was inaccurate for the DuckDB code path.
+
+---
+
+## Edge Cases
+
+| Edge Case | Handling | Status |
+| --- | --- | --- |
+| Duplicate events within a micro-batch | `dropDuplicates(["agent_id","session_id","action_id"])` inside watermark window | ✅ Implemented |
+| Late / out-of-order events within 10-min watermark | Processed normally via `withWatermark("event_timestamp","10 minutes")` | ✅ Implemented |
+| Late events beyond 10-min watermark | Dropped by Spark state management — not merged as new rows | ✅ Implemented |
+| Duplicate events across micro-batches (long-term) | `MERGE INTO` on Bronze by `(agent_id, session_id, action_id)` | ✅ Implemented |
+| Malformed JSON from Kafka | `from_json` produces null struct fields; null `agent_id`/`session_id`/`action_id` routes to quarantine | ✅ Implemented |
+| Kafka broker restart mid-stream | Checkpoint recovery replays from last committed offset | ✅ Checkpoint-based |
+| Checkpoint deletion | Gatekeeper replays from `earliest`; idempotent MERGE INTO prevents duplicates on Bronze | ✅ Idempotent |
+| Stale / future timestamps | Caught by freshness rules sourced from `agent_contract.yaml` | ✅ Implemented |
+| Cost out of bounds | Caught by bounds rule sourced from `agent_contract.yaml` | ✅ Implemented |
+| No exactly-once guarantee | Crash between Kafka offset commit and Delta commit is not separately tested; MERGE INTO makes Delta write idempotent on retry but the gap exists | ⚠️ Known limitation |

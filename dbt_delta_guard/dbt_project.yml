@@ -1,11 +1,9 @@
 name: dbt_delta_guard
-version: "1.0.0"
+version: 1.0.0
 config-version: 2
-
 profile: dbt_delta_guard
-
-model-paths: [models]
-
+model-paths:
+- models
 models:
   dbt_delta_guard:
     staging:
@@ -14,3 +12,7 @@ models:
       +materialized: ephemeral
     marts:
       +materialized: table
+vars:
+  max_cost_usd: 50.0
+  max_event_age_hours: 24
+  max_future_skew_minutes: 5
