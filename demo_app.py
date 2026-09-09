@@ -49,7 +49,7 @@ st.markdown("""
 
 # Metrics Row
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("Validation Throughput", "4,520 ev/s", "+37.5x vs Row-by-Row")
+col1.metric("Validation Throughput", "~9,447 ev/s", "~78.7x vs Row-by-Row")
 col2.metric("Incident MTTR", "1.2 min", "-94.8% vs Manual SRE")
 col3.metric("Stream Availability", "99.99%", "Zero micro-batch stalls")
 allowed_tools = contract.get("allowed_tools", ["search_tool", "python_repl", "database_writer"])

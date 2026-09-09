@@ -1,5 +1,9 @@
 
 
+-- NOTE: This reads from Bronze layer parquet exports
+-- In production (dbt-spark), we would read directly from delta.`../data/bronze/agent_events`
+-- For now, both duckdb (local dev) and spark (prod) can read the parquet format
+
 with raw_bronze as (
 	select
 		agent_id,
@@ -11,7 +15,7 @@ with raw_bronze as (
 		cast(cost_usd as double) as cost_usd,
 		status,
 		tool_args
-	from delta_scan('../data/bronze/agent_events')
+	from read_parquet('../data/bronze/agent_events/*.parquet')
 ),
 
 deduplicated as (

@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "agentic-delta-guard": {
+      "command": "python",
+      "args": [
+        "run_mcp_server.py"
+      ],
+      "env": {
+        "PYTHONPATH": "."
+      }
+    }
+  }
+}

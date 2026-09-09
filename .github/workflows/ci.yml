@@ -66,6 +66,9 @@ jobs:
         working-directory: dbt_delta_guard
         run: dbt deps --profiles-dir .
 
+      - name: Sync contract thresholds to dbt
+        run: python scripts/sync_contract_to_dbt_vars.py
+
       - name: Compile dbt project
         working-directory: dbt_delta_guard
         run: dbt compile --profiles-dir .
@@ -73,7 +76,7 @@ jobs:
       - name: Run chaos tests
         env:
           KAFKA_BOOTSTRAP_SERVERS: localhost:9092
-        run: pytest tests/test_chaos_suite.py -v --tb=short
+        run: pytest tests/test_chaos_infra.py -v --tb=short
 
       - name: Verify sandbox isolation
         run: python src/delta_guard/sandbox_guard.py

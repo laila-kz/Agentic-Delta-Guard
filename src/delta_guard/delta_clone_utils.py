@@ -8,12 +8,16 @@ using the Delta Lake 3.x APIs.
 from __future__ import annotations
 
 import logging
+import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
 import pandas as pd
+from delta import configure_spark_with_delta_pip
 from delta.tables import DeltaTable
+from deltalake import DeltaTable as RustDeltaTable, write_deltalake
+import pyarrow as pa
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType
 
@@ -31,12 +35,12 @@ class DeltaCloneUtils:
             spark: SparkSession. If None, will create a new session.
         """
         if spark is None:
-            self.spark = (
+            builder = (
                 SparkSession.builder.appName("delta_clone_utils")
                 .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
                 .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-                .getOrCreate()
             )
+            self.spark = configure_spark_with_delta_pip(builder).getOrCreate()
         else:
             self.spark = spark
 
@@ -68,6 +72,15 @@ class DeltaCloneUtils:
 
         logger.info(f"Creating shallow clone: {source_path} → {target_path}")
         start_time = datetime.now()
+
+        if os.name == "nt":
+            return self._copy_clone(
+                source_path,
+                target_path,
+                replace=replace,
+                clone_type="shallow_fallback",
+                start_time=start_time,
+            )
 
         try:
             # Use Delta Lake clone API
@@ -134,6 +147,15 @@ class DeltaCloneUtils:
         logger.info(f"Creating deep clone: {source_path} → {target_path}")
         start_time = datetime.now()
 
+        if os.name == "nt":
+            return self._copy_clone(
+                source_path,
+                target_path,
+                replace=replace,
+                clone_type="deep",
+                start_time=start_time,
+            )
+
         try:
             # Use Delta Lake clone API with isShallow=False
             source_delta = DeltaTable.forPath(self.spark, source_path)
@@ -169,6 +191,38 @@ class DeltaCloneUtils:
         except Exception as e:
             logger.error(f"Failed to create deep clone: {e}")
             raise
+
+    @staticmethod
+    def _copy_clone(
+        source_path: str,
+        target_path: str,
+        replace: bool,
+        clone_type: str,
+        start_time: datetime,
+    ) -> dict:
+        if source_path == target_path:
+            raise ValueError("Source and target table paths must be different")
+
+        source_delta = RustDeltaTable(source_path)
+        source_df = source_delta.to_pandas()
+        write_deltalake(
+            target_path,
+            pa.Table.from_pandas(source_df, preserve_index=False),
+            mode="overwrite" if replace else "error",
+            schema_mode="overwrite" if replace else None,
+        )
+        clone_duration = (datetime.now() - start_time).total_seconds()
+        return {
+            "status": "success",
+            "source_path": source_path,
+            "target_path": target_path,
+            "source_row_count": len(source_df),
+            "target_row_count": len(source_df),
+            "clone_duration_seconds": clone_duration,
+            "clone_type": clone_type,
+            "zero_copy": clone_type == "shallow",
+            "timestamp": datetime.now().isoformat(),
+        }
 
     def read_at_version(
         self,
@@ -248,6 +302,15 @@ class DeltaCloneUtils:
         logger.info(f"Fetching history for {table_path} (limit: {limit})")
 
         try:
+            if os.name == "nt":
+                history = RustDeltaTable(table_path).history(limit=limit)
+                history_df = pd.DataFrame(history)
+                if "timestamp" in history_df.columns:
+                    history_df["timestamp"] = pd.to_datetime(
+                        history_df["timestamp"], unit="ms", utc=True
+                    )
+                return history_df
+
             delta_table = DeltaTable.forPath(self.spark, table_path)
             history_df = delta_table.history(limit=limit)
             return history_df.toPandas()
@@ -309,6 +372,27 @@ class DeltaCloneUtils:
         table_path = str(Path(table_path).resolve())
 
         try:
+            if os.name == "nt":
+                rust_table = RustDeltaTable(table_path)
+                history = rust_table.history(limit=100000)
+                latest = history[0] if history else {}
+                oldest = history[-1] if history else {}
+                size_bytes = sum(
+                    Path(file_uri).stat().st_size
+                    for file_uri in rust_table.file_uris()
+                    if Path(file_uri).exists()
+                )
+                return {
+                    "table_path": table_path,
+                    "format": "delta",
+                    "row_count": len(rust_table.to_pandas()),
+                    "size_bytes": size_bytes,
+                    "num_files": len(rust_table.file_uris()),
+                    "created_at": oldest.get("timestamp"),
+                    "last_modified": latest.get("timestamp"),
+                    "version": rust_table.version(),
+                }
+
             delta_table = DeltaTable.forPath(self.spark, table_path)
             detail = delta_table.detail()
             detail_row = detail.collect()[0]

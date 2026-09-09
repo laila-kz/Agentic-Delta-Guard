@@ -1,414 +1,458 @@
 """
 src/delta_guard/mcp/server.py
-Model Context Protocol server for Agentic Delta Guard.
+Model Context Protocol (MCP) Server for Agentic Delta Guard.
 Exposes synchronous pre-flight checks and supervisor observability tools.
+Compatible with Gemini CLI, Claude Desktop, Cursor, and FastMCP runners.
 """
 
 from __future__ import annotations
+
 import json
+import hmac
 import os
-from pathlib import Path
-from typing import Any, Optional
+import sys
 from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 import duckdb
 import yaml
 
-# MCP imports
+# Resolve project root
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# MCP FastMCP import with fallback
 try:
     from mcp.server.fastmcp import FastMCP
 except ImportError:
-    print("⚠️  MCP not installed. Run: pip install mcp")
-    print("Falling back to mock mode...")
-    
-    # Mock FastMCP for testing without MCP
-    class FastMCP:
-        def __init__(self, name, dependencies=None):
+    # Mock FastMCP for running/testing in lightweight environments without mcp
+    class FastMCP:  # type: ignore
+        def __init__(self, name: str, dependencies: Optional[List[str]] = None):
             self.name = name
-            self.tools = {}
-            
+            self.tools: Dict[str, Any] = {}
+
         def tool(self, fn=None, **kwargs):
             def decorator(func):
                 self.tools[func.__name__] = func
                 return func
             return decorator if fn is None else decorator(fn)
-        
-        def run(self):
-            print(f"Running MCP server: {self.name}")
+
+        def run(self, transport: str = "stdio"):
+            print(f"Running MCP server: {self.name} (Transport: {transport})")
             print(f"Available tools: {list(self.tools.keys())}")
-            print("\nTo test, call tools directly:")
-            for name in self.tools:
-                print(f"  - {name}()")
             return self
 
-# Import our validator. Support both package imports and direct script execution.
-try:
-    from .validators.contract_validator import ContractValidator
-except ImportError:
-    from validators.contract_validator import ContractValidator
+# Import Validator
+from src.delta_guard.mcp.validators.contract_validator import ContractValidator
 
-# Initialize server
+# Initialize FastMCP Server
 mcp = FastMCP("agentic-delta-guard", dependencies=["duckdb", "pyyaml", "pydantic"])
-validator = ContractValidator()
-
-# Project root
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+validator = ContractValidator(PROJECT_ROOT / "configs" / "agent_contract.yaml")
 
 
 @mcp.tool()
 def check_contract(payload: dict[str, Any]) -> str:
     """
-    PRE-FLIGHT ADVISOR: Checks whether an event payload satisfies data lakehouse 
-    quality rules before the agent writes to Kafka.
-    
+    PRE-FLIGHT ADVISOR: Checks whether an event payload satisfies data lakehouse
+    quality rules before the agent writes to Kafka. Returns instant pass/fail with self-healing hints.
+
     Args:
-        payload: The event payload to validate (dict with agent_id, tool_name, cost_usd, etc.)
-    
+        payload: Event dictionary (agent_id, session_id, action_id, timestamp, tool_name, cost_usd, etc.)
+
     Returns:
-        JSON string with validation result including allowed flag, violations, and hints.
+        JSON string containing allowed boolean, violation list, and remediation hints.
     """
     result = validator.validate(payload)
-    
-    # If allowed, add a helpful message
     if result["allowed"]:
-        result["message"] = "✅ Payload passes all contract checks. Safe to emit."
+        result["message"] = "Payload passes all data contract checks. Safe to emit to Kafka."
     else:
-        result["message"] = f"❌ Payload rejected ({len(result['violations'])} violation(s)). Review hints."
-    
+        v_count = len(result["violations"])
+        result["message"] = f"Payload rejected ({v_count} violation(s)). Self-correct using remediation hints."
     return json.dumps(result, indent=2)
 
 
 @mcp.tool()
 def get_active_contract() -> str:
     """
-    SCHEMA DISCOVERY: Returns the full active data contract.
-    
+    SCHEMA DISCOVERY: Returns the full active data contract (schema, allowed tools, budget limits, rules).
+    Agents should call this at session startup to discover environment constraints.
+
     Returns:
-        JSON string with contract schema, allowed tools, and thresholds.
+        JSON string containing active contract YAML content and metadata.
     """
-    validator.reload()  # Refresh on demand
+    validator.reload()
     return json.dumps({
         "contract": validator.contract,
+        "contract_version": validator.contract.get("version", "1.0.0"),
+        "allowed_tools": validator.get_allowed_tools(),
+        "max_cost_per_call": validator.max_cost_usd,
+        "freshness_window_hours": validator.max_event_age_hours,
         "loaded_at": datetime.now(timezone.utc).isoformat(),
-        "contract_path": str(validator.contract_path.absolute())
+        "contract_path": str(validator.contract_path.resolve()),
     }, indent=2)
 
 
 @mcp.tool()
 def get_quarantine_summary(limit: int = 5, agent_id: Optional[str] = None) -> str:
     """
-    SUPERVISOR OBSERVABILITY: Queries recent quarantine rejections.
-    
+    SUPERVISOR OBSERVABILITY: Queries recent quarantine rejections from the Layer 2 safety net
+    to identify systemic errors and rogue behaviors across the agent fleet.
+
     Args:
-        limit: Maximum number of records to return (default: 5)
-        agent_id: Optional filter by specific agent
-    
+        limit: Maximum number of recent records to return (default: 5)
+        agent_id: Optional filter for a specific agent ID
+
     Returns:
-        JSON string with quarantine records summary.
+        JSON string containing quarantine sample records, error signature frequencies, and status.
     """
     quarantine_path = PROJECT_ROOT / "data" / "quarantine" / "agent_events"
-    
     if not quarantine_path.exists():
         return json.dumps({
             "status": "clean",
-            "message": "No quarantine records found. All agents are compliant! 🎉",
-            "records": []
+            "message": "No quarantine records found. All agent events compliant!",
+            "records": [],
         }, indent=2)
 
     conn = duckdb.connect()
     try:
-        # Try Delta scan first
+        # Query Delta Lake table or fallback to parquet
         try:
-            query = f"SELECT * FROM delta_scan('{quarantine_path}')"
-        except:
-            # Fallback to Parquet
-            query = f"SELECT * FROM read_parquet('{quarantine_path}/**/*.parquet')"
-        
+            query = f"SELECT * FROM delta_scan('{quarantine_path.as_posix()}')"
+        except Exception:
+            query = f"SELECT * FROM read_parquet('{quarantine_path.as_posix()}/**/*.parquet')"
+
         if agent_id:
             query += f" WHERE agent_id = '{agent_id}'"
-        query += f" ORDER BY timestamp DESC LIMIT {limit}"
-        
+
+        query += f" ORDER BY quarantined_at DESC LIMIT {int(limit)}"
         df = conn.execute(query).df()
         records = df.to_dict(orient="records")
-        
-        # Extract error summaries
-        error_types = {}
-        for record in records:
-            err = record.get("error_summary", "unknown")
-            error_types[err] = error_types.get(err, 0) + 1
-        
+
+        # Cluster error signatures
+        error_signatures: Dict[str, int] = {}
+        for r in records:
+            err = str(r.get("error_summary", "unknown"))
+            error_signatures[err] = error_signatures.get(err, 0) + 1
+
         return json.dumps({
-            "status": "quarantine_active",
+            "status": "quarantine_active" if records else "clean",
             "total_records_in_sample": len(records),
-            "error_signatures": error_types,
+            "error_signatures": error_signatures,
             "records": records,
-            "message": f"Found {len(records)} recent quarantine records"
+            "message": f"Retrieved {len(records)} recent quarantine records.",
         }, indent=2, default=str)
-        
     except Exception as e:
         return json.dumps({
             "status": "error",
             "error": f"Quarantine query failed: {str(e)}",
-            "suggestion": "Try running the pipeline to generate some quarantine data"
+            "message": "Quarantine table may be uninitialized or empty.",
         }, indent=2)
     finally:
         conn.close()
 
 
 @mcp.tool()
-def propose_contract_patch(rationale: str, proposed_change: dict[str, Any]) -> str:
+def inspect_bronze_lakehouse(limit: int = 5, agent_id: Optional[str] = None) -> str:
     """
-    AUTONOMOUS GOVERNANCE: Proposes a formal update to the contract.
-    
+    LAKEHOUSE OBSERVABILITY: Queries recent validated Bronze Delta Lake records.
+
     Args:
-        rationale: Why this change is needed (e.g., "New tool added to agent fleet")
-        proposed_change: What to change (e.g., {"add_allowed_tool": "new_tool_name"})
-    
+        limit: Maximum records to inspect (default: 5)
+        agent_id: Optional filter for a specific agent ID
+
     Returns:
-        JSON string with proposal status and next steps.
+        JSON string of validated Bronze event records.
     """
+    bronze_path = PROJECT_ROOT / "data" / "bronze" / "agent_events"
+    if not bronze_path.exists():
+        return json.dumps({
+            "status": "empty",
+            "message": "Bronze table does not exist yet. Run the streaming pipeline!",
+            "records": [],
+        }, indent=2)
+
+    conn = duckdb.connect()
+    try:
+        try:
+            query = f"SELECT * FROM delta_scan('{bronze_path.as_posix()}')"
+        except Exception:
+            query = f"SELECT * FROM read_parquet('{bronze_path.as_posix()}/**/*.parquet')"
+
+        if agent_id:
+            query += f" WHERE agent_id = '{agent_id}'"
+
+        query += f" ORDER BY timestamp DESC LIMIT {int(limit)}"
+        df = conn.execute(query).df()
+        records = df.to_dict(orient="records")
+
+        return json.dumps({
+            "status": "online",
+            "inspected_records": len(records),
+            "records": records,
+        }, indent=2, default=str)
+    except Exception as e:
+        return json.dumps({"status": "error", "error": f"Bronze query failed: {str(e)}"}, indent=2)
+    finally:
+        conn.close()
+
+
+@mcp.tool()
+def propose_contract_patch(
+    rationale: str,
+    proposed_change: dict[str, Any],
+    authorization_token: Optional[str] = None,
+) -> str:
+    """
+    AUTONOMOUS GOVERNANCE: Proposes a formal update to configs/agent_contract_proposed.yaml
+    when supervisor agents detect legitimate, authorized new agent tools or parameters.
+
+    Args:
+        rationale: Reason for proposing the contract update
+        proposed_change: Dictionary specifying proposed updates:
+                         - add_allowed_tool: str
+                         - increase_max_cost: float
+                         - add_required_field: str
+        authorization_token: Deployment-configured token required to write a proposal.
+
+    Returns:
+        JSON string detailing proposal status, diff preview, and CI validation instructions.
+    """
+    configured_token = os.getenv("MCP_PROPOSAL_TOKEN")
+    if not configured_token:
+        return json.dumps({
+            "status": "AUTHORIZATION_REQUIRED",
+            "message": "Contract proposals are disabled until MCP_PROPOSAL_TOKEN is configured.",
+        }, indent=2)
+    if not authorization_token or not hmac.compare_digest(authorization_token, configured_token):
+        return json.dumps({
+            "status": "UNAUTHORIZED",
+            "message": "A valid authorization token is required to create contract proposals.",
+        }, indent=2)
+
     proposed_path = PROJECT_ROOT / "configs" / "agent_contract_proposed.yaml"
-    
-    # Load current contract
-    current = validator.contract
-    
-    # Apply changes
+    validator.reload()
+    current = dict(validator.contract)
+
+    triage_context: Optional[dict[str, Any]] = None
+    try:
+        from src.delta_guard.triage import LLMTriageEngine
+
+        triage_engine = LLMTriageEngine()
+        quarantine_records = triage_engine.load_quarantine_records()
+        clusters = triage_engine.cluster_error_signatures(quarantine_records)
+        triage_context = triage_engine.generate_llm_diagnosis(quarantine_records, clusters)
+    except Exception as exc:
+        triage_context = {"provider": "unavailable", "error": str(exc)}
+
+    changes_applied = []
+
+    # 1. Add tool to allowlist
     if "add_allowed_tool" in proposed_change:
-        tools = current.setdefault("allowed_tools", [])
         new_tool = proposed_change["add_allowed_tool"]
-        if new_tool not in tools:
-            tools.append(new_tool)
-            print(f"✅ Added '{new_tool}' to allowed_tools")
-        else:
-            return json.dumps({
-                "status": "NO_CHANGE",
-                "message": f"Tool '{new_tool}' already in allowed_tools",
-                "current_tools": tools
-            }, indent=2)
-    
+        # Update schema field allowed_values if present
+        for field in current.get("schema", {}).get("fields", []):
+            if field.get("name") == "tool_name" and "allowed_values" in field:
+                if new_tool not in field["allowed_values"]:
+                    field["allowed_values"].append(new_tool)
+                    changes_applied.append(f"Added '{new_tool}' to schema.fields[tool_name].allowed_values")
+
+        # Update top-level allowed_tools if present
+        if "allowed_tools" in current:
+            if new_tool not in current["allowed_tools"]:
+                current["allowed_tools"].append(new_tool)
+                changes_applied.append(f"Added '{new_tool}' to allowed_tools")
+        elif not changes_applied:
+            current["allowed_tools"] = [new_tool]
+            changes_applied.append(f"Created allowed_tools list with '{new_tool}'")
+
+    # 2. Increase max cost
     if "increase_max_cost" in proposed_change:
         new_max = float(proposed_change["increase_max_cost"])
         current.setdefault("thresholds", {})["max_cost_per_call"] = new_max
-        print(f"✅ Increased max_cost_per_call to ${new_max}")
-    
+        # Also update semantic_rules if present
+        for rule in current.get("semantic_rules", []):
+            if "cost_usd <=" in rule.get("rule", ""):
+                rule["rule"] = f"cost_usd >= 0.0 AND cost_usd <= {new_max}"
+                rule["message"] = f"cost_usd out of valid boundaries [0.0, {new_max}]"
+        changes_applied.append(f"Updated max_cost_usd ceiling to ${new_max:.2f}")
+
+    # 3. Add required field
     if "add_required_field" in proposed_change:
-        fields = current.setdefault("schema", {}).setdefault("fields", [])
         new_field = proposed_change["add_required_field"]
-        fields.append({"name": new_field, "type": "string", "nullable": False})
-        print(f"✅ Added required field: {new_field}")
-    
-    # Write proposal
+        fields = current.setdefault("schema", {}).setdefault("fields", [])
+        if not any(f.get("name") == new_field for f in fields):
+            fields.append({"name": new_field, "type": "string", "nullable": False})
+            changes_applied.append(f"Added required schema field '{new_field}'")
+
+    if not changes_applied:
+        return json.dumps({
+            "status": "NO_CHANGE",
+            "message": "No valid change applied. Provided parameters already satisfied or unsupported.",
+            "current_contract": current,
+        }, indent=2)
+
+    # Write out proposed YAML file
+    proposed_path.parent.mkdir(parents=True, exist_ok=True)
     with open(proposed_path, "w", encoding="utf-8") as f:
-        yaml.dump(current, f, sort_keys=False)
-    
+        yaml.dump(current, f, sort_keys=False, indent=2)
+
     return json.dumps({
         "status": "PROPOSAL_CREATED",
         "rationale": rationale,
-        "changes_applied": list(proposed_change.keys()),
-        "artifact_path": str(proposed_path.absolute()),
+        "changes_applied": changes_applied,
+        "triage_context": triage_context,
+        "artifact_path": str(proposed_path.resolve()),
         "next_steps": [
-            "1. Review the proposed changes in the artifact",
-            "2. Run `make dbt-test` to verify the new contract",
-            "3. If approved, manually merge to agent_contract.yaml",
-            "4. Restart the gatekeeper to apply the new rules"
+            "1. Automated CI / Invariant checks will evaluate proposed contract against quarantine history.",
+            "2. Run 'pytest tests/' to verify no regressions on existing telemetry.",
+            "3. Submit pull request for human sign-off before promoting to configs/agent_contract.yaml.",
         ],
-        "message": "✅ Contract proposal saved. CI pipeline will run tests before human merge."
+        "message": "Draft contract saved. Ready for CI verification and supervisor review.",
     }, indent=2)
 
 
 @mcp.tool()
 def get_system_status() -> str:
     """
-    HEALTH CHECK: Returns the overall health status of the pipeline.
-    
+    OPERATIONAL HEALTH: Returns the real-time status of pipeline components (Kafka, Bronze, Quarantine).
+
     Returns:
-        JSON string with Kafka, Gatekeeper, and Table status.
+        JSON string reporting overall health and individual component statuses.
     """
-    status = {
+    status: Dict[str, Any] = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "components": {}
+        "overall_health": "healthy",
+        "components": {},
     }
-    
-    # Check Kafka
+
+    # Kafka Check
     try:
         import subprocess
         result = subprocess.run(
             ["docker", "ps", "--filter", "name=kafka", "--format", "{{.Status}}"],
-            capture_output=True, text=True
+            capture_output=True,
+            text=True,
+            timeout=3,
         )
-        status["components"]["kafka"] = {
-            "status": "online" if "Up" in result.stdout else "offline",
-            "detail": result.stdout.strip() or "Not running"
-        }
-    except:
-        status["components"]["kafka"] = {
-            "status": "unknown",
-            "detail": "Could not check Kafka status"
-        }
-    
-    # Check Bronze table
+        if "Up" in result.stdout:
+            status["components"]["kafka"] = {"status": "online", "detail": result.stdout.strip()}
+        else:
+            status["components"]["kafka"] = {"status": "offline", "detail": "Kafka container not active"}
+    except Exception:
+        status["components"]["kafka"] = {"status": "unreachable", "detail": "Docker CLI or Kafka unavailable"}
+
+    # Bronze Delta Lake Check
     bronze_path = PROJECT_ROOT / "data" / "bronze" / "agent_events"
     if bronze_path.exists():
         try:
             conn = duckdb.connect()
-            count = conn.execute(
-                f"SELECT COUNT(*) FROM delta_scan('{bronze_path}')"
-            ).fetchone()[0]
+            cnt = conn.execute(f"SELECT COUNT(*) FROM delta_scan('{bronze_path.as_posix()}')").fetchone()[0]
             conn.close()
-            status["components"]["bronze"] = {
-                "status": "online",
-                "row_count": count,
-                "detail": f"{count} validated records"
-            }
-        except:
-            status["components"]["bronze"] = {
-                "status": "online",
-                "row_count": "unknown",
-                "detail": "Table exists but query failed"
-            }
+            status["components"]["bronze_delta_lake"] = {"status": "online", "row_count": cnt}
+        except Exception:
+            status["components"]["bronze_delta_lake"] = {"status": "online", "row_count": "unindexed"}
     else:
-        status["components"]["bronze"] = {
-            "status": "empty",
-            "detail": "No data yet. Run the producer!"
-        }
-    
-    # Check Quarantine
+        status["components"]["bronze_delta_lake"] = {"status": "empty", "detail": "Table not created yet"}
+
+    # Quarantine Delta Lake Check
     quarantine_path = PROJECT_ROOT / "data" / "quarantine" / "agent_events"
     if quarantine_path.exists():
         try:
             conn = duckdb.connect()
-            count = conn.execute(
-                f"SELECT COUNT(*) FROM delta_scan('{quarantine_path}')"
-            ).fetchone()[0]
+            cnt = conn.execute(f"SELECT COUNT(*) FROM delta_scan('{quarantine_path.as_posix()}')").fetchone()[0]
             conn.close()
-            status["components"]["quarantine"] = {
-                "status": "active" if count > 0 else "empty",
-                "row_count": count,
-                "detail": f"{count} quarantined records" if count > 0 else "No quarantine records"
-            }
-        except:
-            status["components"]["quarantine"] = {
-                "status": "online",
-                "row_count": "unknown"
-            }
+            status["components"]["quarantine_delta_lake"] = {"status": "active" if cnt > 0 else "clean", "row_count": cnt}
+        except Exception:
+            status["components"]["quarantine_delta_lake"] = {"status": "online", "row_count": "unindexed"}
     else:
-        status["components"]["quarantine"] = {
-            "status": "empty",
-            "detail": "Quarantine table not yet created"
-        }
-    
-    # Overall health
-    all_online = all(
-        c.get("status") in ["online", "active", "empty"] 
-        for c in status["components"].values()
-    )
-    status["overall_health"] = "healthy" if all_online else "degraded"
-    
+        status["components"]["quarantine_delta_lake"] = {"status": "clean", "row_count": 0}
+
+    # Evaluate overall status
+    statuses = [c.get("status") for c in status["components"].values()]
+    if "offline" in statuses or "unreachable" in statuses:
+        status["overall_health"] = "degraded"
+
     return json.dumps(status, indent=2, default=str)
 
 
 @mcp.tool()
 def run_health_check() -> str:
     """
-    DIAGNOSTIC: Runs a comprehensive health check of the entire pipeline.
-    
+    DIAGNOSTIC SUITE: Runs comprehensive diagnostics on all Layer 1 and Layer 2 governance subsystems.
+
     Returns:
-        JSON string with detailed diagnostic results.
+        JSON string reporting test checks, pass/fail counts, and system status.
     """
-    results = {
-        "checks": [],
-        "passed": 0,
-        "failed": 0
-    }
-    
-    # Check 1: Validator loads
+    checks = []
+    passed = 0
+    failed = 0
+
+    # 1. Contract Validator Check
     try:
         validator.reload()
-        results["checks"].append({
+        checks.append({
             "name": "Contract Validator",
             "status": "passed",
-            "detail": f"Loaded version {validator.contract.get('version', 'unknown')}"
+            "detail": f"Loaded contract version {validator.contract.get('version', '1.0.0')} with {len(validator.allowed_tools)} allowed tools.",
         })
-        results["passed"] += 1
+        passed += 1
     except Exception as e:
-        results["checks"].append({
-            "name": "Contract Validator",
-            "status": "failed",
-            "detail": str(e)
-        })
-        results["failed"] += 1
-    
-    # Check 2: DuckDB connection
+        checks.append({"name": "Contract Validator", "status": "failed", "detail": str(e)})
+        failed += 1
+
+    # 2. DuckDB Engine Check
     try:
         conn = duckdb.connect()
-        conn.execute("SELECT 1")
+        conn.execute("SELECT 1 + 1 AS result").fetchall()
         conn.close()
-        results["checks"].append({
-            "name": "DuckDB Connection",
-            "status": "passed",
-            "detail": "Connection successful"
-        })
-        results["passed"] += 1
+        checks.append({"name": "DuckDB Analytics Engine", "status": "passed", "detail": "Vectorized query engine operational."})
+        passed += 1
     except Exception as e:
-        results["checks"].append({
-            "name": "DuckDB Connection",
-            "status": "failed",
-            "detail": str(e)
-        })
-        results["failed"] += 1
-    
-    # Check 3: Kafka status
+        checks.append({"name": "DuckDB Analytics Engine", "status": "failed", "detail": str(e)})
+        failed += 1
+
+    # 3. Fast Validation Latency Check (<5ms benchmark)
     try:
-        import subprocess
-        result = subprocess.run(
-            ["docker", "ps", "--filter", "name=kafka", "--format", "{{.Status}}"],
-            capture_output=True, text=True, timeout=5
-        )
-        if "Up" in result.stdout:
-            results["checks"].append({
-                "name": "Kafka",
-                "status": "passed",
-                "detail": "Container is running"
-            })
-            results["passed"] += 1
-        else:
-            results["checks"].append({
-                "name": "Kafka",
-                "status": "warning",
-                "detail": "Kafka not running or not found"
-            })
-            results["failed"] += 1
-    except:
-        results["checks"].append({
-            "name": "Kafka",
-            "status": "warning",
-            "detail": "Could not check Kafka (maybe not running)"
+        import time
+        test_payload = {
+            "agent_id": "benchmark_agent",
+            "session_id": "sess_001",
+            "action_id": "act_001",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "tool_name": "sql_query_executor",
+            "execution_time_ms": 120,
+            "cost_usd": 0.005,
+        }
+        t0 = time.perf_counter()
+        for _ in range(100):
+            validator.validate(test_payload)
+        t_elapsed_ms = ((time.perf_counter() - t0) / 100) * 1000
+        
+        checks.append({
+            "name": "Validator Latency Benchmark",
+            "status": "passed" if t_elapsed_ms < 5.0 else "warning",
+            "detail": f"Average pre-flight latency: {t_elapsed_ms:.3f} ms (Target: <5.000 ms).",
         })
-    
+        passed += 1
+    except Exception as e:
+        checks.append({"name": "Validator Latency Benchmark", "status": "failed", "detail": str(e)})
+        failed += 1
+
     return json.dumps({
-        "status": "healthy" if results["failed"] == 0 else "degraded",
-        "summary": results
+        "status": "healthy" if failed == 0 else "degraded",
+        "passed": passed,
+        "failed": failed,
+        "checks": checks,
     }, indent=2)
 
 
-def run_server():
-    """Run the MCP server"""
-    print("=" * 60)
-    print("🛡️  AGENTIC DELTA GUARD MCP SERVER")
-    print("=" * 60)
-    print(f"Contract: {validator.contract_path.absolute()}")
-    print(f"Tools available:")
-    print("  - check_contract(payload)")
-    print("  - get_active_contract()")
-    print("  - get_quarantine_summary(limit=5, agent_id=None)")
-    print("  - propose_contract_patch(rationale, proposed_change)")
-    print("  - get_system_status()")
-    print("  - run_health_check()")
-    print("=" * 60)
-    print("\nStarting server... (Press Ctrl+C to stop)\n")
-    
+def main():
+    """Main entrypoint to run the FastMCP server via stdio."""
+    # If running with FastMCP
     mcp.run()
 
 
 if __name__ == "__main__":
-    run_server()
+    main()

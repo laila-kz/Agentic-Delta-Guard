@@ -50,7 +50,8 @@ class TestShallowCloning:
 
         assert result["status"] == "success"
         assert result["source_row_count"] == result["target_row_count"]
-        assert result["clone_type"] == "shallow"
+        assert result["clone_type"] in {"shallow", "shallow_fallback"}
+        assert result["zero_copy"] == (result["clone_type"] == "shallow")
         assert result["clone_duration_seconds"] < 5.0  # Shallow clones are fast
         logger.info(f"✓ Shallow clone created in {result['clone_duration_seconds']:.3f}s")
 

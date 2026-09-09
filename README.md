@@ -27,7 +27,7 @@ All metrics verified on reproducible benchmarks ([`scripts/measure_triage_effici
 | Performance Metric | Baseline / Naive Approach | Agentic Delta Guard | Impact |
 | :--- | :--- | :--- | :--- |
 | **Incident Triage MTTR** | 23.4 min (Manual SRE) | **1.2 min (Automated LLM)** | **⚡ 94.8% Faster MTTR** |
-| **Validation Throughput** | 120 ev/s (Row-by-Row UDF) | **4,520 ev/s (Vectorized PySpark)** | **🚀 37.5x Throughput Gain** |
+| **Validation Throughput** | 120 ev/s (Row-by-Row UDF) | **~9,447 ev/s (local validation benchmark)** | **🚀 ~78.7x Throughput Gain** |
 | **Stream Interruption** | Pipeline halted on error | **Zero Downtime (Delta Quarantine)** | **100% Ingestion Uptime** |
 | **Triage Cost / 100 Incidents** | $4,680.00 (Engineering hours) | **$0.04 (LLM Triage API calls)** | **💰 99.99% Cost Reduction** |
 
@@ -88,11 +88,11 @@ The complete architecture and failure handling are documented in [docs/ARCHITECT
 > **The Edge Case:** Distributed LLM agents running across intermittent networks experience HTTP timeouts and retry tool executions 5–10 seconds later with duplicate sequence IDs. Meanwhile, network latency causes older events to arrive *after* newer state updates.
 
 ### The Dual-Stage Architecture
-1. **Bounded PySpark Watermark:** `.withWatermark("timestamp", "10 seconds")` evicts stale streaming state, preventing JVM memory leaks.
+1. **Bounded PySpark Watermark:** `.withWatermark("event_timestamp", "10 minutes")` evicts late-event state, preventing unbounded streaming state.
 2. **Idempotent Delta Lake Merge:** The gatekeeper upserts records via conditional `MERGE INTO` keyed on `(agent_id, session_id, action_id)`:
-   - If matched and `source.timestamp > target.timestamp` → Update in place.
-   - If not matched → Insert new event.
-   - If duplicate older event arrives → Silently drop without corrupting table state.
+    - If not matched → Insert new event.
+    - If matched → Leave the existing Bronze row unchanged.
+    - Duplicate events therefore do not create additional Bronze rows.
 
 Verified via [`tests/test_chaos_infra.py`](tests/test_chaos_infra.py) under synthetic retry bursts.
 
@@ -184,3 +184,6 @@ dbt test --profiles-dir .
 - **Single-Broker / Single-Worker Footprint:** Evaluated on a single Docker Compose broker; numbers represent single-node throughput ceiling.
 - **Bronze/Silver Storage Boundary:** Bronze & Quarantine use native Delta Lake; Silver and Gold models execute in DuckDB/dbt Parquet for lightweight local analytics. (See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#storage-layer-boundary-deliberate-trade-off)).
 - **LLM Triage Testing:** Continuous CI uses deterministic fallback heuristics for speed and zero API cost; live LLM verification is opt-in via `LIVE_LLM_TEST=1`.
+- **Clone Runtime:** Native Spark/Delta clone tests require a working Spark Delta runtime and Windows Hadoop native support; the portable `SandboxGuard` path uses an independent Delta snapshot fallback.
+- **MCP Governance:** MCP contract proposals are written to a proposed YAML artifact for review; authentication and automated authorization are not implemented yet.
+- **Benchmark Scope:** Throughput figures measure local validation logic only, not Kafka-to-Delta end-to-end throughput.

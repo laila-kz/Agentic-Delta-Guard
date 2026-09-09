@@ -123,7 +123,7 @@ def build_spark() -> SparkSession:
             builder = builder.config("spark.jars", ",".join(jar_files))
             return builder.getOrCreate()
 
-    extra_packages = ["org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.0"]
+    extra_packages = ["org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1"]
     return configure_spark_with_delta_pip(builder, extra_packages=extra_packages).getOrCreate()
 
 

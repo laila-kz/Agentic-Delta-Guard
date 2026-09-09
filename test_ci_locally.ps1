@@ -22,6 +22,8 @@ if ($LASTEXITCODE -ne 0) { throw "Data Contract Validation Failed" }
 Write-Host "Data Contract Validated" -ForegroundColor Green
 
 Write-Host "`n[2/6] Compiling dbt models..." -ForegroundColor Yellow
+& $python scripts/sync_contract_to_dbt_vars.py
+if ($LASTEXITCODE -ne 0) { throw "Contract-to-dbt sync failed" }
 Push-Location dbt_delta_guard
 try {
     & $dbt deps --profiles-dir .
@@ -37,7 +39,7 @@ Write-Host "dbt Compilation Passed" -ForegroundColor Green
 
 Write-Host "`n[3/6] Running Chaos Tests..." -ForegroundColor Yellow
 $env:KAFKA_BOOTSTRAP_SERVERS = "localhost:9092"
-& $python -m pytest tests/test_chaos_suite.py -v --tb=short
+& $python -m pytest tests/test_chaos_infra.py -v --tb=short
 if ($LASTEXITCODE -ne 0) { throw "Chaos Tests Failed" }
 Write-Host "Chaos Tests Passed" -ForegroundColor Green
 

@@ -17,10 +17,14 @@ import pyarrow as pa
 from deltalake import DeltaTable, write_deltalake
 
 try:
-    from delta_clone_utils import DeltaCloneUtils
+    from src.delta_guard.delta_clone_utils import DeltaCloneUtils
     HAS_DELTA_CLONE_UTILS = True
 except ImportError:
-    HAS_DELTA_CLONE_UTILS = False
+    try:
+        from delta_clone_utils import DeltaCloneUtils
+        HAS_DELTA_CLONE_UTILS = True
+    except ImportError:
+        HAS_DELTA_CLONE_UTILS = False
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -93,7 +97,8 @@ class SandboxGuard:
                     target_table_path=str(self.sandbox_path),
                     replace=True,
                 )
-                print(f"✓ Shallow clone created (zero-copy, {result['clone_duration_seconds']:.2f}s)")
+                clone_mode = "zero-copy" if result.get("zero_copy") else "independent fallback"
+                print(f"✓ Shallow clone created ({clone_mode}, {result['clone_duration_seconds']:.2f}s)")
                 return str(self.sandbox_path)
             except Exception as e:
                 # Fall back to copy method
