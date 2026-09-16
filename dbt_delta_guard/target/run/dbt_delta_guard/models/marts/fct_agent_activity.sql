@@ -1,11 +1,10 @@
 
-  
-    
     
 
     create  table
       "dbt_delta_guard"."main"."fct_agent_activity__dbt_tmp"
   
+    
     as (
       
 
@@ -25,5 +24,5 @@ select
 	case when status = 'SUCCESS' then 1 else 0 end as is_success
 from "dbt_delta_guard"."main"."stg_agent_events"
     );
-  
+    
   

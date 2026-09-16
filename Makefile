@@ -77,11 +77,11 @@ triage:
 	$(PYTHON) src/delta_guard/triage.py
 
 chaos-test:
-	$(PYTHON) -m pytest tests/test_chaos_suite.py -v --tb=short
+	$(PYTHON) -m pytest tests/test_chaos_infra.py -v --tb=short
 
 validate:
 	$(PYTHON) -c "import yaml; yaml.safe_load(open('configs/agent_contract.yaml'))"
-	$(PYTHON) -m pytest tests/test_chaos_suite.py -v --tb=short
+	$(PYTHON) -m pytest tests/test_chaos_infra.py -v --tb=short
 
 test: validate dbt-compile dbt-test quality-report sandbox triage benchmark
 	@echo "All validation, modeling, governance, and reporting checks passed."

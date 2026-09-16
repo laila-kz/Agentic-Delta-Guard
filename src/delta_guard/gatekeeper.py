@@ -175,7 +175,7 @@ def process_batch(batch_df: DataFrame, batch_id: int):
         .withColumn("timestamp_ts", F.col("event_timestamp"))
         .withColumn(
             "errors",
-            F.array_remove(
+            F.filter(
                 F.array(
                     F.when(F.col("agent_id").isNull(), "missing_required_field:agent_id"),
                     F.when(F.col("session_id").isNull(), "missing_required_field:session_id"),
@@ -195,21 +195,21 @@ def process_batch(batch_df: DataFrame, batch_id: int):
                         "freshness:future_timestamp",
                     ),
                 ),
-                None,
+                lambda error_message: error_message.isNotNull(),
             ),
         )
     )
 
     # 5. Distributed Split: Valid vs Quarantine (executes on workers)
     valid_df = (
-        validated_df.filter(F.size(F.col("errors")) == 0)
+        validated_df.filter(F.coalesce(F.size(F.col("errors")), F.lit(0)) == 0)
         .withColumn("cost_usd", F.col("cost_usd_double"))
         .withColumn("timestamp", F.col("timestamp_ts"))
         .drop("cost_usd_double", "timestamp_ts", "errors", "event_timestamp")
     )
 
     quarantine_df = (
-        validated_df.filter(F.size(F.col("errors")) > 0)
+        validated_df.filter(F.coalesce(F.size(F.col("errors")), F.lit(0)) > 0)
         .withColumn("quarantined_at", F.current_timestamp())
         .withColumn("error_summary", F.concat_ws("; ", F.col("errors")))
         .drop("cost_usd_double", "timestamp_ts", "event_timestamp")

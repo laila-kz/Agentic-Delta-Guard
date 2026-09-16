@@ -1,11 +1,11 @@
 # 🛡️ Agentic Delta Guard
-### Real-Time Governance, Contract Enforcement & Self-Healing Lakehouse for Autonomous AI Agents
+### Contract Enforcement and Local Analytics for Autonomous AI-Agent Events
+
+> **Portfolio scope (2026-09-09):** This is a rigorously tested local prototype for contract validation, quarantine, analytical modeling, and MCP-based pre-flight checks for AI-agent events. The Kafka-to-Delta live demo remains an active integration gate; see [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for evidence and limitations.
 
 [![Engine](https://img.shields.io/badge/Engine-PySpark%203.5%20%7C%20Delta%20Lake-00A4E4?logo=apachespark)](https://delta.io/)
 [![Quality](https://img.shields.io/badge/Quality-dbt%20%2B%20DuckDB-FF694B?logo=dbt)](https://getdbt.com)
-[![MTTR Reduction](https://img.shields.io/badge/Incident%20MTTR-94.8%25%20Reduction-brightgreen)](#-quantified-performance--benchmarks)
-[![Throughput](https://img.shields.io/badge/Validation-4%2C520%20ev%2Fs-success)](#-quantified-performance--benchmarks)
-[![Tests](https://img.shields.io/badge/Pytest%20Suite-100%25%20Passing-blue)](tests/)
+[![Tests](https://img.shields.io/badge/Pytest%20Suite-35%20passed%2C%202%20skipped-blue)](tests/)
 
 ---
 
@@ -16,20 +16,20 @@ As enterprises grant autonomous LLM agents (AutoGPT, CrewAI, LangGraph, custom t
 2. **Cost & Rate Runaways:** Rogue agent loops blow through token and API budgets without warning.
 3. **Pipeline Stalls:** One malformed record in a traditional streaming job crashes the entire micro-batch.
 
-**Agentic Delta Guard** is a streaming data gateway and self-healing lakehouse that provides a zero-trust firewall for data lakes: validating streaming records in distributed memory, isolating non-conforming events to a quarantine Delta table, and autonomously diagnosing incidents using LLMs in **<90 seconds** (vs ~20 mins manual SRE triage).
+**Agentic Delta Guard** is a local data-quality boundary for AI-agent tool events: it validates event contracts, isolates violations for diagnosis, builds DuckDB analytical marts, and exposes pre-flight checks through an MCP server. The deterministic path is implemented and tested; live LLM enrichment and end-to-end Kafka-to-Delta routing remain explicitly scoped limitations.
 
 ---
 
 ## 📊 Quantified Performance & Benchmarks
 
-All metrics verified on reproducible benchmarks ([`scripts/measure_triage_efficiency.py`](scripts/measure_triage_efficiency.py) and [`src/delta_guard/benchmark.py`](src/delta_guard/benchmark.py)):
+The following numbers are scoped local measurements, not production or end-to-end service guarantees. See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for evidence:
 
 | Performance Metric | Baseline / Naive Approach | Agentic Delta Guard | Impact |
 | :--- | :--- | :--- | :--- |
-| **Incident Triage MTTR** | 23.4 min (Manual SRE) | **1.2 min (Automated LLM)** | **⚡ 94.8% Faster MTTR** |
+| **Deterministic triage** | Manual comparison is simulated | Local deterministic report generation | No live LLM claim |
 | **Validation Throughput** | 120 ev/s (Row-by-Row UDF) | **~9,447 ev/s (local validation benchmark)** | **🚀 ~78.7x Throughput Gain** |
-| **Stream Interruption** | Pipeline halted on error | **Zero Downtime (Delta Quarantine)** | **100% Ingestion Uptime** |
-| **Triage Cost / 100 Incidents** | $4,680.00 (Engineering hours) | **$0.04 (LLM Triage API calls)** | **💰 99.99% Cost Reduction** |
+| **Stream interruption** | Not measured end-to-end | Quarantine path implemented | Live routing gate remains open |
+| **Triage cost** | Not measured with live provider calls | No live LLM cost claim | Deterministic fallback has no API cost |
 
 Detailed reports available at [docs/reports/triage_benchmark.md](docs/reports/triage_benchmark.md) and [docs/reports/storage_benchmark.md](docs/reports/storage_benchmark.md).
 
@@ -185,5 +185,5 @@ dbt test --profiles-dir .
 - **Bronze/Silver Storage Boundary:** Bronze & Quarantine use native Delta Lake; Silver and Gold models execute in DuckDB/dbt Parquet for lightweight local analytics. (See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#storage-layer-boundary-deliberate-trade-off)).
 - **LLM Triage Testing:** Continuous CI uses deterministic fallback heuristics for speed and zero API cost; live LLM verification is opt-in via `LIVE_LLM_TEST=1`.
 - **Clone Runtime:** Native Spark/Delta clone tests require a working Spark Delta runtime and Windows Hadoop native support; the portable `SandboxGuard` path uses an independent Delta snapshot fallback.
-- **MCP Governance:** MCP contract proposals are written to a proposed YAML artifact for review; authentication and automated authorization are not implemented yet.
+- **MCP Governance:** MCP contract proposals require the local `MCP_PROPOSAL_TOKEN` gate and produce a review artifact; this is not production authentication.
 - **Benchmark Scope:** Throughput figures measure local validation logic only, not Kafka-to-Delta end-to-end throughput.

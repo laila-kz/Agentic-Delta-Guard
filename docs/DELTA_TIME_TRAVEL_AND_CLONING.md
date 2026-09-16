@@ -5,9 +5,9 @@
 This guide demonstrates two powerful Delta Lake 3.x features:
 
 1. **Time Travel** - Query historical versions of your data
-2. **Shallow Cloning** - Zero-copy sandboxes for testing and development
+2. **Shallow Cloning** - Runtime-dependent sandboxes for testing and development
 
-Both features provide ACID guarantees and maintain full Delta Lake semantics.
+Native Delta operations provide ACID guarantees. On Windows, clone tests use an independent Delta-copy fallback because the local Spark filesystem runtime cannot provide the native clone path reliably.
 
 ---
 
@@ -188,7 +188,7 @@ spark.sql("""
 
 ### What is Shallow Cloning?
 
-A shallow clone is a **zero-copy snapshot** of a Delta table. It:
+A native shallow clone is a **zero-copy snapshot** of a Delta table. The project also supports an independent-copy fallback on Windows. Native clones:
 
 - Shares underlying data files with the source table (uses no new disk space)
 - Has independent transaction history (safe to modify)

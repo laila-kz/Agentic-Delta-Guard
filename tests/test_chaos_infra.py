@@ -25,6 +25,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -84,6 +85,52 @@ def _count_duplicates(table_path: Path) -> int:
     dt = DeltaTable(str(table_path))
     df = dt.to_pandas()
     return int((df.groupby(["agent_id", "session_id", "action_id"]).size() > 1).sum())
+
+
+@pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="Local PySpark worker cannot connect back on this Windows host; runs in Linux CI.",
+)
+def test_gatekeeper_error_array_keeps_valid_rows_writable():
+    """The validation split must represent no errors as an empty array, not null."""
+    pyspark = pytest.importorskip("pyspark")
+    from pyspark.sql import SparkSession, functions as F
+    from pyspark.sql.types import DoubleType, StringType, StructField, StructType
+
+    spark = (
+        SparkSession.builder.master("local[2]")
+        .appName("gatekeeper-error-array-test")
+        .config("spark.ui.enabled", "false")
+        .config("spark.pyspark.python", sys.executable)
+        .config("spark.pyspark.driver.python", sys.executable)
+        .getOrCreate()
+    )
+    try:
+        schema = StructType(
+            [
+                StructField("agent_id", StringType(), True),
+                StructField("cost_usd_double", DoubleType(), True),
+            ]
+        )
+        events = spark.createDataFrame([("valid-agent", 0.05), ("poison-agent", 850.0)], schema)
+        errors = F.filter(
+            F.array(
+                F.when(F.col("agent_id").isNull(), "missing_required_field:agent_id"),
+                F.when(F.col("cost_usd_double") > 50.0, "semantic_rule:cost_out_of_bounds"),
+            ),
+            lambda error_message: error_message.isNotNull(),
+        )
+
+        rows = (
+            events.withColumn("errors", errors)
+            .withColumn("error_size", F.coalesce(F.size("errors"), F.lit(0)))
+            .select("agent_id", "error_size")
+            .orderBy("agent_id")
+            .collect()
+        )
+        assert [row.error_size for row in rows] == [1, 0]
+    finally:
+        spark.stop()
 
 
 # ---------------------------------------------------------------------------

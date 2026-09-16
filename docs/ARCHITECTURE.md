@@ -335,7 +335,7 @@ The local CI helper also validates the contract, compiles dbt, runs the chaos su
 
 ## Delta Lake Time Travel and Shallow Cloning
 
-The project leverages Delta Lake 3.x capabilities for production-grade data governance and safe experimentation:
+The project uses Delta Lake 3.x capabilities for local time-travel experiments and safe sandbox testing:
 
 ### Time Travel (Point-in-Time Recovery)
 
@@ -369,9 +369,9 @@ clone_utils.restore_to_version(
 
 Time travel retention is controlled by Delta configuration (`delta.logRetentionDays`, default 30 days).
 
-### Shallow Cloning (Zero-Copy Sandbox)
+### Sandbox Snapshots and Optional Native Shallow Cloning
 
-Create independent read-write copies of Delta tables without replicating underlying data files:
+Create an isolated read-write snapshot of a Delta table. Supported Spark/Delta runtimes can use native shallow cloning; the Windows development path uses an independent Delta-copy fallback:
 
 ```python
 # Create a fast, isolated sandbox
@@ -380,11 +380,10 @@ result = clone_utils.create_shallow_clone(
 	target_table_path="data/sandbox/test_experiment",
 	replace=True
 )
-# Typical clone time: < 1 second
-# Storage overhead: negligible (metadata only)
+# The result reports whether the path was native zero-copy or an independent fallback.
 ```
 
-Shallow clones share underlying Parquet files via copy-on-write semantics. Mutations (INSERT, UPDATE, DELETE) only write new files, leaving the source table and other clones unaffected.
+Native shallow clones share underlying Parquet files via copy-on-write semantics. The Windows fallback copies current table data, preserving isolation but not zero-copy storage behavior.
 
 **Use cases:**
 - **Safe testing:** mutate dbt models or run arbitrary queries without affecting production
