@@ -44,7 +44,8 @@ select
 	json_extract_string(tool_args, '$.query') as query,
 	cast(json_extract_string(tool_args, '$.limit') as integer) as "limit",
 	json_extract_string(tool_args, '$.url') as url,
-	date_trunc('hour', event_timestamp) as event_hour
+	date_trunc('hour', event_timestamp) as event_hour,
+	current_timestamp as extracted_at
 from deduplicated
 where row_num = 1
   );

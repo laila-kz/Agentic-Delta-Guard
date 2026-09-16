@@ -30,12 +30,11 @@ models:
         tests:
           - not_null
           - accepted_values:
-              arguments:
-                values:
-                  - sql_query_executor
-                  - vector_search
-                  - web_scraper
-                  - db_writer
+              values:
+                - sql_query_executor
+                - vector_search
+                - web_scraper
+                - db_writer
 
       - name: execution_time_ms
         description: "Tool execution duration in milliseconds."
@@ -47,9 +46,8 @@ models:
         tests:
           - not_null
           - dbt_utils.accepted_range:
-              arguments:
-                min_value: 0.0
-                max_value: "{{ var('max_cost_usd') }}"
+              min_value: 0.0
+              max_value: "{{ var('max_cost_usd') }}"
 
       - name: status
         description: "Execution status of the tool invocation."
@@ -59,11 +57,10 @@ models:
       - name: query
         description: "Optional query extracted from tool_args."
 
-      - name: limit
-        description: "Optional result limit extracted from tool_args."
+      - name: target_table
+        description: "Optional target table extracted from tool_args."
 
-      - name: url
-        description: "Optional URL extracted from tool_args."
-
-      - name: event_hour
-        description: "Execution timestamp truncated to the hour."
+      - name: extracted_at
+        description: "Ingestion timestamp."
+        tests:
+          - not_null

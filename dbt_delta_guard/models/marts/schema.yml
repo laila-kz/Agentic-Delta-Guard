@@ -14,20 +14,18 @@ models:
       - name: cost_tier
         tests:
           - accepted_values:
-              arguments:
-                values:
-                  - FREE
-                  - LOW_COST (<$0.01)
-                  - MEDIUM_COST ($0.01-$0.10)
-                  - HIGH_COST (>=$0.10)
+              values:
+                - "FREE"
+                - "LOW_COST (<$0.01)"
+                - "MEDIUM_COST ($0.01-$0.10)"
+                - "HIGH_COST (>=$0.10)"
       - name: latency_tier
         tests:
           - accepted_values:
-              arguments:
-                values:
-                  - FAST (<100ms)
-                  - NOMINAL (100-500ms)
-                  - SLOW (>500ms)
+              values:
+                - "FAST (<100ms)"
+                - "NOMINAL (100-500ms)"
+                - "SLOW (>500ms)"
 
   - name: dim_tool_efficiency
     description: "Tool-level execution, cost, latency, and success metrics."
@@ -43,6 +41,5 @@ models:
         tests:
           - not_null
           - dbt_utils.accepted_range:
-              arguments:
-                min_value: 0
-                max_value: 100
+              min_value: 0
+              max_value: 100

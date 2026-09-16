@@ -9,7 +9,7 @@ DBT_DIR := dbt_delta_guard
 help:
 	@echo "Agentic Delta Guard commands:"
 	@echo "  make install          Install runtime and development dependencies"
-	@echo "  make up               Start Kafka, ZooKeeper, and Kafka UI"
+	@echo "  make up               Start Kafka (KRaft) and Kafka UI"
 	@echo "  make down             Stop Docker services"
 	@echo "  make produce          Start the sample event producer"
 	@echo "  make gatekeeper       Start the PySpark streaming gatekeeper"
@@ -23,6 +23,7 @@ help:
 	@echo "  make triage           Run deterministic incident triage"
 	@echo "  make validate         Validate the data contract and Python tests"
 	@echo "  make test             Run the complete repository test set"
+	@echo "  make verify-e2e       Run the full 5-stage End-to-End Verification Pipeline"
 	@echo "  make ci-local         Run the Windows local CI script"
 	@echo "  make clean            Remove generated reports and build artifacts"
 
@@ -93,7 +94,10 @@ clean:
 	$(PYTHON) -c "from pathlib import Path; import shutil; paths = ['.pytest_cache', 'dbt_delta_guard/target', 'docs/reports/quality_audit.md', 'docs/reports/quality_report.json', 'docs/reports/storage_benchmark.md', 'docs/INCIDENT_LOG.md', 'configs/agent_contract_proposed.yaml', 'data/gold/agent_sandbox']; [shutil.rmtree(p) if Path(p).is_dir() else Path(p).unlink(missing_ok=True) for p in paths]"
 
 
-.PHONY: sync-contract
+.PHONY: sync-contract verify-e2e
 
 sync-contract:
 	python scripts/sync_contract_to_dbt_vars.py
+
+verify-e2e:
+	$(PYTHON) scripts/run_e2e_verification.py

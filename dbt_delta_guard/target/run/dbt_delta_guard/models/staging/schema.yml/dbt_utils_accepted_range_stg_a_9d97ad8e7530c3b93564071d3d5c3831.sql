@@ -1,13 +1,9 @@
-
-    
-    select
+select
       count(*) as failures,
       count(*) != 0 as should_warn,
       count(*) != 0 as should_error
     from (
       
-    
-  
 
 with meet_condition as(
   select *
@@ -30,7 +26,5 @@ select *
 from validation_errors
 
 
-  
-  
       
     ) dbt_internal_test

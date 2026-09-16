@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 """
 Week 1 Verification Script for Apache Kafka
 """
@@ -7,6 +7,8 @@ import os
 import sys
 import json
 import subprocess
+import shutil
+import pytest
 
 # Configure UTF-8 encoding for Windows terminal output
 if hasattr(sys.stdout, "reconfigure"):
@@ -16,49 +18,55 @@ if hasattr(sys.stderr, "reconfigure"):
 
 from pyspark.sql import SparkSession
 
+
+def _check_docker_available() -> bool:
+    if shutil.which("docker") is None:
+        return False
+    try:
+        res = subprocess.run(["docker", "ps"], capture_output=True, timeout=3)
+        return res.returncode == 0
+    except Exception:
+        return False
+
+
+DOCKER_RUNNING = _check_docker_available()
+
+
 # ============ KAFKA TESTS ============
 
+@pytest.mark.requires_docker
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="Docker daemon is not running")
 def test_kafka_running():
     """Test if Kafka container is running"""
-    try:
-        result = subprocess.run(
-            ["docker", "ps", "--filter", "name=kafka", "--format", "{{.Status}}"],
-            capture_output=True, text=True
-        )
-        if "Up" in result.stdout:
-            print("âœ… Kafka container is running")
-            return True
-        else:
-            print("âŒ Kafka container is not running")
-            return False
-    except Exception as e:
-        print(f"âŒ Docker check failed: {e}")
-        return False
+    result = subprocess.run(
+        ["docker", "ps", "--filter", "name=kafka", "--format", "{{.Status}}"],
+        capture_output=True, text=True
+    )
+    assert "Up" in result.stdout, "Kafka container is not running"
+    print("✅ Kafka container is running")
 
+
+@pytest.mark.requires_docker
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="Docker daemon is not running")
 def test_topic_exists():
-    """Test if the topic exists (CORRECT COMMAND)"""
-    try:
-        cmd = [
-            "docker", "exec", "kafka",
-            "kafka-topics", "--list",
-            "--bootstrap-server", "kafka:29092"
-        ]
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        topics = result.stdout.strip().split('\n')
-        target_topic = next((t for t in ['agent-events', 'agent.events.v1'] if t in topics), None)
-        if target_topic:
-            print(f"âœ… Topic '{target_topic}' exists")
-            return True
-        else:
-            print("âŒ Topic does not exist")
-            print(f"   Available topics: {topics}")
-            return False
-    except Exception as e:
-        print(f"âŒ Topic check failed: {e}")
-        return False
+    """Test if the topic exists"""
+    cmd = [
+        "docker", "exec", "kafka",
+        "kafka-topics", "--list",
+        "--bootstrap-server", "kafka:29092"
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    topics = result.stdout.strip().split('\n')
+    target_topic = next((t for t in ['agent-events', 'agent.events.v1'] if t in topics), None)
+    assert target_topic is not None, f"Topic does not exist. Available topics: {topics}"
+    print(f"✅ Topic '{target_topic}' exists")
 
+
+@pytest.mark.requires_docker
+@pytest.mark.skipif(not DOCKER_RUNNING, reason="Docker daemon is not running")
 def test_consume_messages():
     """Test if we can consume messages"""
+    consumed = False
     for topic in ["agent-events", "agent.events.v1"]:
         try:
             cmd = [
@@ -72,12 +80,13 @@ def test_consume_messages():
             ]
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=8)
             if result.stdout.strip():
-                print(f"âœ… Can consume messages from topic '{topic}'")
-                return True
+                print(f"✅ Can consume messages from topic '{topic}'")
+                consumed = True
+                break
         except Exception:
             continue
-    print("âŒ No messages found in topic")
-    return False
+    assert consumed, "No messages found in topic"
+
 
 # ============ DELTA TABLE TESTS ============
 
@@ -107,49 +116,37 @@ def _read_delta_df(path: str):
 
 def test_delta_tables():
     """Test if Delta tables exist and have data"""
-    try:
-        bronze_df = _read_delta_df("data/bronze/agent_events")
-        bronze_count = len(bronze_df)
-        print(f"âœ… Bronze table exists with {bronze_count} rows")
-    except Exception as e:
-        print(f"âŒ Bronze table missing or empty: {e}")
-        return False
-    
-    try:
-        quarantine_df = _read_delta_df("data/quarantine/agent_events")
-        quarantine_count = len(quarantine_df)
-        print(f"âœ… Quarantine table exists with {quarantine_count} rows")
-    except Exception as e:
-        print(f"âŒ Quarantine table missing or empty: {e}")
-        return False
-    
-    return True
+    bronze_df = _read_delta_df("data/bronze/agent_events")
+    assert len(bronze_df) > 0, "Bronze table missing or empty"
+    print(f"✅ Bronze table exists with {len(bronze_df)} rows")
+
+    quarantine_df = _read_delta_df("data/quarantine/agent_events")
+    assert len(quarantine_df) > 0, "Quarantine table missing or empty"
+    print(f"✅ Quarantine table exists with {len(quarantine_df)} rows")
+
 
 def test_split_ratio():
     """Check if the split is roughly 85/15"""
     bronze_df = _read_delta_df("data/bronze/agent_events")
     quarantine_df = _read_delta_df("data/quarantine/agent_events")
-    
+
     bronze_count = len(bronze_df)
     quarantine_count = len(quarantine_df)
     total = bronze_count + quarantine_count
-    
-    if total == 0:
-        print("âŒ No data found")
-        return False
-    
+
+    assert total > 0, "No data found in Delta tables"
+
     bronze_pct = bronze_count / total * 100
     quarantine_pct = quarantine_count / total * 100
-    
+
     print(f"Bronze: {bronze_pct:.1f}% ({bronze_count} rows)")
     print(f"Quarantine: {quarantine_pct:.1f}% ({quarantine_count} rows)")
-    
+
     if 70 < bronze_pct < 95:
-        print("âœ… Split ratio looks correct (~85% Bronze)")
-        return True
+        print("✅ Split ratio looks correct (~85% Bronze)")
     else:
-        print(f"âš ï¸ Split ratio off: expected ~85%, got {bronze_pct:.1f}%")
-        return True  # Still passes, just warning
+        print(f"⚠️ Split ratio off: expected ~85%, got {bronze_pct:.1f}%")
+
 
 def test_no_duplicates():
     """Check for duplicates in Bronze table"""
@@ -157,64 +154,49 @@ def test_no_duplicates():
     total = len(df)
     key_cols = [c for c in ["agent_id", "session_id", "action_id"] if c in df.columns]
     distinct = len(df.drop_duplicates(subset=key_cols)) if key_cols else total
-    
+
     duplicates = total - distinct
-    if duplicates == 0:
-        print("âœ… No duplicates found")
-        return True
-    else:
-        print(f"âš ï¸ Found {duplicates} duplicates")
-        return False
+    assert duplicates == 0, f"Found {duplicates} duplicates in Bronze table"
+    print("✅ No duplicates found")
+
 
 def test_poison_types():
     """Check that all poison types are captured"""
-    try:
-        df = _read_delta_df("data/quarantine/agent_events")
-        
-        if "error_summary" not in df.columns:
-            print("âš ï¸ 'error_summary' column not found in quarantine table")
-            return False
-            
-        error_types = df["error_summary"].dropna().unique().tolist()
-        
-        print("Found error types:")
-        for error in error_types:
-            print(f"  - {error}")
-        
-        expected_types = [
-            "type_mismatch",
-            "stale_timestamp", 
-            "missing_required_field",
-            "cost_out_of_bounds"
-        ]
-        
-        found_any = False
-        for expected in expected_types:
-            matched = any(expected in error for error in error_types)
-            if matched:
-                found_any = True
-                print(f"  âœ… Found {expected}")
-            else:
-                print(f"  âš ï¸ Missing {expected} (may be okay if no events of this type)")
-        
-        return found_any
-        
-    except Exception as e:
-        print(f"âŒ Poison types check failed: {e}")
-        return False
+    df = _read_delta_df("data/quarantine/agent_events")
+    assert "error_summary" in df.columns, "'error_summary' column not found in quarantine table"
+
+    error_types = df["error_summary"].dropna().unique().tolist()
+    print("Found error types:")
+    for error in error_types:
+        print(f"  - {error}")
+
+    expected_types = [
+        "type_mismatch",
+        "stale_timestamp", 
+        "missing_required_field",
+        "cost_out_of_bounds"
+    ]
+
+    found_any = False
+    for expected in expected_types:
+        matched = any(expected in error for error in error_types)
+        if matched:
+            found_any = True
+            print(f"  ✅ Found {expected}")
+        else:
+            print(f"  ⚠️ Missing {expected} (may be okay if no events of this type)")
+
+    assert found_any, "No expected poison types found in quarantine table"
+
 
 def test_no_error_columns_in_bronze():
     """Verify Bronze has no error columns"""
     df = _read_delta_df("data/bronze/agent_events")
     columns = list(df.columns)
-    
     has_errors = "errors" in columns or "error_summary" in columns
-    if not has_errors:
-        print("âœ… Bronze has no error columns")
-        return True
-    else:
-        print("âŒ Bronze has error columns!")
-        return False
+    assert not has_errors, "Bronze has error columns!"
+    print("✅ Bronze has no error columns")
+
 
 # ============ MAIN ============
 
@@ -223,46 +205,39 @@ def run_all_tests():
     print("WEEK 1 VERIFICATION (Apache Kafka)")
     print("=" * 60)
     print()
-    
-    results = []
-    
-    # Kafka tests
-    print(">>> KAFKA TESTS")
-    results.append(("Kafka Running", test_kafka_running()))
-    results.append(("Topic Exists", test_topic_exists()))
-    results.append(("Can Consume", test_consume_messages()))
-    print()
-    
-    # Delta tests
-    print(">>> DELTA TABLE TESTS")
-    results.append(("Delta Tables", test_delta_tables()))
-    if results[-1][1]:  # Only run if delta tables exist
-        results.append(("Split Ratio", test_split_ratio()))
-        results.append(("No Duplicates", test_no_duplicates()))
-        results.append(("Poison Types", test_poison_types()))
-        results.append(("No Error Columns in Bronze", test_no_error_columns_in_bronze()))
-    print()
-    
-    # Summary
-    print("=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    
+
+    tests = [
+        ("Kafka Running", test_kafka_running),
+        ("Topic Exists", test_topic_exists),
+        ("Can Consume", test_consume_messages),
+        ("Delta Tables", test_delta_tables),
+        ("Split Ratio", test_split_ratio),
+        ("No Duplicates", test_no_duplicates),
+        ("Poison Types", test_poison_types),
+        ("No Error Columns in Bronze", test_no_error_columns_in_bronze),
+    ]
+
     passed = 0
-    for name, result in results:
-        status = "âœ…" if result else "âŒ"
-        print(f"{status} {name}")
-        if result:
+    for name, test_fn in tests:
+        try:
+            test_fn()
+            print(f"✅ {name}")
             passed += 1
-    
-    print(f"\nPassed {passed}/{len(results)} tests")
-    
-    if passed == len(results):
-        print("\nðŸŽ‰ ðŸŽ‰ ðŸŽ‰ Week 1 is fully working!")
+        except pytest.skip.Exception as e:
+            print(f"⏭️ {name} (Skipped: {e})")
+        except (AssertionError, Exception) as e:
+            print(f"❌ {name}: {e}")
+
+    print("=" * 60)
+    print(f"\nPassed {passed}/{len(tests)} tests")
+
+    if passed == len(tests):
+        print("\n🎉 Week 1 is fully working!")
         return True
     else:
-        print("\nâš ï¸ Some tests failed. Check the output above.")
+        print("\n⚠️ Some tests failed or were skipped.")
         return False
+
 
 if __name__ == "__main__":
     run_all_tests()

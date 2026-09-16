@@ -9,9 +9,9 @@ select
 
 
 
-select tool_name
-from "dbt_delta_guard"."main"."dim_tool_efficiency"
-where tool_name is null
+select extracted_at
+from "dbt_delta_guard"."main"."stg_agent_events"
+where extracted_at is null
 
 
 

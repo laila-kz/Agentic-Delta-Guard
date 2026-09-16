@@ -10,7 +10,7 @@ This project is a rigorously tested local prototype for contract validation and 
 | --- | --- | --- | --- |
 | Contract validation rejects malformed and unsafe events | `tests/test_mcp_server.py`; 4 poison cases manually exercised | Demonstrated | MCP pre-flight path, not yet proof of live streaming routing |
 | Bronze and Quarantine are Delta tables | Existing Delta transaction logs; DuckDB inspection | Demonstrated locally | Current live gatekeeper run did not add new rows |
-| Kafka receives producer events | Broker offset advanced during producer runs | Demonstrated locally | Broker must remain healthy; Compose has recurring ZooKeeper `NodeExists` startup failures |
+| Kafka receives producer events | Broker offset advanced during producer runs | Demonstrated locally | Kafka KRaft mode active (ZooKeeper eliminated, zero startup collisions) |
 | Spark consumes Kafka offsets | Gatekeeper checkpoint advanced | Demonstrated locally | Output writes were not confirmed in the latest run |
 | Valid/invalid live routing | `process_batch` implementation and synthetic tests | Partial | Needs a stable Docker broker and a bounded end-to-end proof |
 | Replay idempotency | `tests/test_chaos_infra.py` | Demonstrated by test | Synthetic Delta fixtures, not a completed live replay |

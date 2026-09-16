@@ -10,12 +10,12 @@
 
 | # | Item | Category | Severity | Target File(s) | Status |
 |---|---|---|---|---|---|
-| **1** | [Dynamic vs. Static dbt Freshness Test](#1-dynamic-vs-static-dbt-freshness-test) | Data Engineering | 🟡 Medium | `dbt_delta_guard/tests/assert_timestamp_freshness.sql` | Pending |
-| **2** | [Clean Pytest Warnings in Week Verification Scripts](#2-clean-pytest-warnings-in-verification-scripts) | Testing & Quality | 🟡 Medium | `test_week1_kafka.py`, `test_week2.py`, `test_week3.py` | Pending |
-| **3** | [Kafka KRaft Migration (Remove ZooKeeper Node Collision)](#3-kafka-kraft-migration--compose-stability) | Infrastructure | 🟡 Medium | `docker-compose.yml` | Recommended |
-| **4** | [Align PySpark & Jar Versions in Gatekeeper Dockerfile](#4-align-pyspark--jar-versions-in-dockerfilegatekeeper) | DevOps / Docker | 🟢 Polish | `Dockerfile.gatekeeper` | Pending |
-| **5** | [Create Single-Command End-to-End Test Harness](#5-create-single-command-end-to-end-test-harness) | Automation | 🟢 Polish | `scripts/run_e2e_verification.ps1` | Recommended |
-| **6** | [Capture MCP Integration Transcripts for Portfolio](#6-capture-mcp-agent-transcripts-for-portfolio) | Documentation | 🟢 Polish | `docs/reports/mcp_interaction_log.md` | Recommended |
+| **1** | [Dynamic vs. Static dbt Freshness Test](#1-dynamic-vs-static-dbt-freshness-test) | Data Engineering | 🟡 Medium | `dbt_delta_guard/tests/assert_timestamp_freshness.sql` | ✅ Completed |
+| **2** | [Clean Pytest Warnings in Week Verification Scripts](#2-clean-pytest-warnings-in-verification-scripts) | Testing & Quality | 🟡 Medium | `test_week1_kafka.py`, `test_week2.py`, `test_week3.py` | ✅ Completed |
+| **3** | [Kafka KRaft Migration (Remove ZooKeeper Node Collision)](#3-kafka-kraft-migration--compose-stability) | Infrastructure | 🟡 Medium | `docker-compose.yml` | ✅ Completed |
+| **4** | [Align PySpark & Jar Versions in Gatekeeper Dockerfile](#4-align-pyspark--jar-versions-in-dockerfilegatekeeper) | DevOps / Docker | 🟢 Polish | `Dockerfile.gatekeeper` | ✅ Completed |
+| **5** | [Create Single-Command End-to-End Test Harness](#5-create-single-command-end-to-end-test-harness) | Automation | 🟢 Polish | `scripts/run_e2e_verification.ps1` | ✅ Completed |
+| **6** | [Capture MCP Integration Transcripts for Portfolio](#6-capture-mcp-agent-transcripts-for-portfolio) | Documentation | 🟢 Polish | `docs/reports/mcp_interaction_log.md` | ✅ Completed |
 
 ---
 

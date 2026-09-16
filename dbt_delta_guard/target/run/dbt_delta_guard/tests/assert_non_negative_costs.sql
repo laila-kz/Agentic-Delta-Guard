@@ -1,13 +1,9 @@
-
-    
-    select
+select
       count(*) as failures,
       count(*) != 0 as should_warn,
       count(*) != 0 as should_error
     from (
-      
-    
-  -- Fails if any recorded agent action has invalid financial or runtime metrics
+      -- Fails if any recorded agent action has invalid financial or runtime metrics
 select
     action_id,
     agent_id,
@@ -17,7 +13,5 @@ from "dbt_delta_guard"."main"."stg_agent_events"
 where cost_usd < 0.0 
    or execution_time_ms < 0 
    or cost_usd > 50.0
-  
-  
       
     ) dbt_internal_test

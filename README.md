@@ -138,7 +138,7 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 python -m pip install dbt-core dbt-duckdb pytest streamlit
 
-# 3. Start Kafka & ZooKeeper
+# 3. Start Kafka (KRaft mode) & Kafka UI
 docker compose up -d
 
 # 4. Launch streaming pipeline (separate terminals)

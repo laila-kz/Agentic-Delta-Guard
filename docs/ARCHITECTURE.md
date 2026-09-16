@@ -138,7 +138,7 @@ flowchart LR
 	H --> O[Operator]
 ```
 
-The producer and HUD target the host endpoint `localhost:9092`. The gatekeeper defaults to the Compose-network endpoint `kafka:29092`; when it runs on the host, set `KAFKA_BOOTSTRAP_SERVERS=localhost:9092`. Docker Compose supplies Kafka, ZooKeeper, and Kafka UI for local development.
+The producer and HUD target the host endpoint `localhost:9092`. The gatekeeper defaults to the Compose-network endpoint `kafka:29092`; when it runs on the host, set `KAFKA_BOOTSTRAP_SERVERS=localhost:9092`. Docker Compose supplies Kafka (KRaft mode) and Kafka UI for local development without ZooKeeper.
 
 ## Runtime Topology
 
@@ -153,10 +153,8 @@ flowchart TB
 	end
 
 	subgraph Docker[Docker Compose]
-		ZK[ZooKeeper :2181]
-		Kafka[Kafka :9092 / :29092]
+		Kafka[Kafka :9092 / :29092\nKRaft Broker & Controller]
 		KafkaUI[Kafka UI :8080]
-		ZK --> Kafka
 		Kafka --> KafkaUI
 	end
 

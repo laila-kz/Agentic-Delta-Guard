@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 """
 Week 3 Verification Script
 """
@@ -8,56 +8,34 @@ import sys
 
 
 def test_sandbox_module_exists():
-    if os.path.exists("src/delta_guard/sandbox_guard.py"):
-        print("sandbox_guard.py exists")
-        return True
-    print("sandbox_guard.py not found")
-    return False
+    assert os.path.exists("src/delta_guard/sandbox_guard.py"), "sandbox_guard.py not found"
+    print("sandbox_guard.py exists")
 
 
 def test_triage_module_exists():
-    if os.path.exists("src/delta_guard/triage.py"):
-        print("triage.py exists")
-        return True
-    print("triage.py not found")
-    return False
+    assert os.path.exists("src/delta_guard/triage.py"), "triage.py not found"
+    print("triage.py exists")
 
 
 def test_chaos_suite_exists():
-    found = False
-    if os.path.exists("tests/test_contract_validation.py"):
-        print("test_contract_validation.py exists")
-        found = True
-    if os.path.exists("tests/test_chaos_infra.py"):
-        print("test_chaos_infra.py exists")
-        found = True
-    if not found:
-        print("test_contract_validation.py / test_chaos_infra.py not found")
-    return found
+    found = os.path.exists("tests/test_contract_validation.py") or os.path.exists("tests/test_chaos_infra.py")
+    assert found, "test_contract_validation.py / test_chaos_infra.py not found"
+    print("test_contract_validation.py / test_chaos_infra.py exists")
 
 
 def test_incident_log_exists():
-    if os.path.exists("docs/INCIDENT_LOG.md"):
-        print("INCIDENT_LOG.md exists")
-        return True
-    print("INCIDENT_LOG.md not found")
-    return False
+    assert os.path.exists("docs/INCIDENT_LOG.md"), "INCIDENT_LOG.md not found"
+    print("INCIDENT_LOG.md exists")
 
 
 def test_proposed_contract_exists():
-    if os.path.exists("configs/agent_contract_proposed.yaml"):
-        print("agent_contract_proposed.yaml exists")
-        return True
-    print("agent_contract_proposed.yaml not found")
-    return False
+    assert os.path.exists("configs/agent_contract_proposed.yaml"), "agent_contract_proposed.yaml not found"
+    print("agent_contract_proposed.yaml exists")
 
 
 def test_sandbox_exists():
-    if os.path.exists("data/gold/agent_sandbox"):
-        print("Sandbox exists")
-        return True
-    print("Sandbox not found")
-    return False
+    assert os.path.exists("data/gold/agent_sandbox"), "Sandbox not found"
+    print("Sandbox exists")
 
 
 def main():
@@ -76,8 +54,11 @@ def main():
 
     passed = 0
     for test in tests:
-        if test():
+        try:
+            test()
             passed += 1
+        except AssertionError as e:
+            print(f"Failed: {e}")
 
     print("=" * 60)
     print(f"Passed {passed}/{len(tests)} tests")
