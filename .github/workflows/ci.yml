@@ -56,8 +56,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install --upgrade "typing_extensions>=4.12.2"
-          pip install "dbt-core~=1.8.0" "dbt-duckdb~=1.8.0" pytest
-          pip check
 
       - name: Validate data contract
         run: |
