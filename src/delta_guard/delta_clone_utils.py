@@ -2,7 +2,7 @@
 delta_clone_utils.py — Zero-copy shallow cloning and time travel utilities for Delta Lake.
 
 This module provides production-ready shallow clone and time travel capabilities
-using the Delta Lake 3.x APIs.
+using the Delta Lake 3.x APIs with native RustDeltaTable fallback.
 """
 
 from __future__ import annotations
@@ -14,10 +14,10 @@ from pathlib import Path
 from typing import Optional
 
 import pandas as pd
+import pyarrow as pa
 from delta import configure_spark_with_delta_pip
 from delta.tables import DeltaTable
 from deltalake import DeltaTable as RustDeltaTable, write_deltalake
-import pyarrow as pa
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType
 
@@ -40,7 +40,11 @@ class DeltaCloneUtils:
                 .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
                 .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
             )
-            self.spark = configure_spark_with_delta_pip(builder).getOrCreate()
+            try:
+                self.spark = configure_spark_with_delta_pip(builder).getOrCreate()
+            except Exception as e:
+                logger.warning(f"Could not configure spark with delta pip: {e}")
+                self.spark = SparkSession.builder.appName("delta_clone_utils_fallback").getOrCreate()
         else:
             self.spark = spark
 
@@ -73,15 +77,6 @@ class DeltaCloneUtils:
         logger.info(f"Creating shallow clone: {source_path} → {target_path}")
         start_time = datetime.now()
 
-        if os.name == "nt":
-            return self._copy_clone(
-                source_path,
-                target_path,
-                replace=replace,
-                clone_type="shallow_fallback",
-                start_time=start_time,
-            )
-
         try:
             # Use Delta Lake clone API
             source_delta = DeltaTable.forPath(self.spark, source_path)
@@ -105,6 +100,7 @@ class DeltaCloneUtils:
                 "target_row_count": target_count,
                 "clone_duration_seconds": clone_duration,
                 "clone_type": "shallow",
+                "zero_copy": True,
                 "timestamp": datetime.now().isoformat(),
             }
 
@@ -115,8 +111,14 @@ class DeltaCloneUtils:
             return result
 
         except Exception as e:
-            logger.error(f"Failed to create shallow clone: {e}")
-            raise
+            logger.warning(f"Spark Delta clone unavailable ({e}), using fallback: {source_path} -> {target_path}")
+            return self._copy_clone(
+                source_path,
+                target_path,
+                replace=replace,
+                clone_type="shallow_fallback",
+                start_time=start_time,
+            )
 
     def create_deep_clone(
         self,
@@ -147,15 +149,6 @@ class DeltaCloneUtils:
         logger.info(f"Creating deep clone: {source_path} → {target_path}")
         start_time = datetime.now()
 
-        if os.name == "nt":
-            return self._copy_clone(
-                source_path,
-                target_path,
-                replace=replace,
-                clone_type="deep",
-                start_time=start_time,
-            )
-
         try:
             # Use Delta Lake clone API with isShallow=False
             source_delta = DeltaTable.forPath(self.spark, source_path)
@@ -179,6 +172,7 @@ class DeltaCloneUtils:
                 "target_row_count": target_count,
                 "clone_duration_seconds": clone_duration,
                 "clone_type": "deep",
+                "zero_copy": False,
                 "timestamp": datetime.now().isoformat(),
             }
 
@@ -189,8 +183,14 @@ class DeltaCloneUtils:
             return result
 
         except Exception as e:
-            logger.error(f"Failed to create deep clone: {e}")
-            raise
+            logger.warning(f"Spark Delta deep clone unavailable ({e}), using fallback: {source_path} -> {target_path}")
+            return self._copy_clone(
+                source_path,
+                target_path,
+                replace=replace,
+                clone_type="deep",
+                start_time=start_time,
+            )
 
     @staticmethod
     def _copy_clone(
@@ -243,12 +243,15 @@ class DeltaCloneUtils:
         logger.info(f"Reading {table_path} at version {version}")
 
         try:
-            delta_table = DeltaTable.forPath(self.spark, table_path)
-            df = delta_table.toDF().select("*").where(f"dbt_version = {version}")
-            return df.toPandas()
-        except Exception as e:
-            logger.error(f"Failed to read table at version {version}: {e}")
-            raise
+            return RustDeltaTable(table_path, version=version).to_pandas()
+        except Exception:
+            try:
+                delta_table = DeltaTable.forPath(self.spark, table_path)
+                df = delta_table.toDF().select("*").where(f"dbt_version = {version}")
+                return df.toPandas()
+            except Exception as e:
+                logger.error(f"Failed to read table at version {version}: {e}")
+                raise
 
     def read_at_timestamp(
         self,
@@ -302,21 +305,21 @@ class DeltaCloneUtils:
         logger.info(f"Fetching history for {table_path} (limit: {limit})")
 
         try:
-            if os.name == "nt":
-                history = RustDeltaTable(table_path).history(limit=limit)
-                history_df = pd.DataFrame(history)
-                if "timestamp" in history_df.columns:
-                    history_df["timestamp"] = pd.to_datetime(
-                        history_df["timestamp"], unit="ms", utc=True
-                    )
-                return history_df
-
-            delta_table = DeltaTable.forPath(self.spark, table_path)
-            history_df = delta_table.history(limit=limit)
-            return history_df.toPandas()
-        except Exception as e:
-            logger.error(f"Failed to get table history: {e}")
-            raise
+            history = RustDeltaTable(table_path).history(limit=limit)
+            history_df = pd.DataFrame(history)
+            if "timestamp" in history_df.columns:
+                history_df["timestamp"] = pd.to_datetime(
+                    history_df["timestamp"], unit="ms", utc=True
+                )
+            return history_df
+        except Exception:
+            try:
+                delta_table = DeltaTable.forPath(self.spark, table_path)
+                history_df = delta_table.history(limit=limit)
+                return history_df.toPandas()
+            except Exception as e:
+                logger.error(f"Failed to get table history: {e}")
+                raise
 
     def restore_to_version(
         self,
@@ -372,45 +375,44 @@ class DeltaCloneUtils:
         table_path = str(Path(table_path).resolve())
 
         try:
-            if os.name == "nt":
-                rust_table = RustDeltaTable(table_path)
-                history = rust_table.history(limit=100000)
-                latest = history[0] if history else {}
-                oldest = history[-1] if history else {}
-                size_bytes = sum(
-                    Path(file_uri).stat().st_size
-                    for file_uri in rust_table.file_uris()
-                    if Path(file_uri).exists()
-                )
-                return {
-                    "table_path": table_path,
-                    "format": "delta",
-                    "row_count": len(rust_table.to_pandas()),
-                    "size_bytes": size_bytes,
-                    "num_files": len(rust_table.file_uris()),
-                    "created_at": oldest.get("timestamp"),
-                    "last_modified": latest.get("timestamp"),
-                    "version": rust_table.version(),
-                }
-
-            delta_table = DeltaTable.forPath(self.spark, table_path)
-            detail = delta_table.detail()
-            detail_row = detail.collect()[0]
-
+            rust_table = RustDeltaTable(table_path)
+            history = rust_table.history(limit=100000)
+            latest = history[0] if history else {}
+            oldest = history[-1] if history else {}
+            size_bytes = sum(
+                Path(file_uri).stat().st_size
+                for file_uri in rust_table.file_uris()
+                if Path(file_uri).exists()
+            )
             return {
                 "table_path": table_path,
                 "format": "delta",
-                "row_count": delta_table.toDF().count(),
-                "size_bytes": detail_row.get("sizeInBytes"),
-                "num_files": detail_row.get("numFiles"),
-                "created_at": detail_row.get("createdAt"),
-                "last_modified": detail_row.get("lastModified"),
-                "version": self._get_latest_version(table_path),
+                "row_count": len(rust_table.to_pandas()),
+                "size_bytes": size_bytes,
+                "num_files": len(rust_table.file_uris()),
+                "created_at": oldest.get("timestamp"),
+                "last_modified": latest.get("timestamp"),
+                "version": rust_table.version(),
             }
+        except Exception:
+            try:
+                delta_table = DeltaTable.forPath(self.spark, table_path)
+                detail = delta_table.detail()
+                detail_row = detail.collect()[0]
 
-        except Exception as e:
-            logger.error(f"Failed to get table details: {e}")
-            raise
+                return {
+                    "table_path": table_path,
+                    "format": "delta",
+                    "row_count": delta_table.toDF().count(),
+                    "size_bytes": detail_row.get("sizeInBytes"),
+                    "num_files": detail_row.get("numFiles"),
+                    "created_at": detail_row.get("createdAt"),
+                    "last_modified": detail_row.get("lastModified"),
+                    "version": self._get_latest_version(table_path),
+                }
+            except Exception as e:
+                logger.error(f"Failed to get table details: {e}")
+                raise
 
     @staticmethod
     def _get_latest_version(table_path: str) -> int:
@@ -419,18 +421,3 @@ class DeltaCloneUtils:
 
         delta_log = DeltaLog.forTable(SparkSession.getActiveSession(), table_path)
         return delta_log.lastCommittedVersionId
-
-
-if __name__ == "__main__":
-    # Example usage
-    logging.basicConfig(level=logging.INFO)
-
-    clone_utils = DeltaCloneUtils()
-
-    # Example: Create shallow clone
-    # result = clone_utils.create_shallow_clone(
-    #     source_table_path="data/gold/agent_analytics",
-    #     target_table_path="data/sandbox/agent_analytics_sandbox",
-    #     replace=True,
-    # )
-    # print(result)
