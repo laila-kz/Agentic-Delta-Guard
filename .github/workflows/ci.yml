@@ -8,7 +8,7 @@ on:
 
 jobs:
   validate-and-test:
-    name: Build, Validate and Chaos Test
+    name: Build, Validate and Test
     runs-on: ubuntu-latest
 
     services:
@@ -55,28 +55,28 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install --upgrade "typing_extensions>=4.12.2"
-          pip install dbt-core dbt-duckdb duckdb pytest
+          pip install "dbt-core~=1.8.0" "dbt-duckdb~=1.8.0" pytest
           pip check
 
       - name: Validate data contract
         run: |
           python -c "import yaml; yaml.safe_load(open('configs/agent_contract.yaml'))"
 
+      - name: Sync contract thresholds to dbt
+        run: python scripts/sync_contract_to_dbt_vars.py
+
       - name: Install dbt packages
         working-directory: dbt_delta_guard
         run: dbt deps --profiles-dir .
 
-      - name: Sync contract thresholds to dbt
-        run: python scripts/sync_contract_to_dbt_vars.py
-
-      - name: Compile dbt project
+      - name: Build and Test dbt project
         working-directory: dbt_delta_guard
-        run: dbt compile --profiles-dir .
+        run: dbt build --profiles-dir .
 
-      - name: Run chaos tests
+      - name: Run test suite
         env:
           KAFKA_BOOTSTRAP_SERVERS: localhost:9092
-        run: pytest tests/test_chaos_infra.py -v --tb=short
+        run: pytest tests/ -v --tb=short
 
       - name: Verify sandbox isolation
         run: python src/delta_guard/sandbox_guard.py
