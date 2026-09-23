@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "framework": null,
+  "cleanUrls": true,
+  "routes": [
+    {
+      "src": "/status.json",
+      "dest": "/status.json"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}

@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agentic Delta Guard — Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #12141c;
+    --panel: #1a1d2a;
+    --panel-2: #20232f;
+    --line: #2b2f3d;
+    --paper: #eae5d8;
+    --paper-dim: #8f8c80;
+    --brass: #c9a15c;
+    --cyan: #5fc9d6;
+    --rust: #c9553e;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    min-height: 100vh;
+  }
+  .head-font { font-family: 'Barlow Condensed', system-ui, sans-serif; }
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+  }
+
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 16px;
+    margin-bottom: 22px;
+  }
+  header h1 {
+    font-family: 'Barlow Condensed', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(26px, 4vw, 34px);
+    letter-spacing: 0.3px;
+    margin: 0;
+    color: var(--paper);
+  }
+  header h1 span { color: var(--brass); }
+  .subhead { color: var(--paper-dim); font-size: 13px; margin-top: 4px; }
+
+  .lights {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--paper-dim);
+  }
+  .lights div { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 6px var(--cyan);
+  }
+
+  .stage {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 10px 4px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stage svg { width: 100%; height: auto; display: block; }
+
+  .agent-label, .node-label {
+    font-family: 'Barlow Condensed', system-ui, sans-serif;
+    font-size: 13px;
+    fill: var(--paper-dim);
+  }
+  .node-label.on { fill: var(--paper); }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 14px 2px 4px;
+  }
+  button#toggle {
+    font-family: 'Barlow Condensed', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    background: var(--brass);
+    color: #1a1408;
+    border: none;
+    padding: 9px 20px;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  button#toggle:active { transform: translateY(1px); }
+  .note {
+    color: var(--paper-dim);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .gauges {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+  }
+  .gauge {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 14px 16px;
+  }
+  .gauge .label {
+    font-family: 'Barlow Condensed', system-ui, sans-serif;
+    color: var(--paper-dim);
+    font-size: 13px;
+  }
+  .gauge .value {
+    font-size: 26px;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+  .gauge .value.bronze { color: var(--cyan); }
+  .gauge .value.quarantine { color: var(--rust); }
+
+  .lower {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 14px;
+    margin-top: 14px;
+  }
+  @media (max-width: 720px) {
+    .lower { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 14px 16px 16px;
+    min-height: 190px;
+  }
+  .panel h2 {
+    font-family: 'Barlow Condensed', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    margin: 0 0 10px;
+    color: var(--paper);
+  }
+
+  .bar-row { margin-bottom: 9px; }
+  .bar-row .bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--paper-dim);
+    margin-bottom: 3px;
+  }
+  .bar-track {
+    height: 7px;
+    background: var(--panel-2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--rust);
+    border-radius: 3px;
+    transition: width 900ms cubic-bezier(.2,.8,.2,1);
+  }
+
+  .patch-banner {
+    margin-top: 10px;
+    border-top: 1px dashed var(--line);
+    padding-top: 8px;
+    font-size: 12px;
+    color: var(--brass);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 500ms ease, transform 500ms ease;
+  }
+  .patch-banner.show { opacity: 1; transform: translateY(0); }
+
+  .log {
+    font-size: 11.5px;
+    line-height: 1.75;
+    color: var(--paper-dim);
+    height: 148px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column-reverse;
+  }
+  .log div span.ok { color: var(--cyan); }
+  .log div span.bad { color: var(--rust); }
+
+  footer {
+    margin-top: 22px;
+    color: var(--paper-dim);
+    font-size: 11.5px;
+    line-height: 1.6;
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+  }
+  footer code {
+    color: var(--brass);
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1><span>🛡</span> Agentic Delta Guard <span>· console</span></h1>
+      <div class="subhead">contract gate for autonomous agent writes — live view</div>
+    </div>
+    <div class="lights">
+      <div><span class="dot" id="dotKafka"></span>kafka</div>
+      <div><span class="dot" id="dotProducer"></span>producer</div>
+      <div><span class="dot" id="dotGate"></span>gatekeeper</div>
+      <div><span class="dot" id="dotDbt"></span>dbt gold</div>
+    </div>
+  </header>
+
+  <div class="stage">
+    <svg id="stageSvg" viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg">
+      <!-- geometry paths (invisible, used for motion only) -->
+      <path id="pA0" d="M 60,60 C 160,60 160,150 260,150" fill="none" stroke="none"/>
+      <path id="pA1" d="M 60,150 C 160,150 160,150 260,150" fill="none" stroke="none"/>
+      <path id="pA2" d="M 60,240 C 160,240 160,150 260,150" fill="none" stroke="none"/>
+      <path id="pKafka" d="M 260,150 L 470,150" fill="none" stroke="none"/>
+      <path id="pToBronze" d="M 500,150 C 560,150 560,220 620,220" fill="none" stroke="none"/>
+      <path id="pToQuarantine" d="M 500,150 C 560,150 560,80 620,80" fill="none" stroke="none"/>
+
+      <!-- visible line art -->
+      <g stroke="#2b2f3d" stroke-width="2" fill="none">
+        <path d="M 60,60 C 160,60 160,150 260,150"/>
+        <path d="M 60,150 C 160,150 160,150 260,150"/>
+        <path d="M 60,240 C 160,240 160,150 260,150"/>
+        <path d="M 260,150 L 470,150"/>
+        <path d="M 500,150 C 560,150 560,220 620,220"/>
+        <path d="M 500,150 C 560,150 560,80 620,80"/>
+      </g>
+
+      <!-- agent nodes -->
+      <g>
+        <circle cx="52" cy="60" r="7" fill="#20232f" stroke="#8f8c80" stroke-width="1.5"/>
+        <text x="34" y="42" class="agent-label" text-anchor="middle">research agent</text>
+
+        <circle cx="52" cy="150" r="7" fill="#20232f" stroke="#8f8c80" stroke-width="1.5"/>
+        <text x="34" y="132" class="agent-label" text-anchor="middle">sql coder</text>
+
+        <circle cx="52" cy="240" r="7" fill="#20232f" stroke="#8f8c80" stroke-width="1.5"/>
+        <text x="34" y="264" class="agent-label" text-anchor="middle">rogue crawler</text>
+      </g>
+
+      <!-- kafka label -->
+      <text x="365" y="138" class="node-label" text-anchor="middle">agent-events</text>
+
+      <!-- gate -->
+      <g id="gateGroup">
+        <rect x="470" y="128" width="30" height="44" rx="3" fill="#20232f" stroke="#c9a15c" stroke-width="1.6"/>
+        <text x="485" y="192" class="node-label on" text-anchor="middle">contract gate</text>
+      </g>
+
+      <!-- bronze tank -->
+      <g>
+        <rect x="600" y="190" width="60" height="72" rx="3" fill="#181b26" stroke="#3a3e4d" stroke-width="1.5"/>
+        <rect id="bronzeFill" x="601" y="261" width="58" height="0" fill="#5fc9d6" opacity="0.55"/>
+        <text x="630" y="278" class="node-label on" text-anchor="middle" font-size="12">bronze</text>
+      </g>
+
+      <!-- quarantine tank -->
+      <g>
+        <rect x="600" y="40" width="60" height="72" rx="3" fill="#181b26" stroke="#3a3e4d" stroke-width="1.5"/>
+        <rect id="quarantineFill" x="601" y="111" width="58" height="0" fill="#c9553e" opacity="0.55"/>
+        <text x="630" y="128" class="node-label on" text-anchor="middle" font-size="12">quarantine</text>
+      </g>
+
+      <!-- particle layer -->
+      <g id="particles"></g>
+    </svg>
+  </div>
+
+  <div class="controls">
+    <button id="toggle">⏸ pause</button>
+    <div class="note">polling <code>/status.json</code> every 1.5 s — counters from <code>gatekeeper.py</code>, error signatures from <code>triage.py</code></div>
+  </div>
+
+  <div class="gauges">
+    <div class="gauge">
+      <div class="label">throughput</div>
+      <div class="value" id="gThroughput">0 ev/s</div>
+    </div>
+    <div class="gauge">
+      <div class="label">bronze — validated</div>
+      <div class="value bronze" id="gBronze">0</div>
+    </div>
+    <div class="gauge">
+      <div class="label">quarantine — isolated</div>
+      <div class="value quarantine" id="gQuarantine">0</div>
+    </div>
+    <div class="gauge">
+      <div class="label">quarantine rate</div>
+      <div class="value" id="gRate">0%</div>
+    </div>
+  </div>
+
+  <div class="lower">
+    <div class="panel">
+      <h2>triage — error signatures</h2>
+      <div id="bars"></div>
+      <div class="patch-banner" id="patchBanner">↳ 2 contract patches proposed → agent_contract_proposed.yaml</div>
+    </div>
+    <div class="panel">
+      <h2>event log</h2>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+
+  <footer>
+    Live connection to the pipeline via <code>/status.json</code> &mdash; served by <code>status_server.py</code> on port 8888.
+    Counters come from <code>gatekeeper.py</code> (per-batch) and <code>triage.py</code> (error signatures).
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  const svgNS = "http://www.w3.org/2000/svg";
+  const agentPaths = [document.getElementById('pA0'), document.getElementById('pA1'), document.getElementById('pA2')];
+  const kafkaPath = document.getElementById('pKafka');
+  const toBronze = document.getElementById('pToBronze');
+  const toQuarantine = document.getElementById('pToQuarantine');
+  const particleLayer = document.getElementById('particles');
+
+  const TANK_SCALE = 200; // events to visually "fill" a tank
+
+  let running = true;       // auto-start polling
+  let prevBronze = 0, prevQuarantine = 0;
+  let displayBronze = 0, displayQuarantine = 0;
+  let prevPatchCount = 0;
+  let pollTimer = null;
+
+  // ── Triage bars (dynamically created from status data) ──────────────────
+  const barsContainer = document.getElementById('bars');
+  let knownSignatures = [];
+
+  function ensureBars(sigCounts){
+    const sigs = Object.keys(sigCounts);
+    if (JSON.stringify(sigs) === JSON.stringify(knownSignatures)) return;
+    knownSignatures = sigs;
+    barsContainer.innerHTML = '';
+    sigs.forEach((name, i) => {
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      row.innerHTML = `<div class="bar-label"><span>${name}</span><span id="barCount${i}">0</span></div>
+                        <div class="bar-track"><div class="bar-fill" id="barFill${i}"></div></div>`;
+      barsContainer.appendChild(row);
+    });
+  }
+
+  function updateBars(sigCounts){
+    ensureBars(sigCounts);
+    const total = Object.values(sigCounts).reduce((a, v) => a + v, 0) || 1;
+    Object.values(sigCounts).forEach((count, i) => {
+      const pct = Math.round(100 * count / total);
+      const fillEl = document.getElementById('barFill' + i);
+      const countEl = document.getElementById('barCount' + i);
+      if (fillEl) fillEl.style.width = pct + '%';
+      if (countEl) countEl.textContent = count;
+    });
+  }
+
+  // ── Shared helpers (unchanged from original) ────────────────────────────
+  function logLine(text, ok){
+    const log = document.getElementById('log');
+    const line = document.createElement('div');
+    line.innerHTML = `<span class="${ok ? 'ok' : 'bad'}">${ok ? '✓' : '✕'}</span> ${text}`;
+    log.prepend(line);
+    while (log.children.length > 9) log.removeChild(log.lastChild);
+  }
+
+  function updateGauges(){
+    document.getElementById('gBronze').textContent = displayBronze.toLocaleString();
+    document.getElementById('gQuarantine').textContent = displayQuarantine.toLocaleString();
+    const total = displayBronze + displayQuarantine;
+    document.getElementById('gRate').textContent = total ? Math.round(100 * displayQuarantine / total) + '%' : '0%';
+    document.getElementById('bronzeFill').setAttribute('height', Math.min(66, displayBronze / TANK_SCALE * 66));
+    document.getElementById('bronzeFill').setAttribute('y', 261 - Math.min(66, displayBronze / TANK_SCALE * 66));
+    document.getElementById('quarantineFill').setAttribute('height', Math.min(66, displayQuarantine / TANK_SCALE * 66));
+    document.getElementById('quarantineFill').setAttribute('y', 111 - Math.min(66, displayQuarantine / TANK_SCALE * 66));
+  }
+
+  function pulse(dotId){
+    const dot = document.getElementById(dotId);
+    dot.style.boxShadow = '0 0 12px currentColor';
+    setTimeout(() => dot.style.boxShadow = '0 0 6px currentColor', 220);
+  }
+
+  function makeParticle(color){
+    const c = document.createElementNS(svgNS, 'circle');
+    c.setAttribute('r', 3.4);
+    c.setAttribute('fill', color);
+    particleLayer.appendChild(c);
+    return c;
+  }
+
+  function animateAlong(path, circle, duration){
+    return new Promise(resolve => {
+      const len = path.getTotalLength();
+      const start = performance.now();
+      function step(now){
+        const t = Math.min(1, (now - start) / duration);
+        const pt = path.getPointAtLength(t * len);
+        circle.setAttribute('cx', pt.x);
+        circle.setAttribute('cy', pt.y);
+        if (t < 1) requestAnimationFrame(step);
+        else resolve();
+      }
+      requestAnimationFrame(step);
+    });
+  }
+
+  // ── Particle batch animation ────────────────────────────────────────────
+  // Fires N particles staggered at 150ms each, capped at 8 per poll to
+  // avoid flooding.  Each particle traverses: agent→kafka→gate→tank.
+  async function fireParticle(isBronze){
+    const agentIdx = Math.floor(Math.random() * 3);
+    const circle = makeParticle('#c9a15c');
+    pulse('dotProducer');
+    await animateAlong(agentPaths[agentIdx], circle, 600);
+    await animateAlong(kafkaPath, circle, 350);
+    pulse('dotGate');
+    circle.setAttribute('fill', isBronze ? '#5fc9d6' : '#c9553e');
+    await animateAlong(isBronze ? toBronze : toQuarantine, circle, 500);
+    particleLayer.removeChild(circle);
+    if (isBronze){
+      displayBronze++;
+      logLine('event validated → bronze', true);
+    } else {
+      displayQuarantine++;
+      logLine('event quarantined', false);
+    }
+    updateGauges();
+  }
+
+  function batchAnimate(bronzeDelta, quarantineDelta){
+    // Interleave bronze and quarantine particles, capped at 8 total
+    const cap = 8;
+    const bCap = Math.min(bronzeDelta, Math.ceil(cap * bronzeDelta / Math.max(bronzeDelta + quarantineDelta, 1)));
+    const qCap = Math.min(quarantineDelta, cap - bCap);
+    let queue = [];
+    for (let i = 0; i < bCap; i++) queue.push(true);
+    for (let i = 0; i < qCap; i++) queue.push(false);
+    // Shuffle
+    for (let i = queue.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [queue[i], queue[j]] = [queue[j], queue[i]];
+    }
+    // If we capped, jump the display counters for the remainder
+    const bronzeSkipped = bronzeDelta - bCap;
+    const quarantineSkipped = quarantineDelta - qCap;
+    if (bronzeSkipped > 0) displayBronze += bronzeSkipped;
+    if (quarantineSkipped > 0) displayQuarantine += quarantineSkipped;
+    if (bronzeSkipped > 0 || quarantineSkipped > 0) updateGauges();
+    // Fire staggered
+    queue.forEach((isBronze, idx) => {
+      setTimeout(() => fireParticle(isBronze), idx * 150);
+    });
+  }
+
+  // ── Status indicator dots ───────────────────────────────────────────────
+  function setDot(id, online){
+    const dot = document.getElementById(id);
+    dot.style.background = online ? 'var(--cyan)' : '#555';
+    dot.style.boxShadow = online ? '0 0 6px var(--cyan)' : 'none';
+  }
+
+  // ── Poll loop ───────────────────────────────────────────────────────────
+  async function pollStatus(){
+    if (!running) return;
+    try {
+      const resp = await fetch('/status.json');
+      if (!resp.ok) throw new Error(resp.status);
+      const s = await resp.json();
+
+      // Status indicator lights
+      setDot('dotKafka', s.kafka_online);
+      setDot('dotGate', s.updated_at !== '');
+      setDot('dotProducer', s.bronze_count > 0 || s.quarantine_count > 0);
+      setDot('dotDbt', s.patch_count > 0);
+
+      // Throughput
+      document.getElementById('gThroughput').textContent =
+        (s.throughput_eps || 0).toFixed(1) + ' ev/s';
+
+      // Count deltas → batch animate particles
+      const bDelta = Math.max(0, (s.bronze_count || 0) - prevBronze);
+      const qDelta = Math.max(0, (s.quarantine_count || 0) - prevQuarantine);
+      prevBronze = s.bronze_count || 0;
+      prevQuarantine = s.quarantine_count || 0;
+
+      if (bDelta > 0 || qDelta > 0){
+        batchAnimate(bDelta, qDelta);
+      }
+
+      // Triage bars
+      if (s.per_signature_counts && Object.keys(s.per_signature_counts).length > 0){
+        updateBars(s.per_signature_counts);
+      }
+
+      // Patch banner
+      if ((s.patch_count || 0) > 0 && s.patch_count !== prevPatchCount){
+        prevPatchCount = s.patch_count;
+        const banner = document.getElementById('patchBanner');
+        banner.textContent = `↳ ${s.patch_count} contract patch${s.patch_count > 1 ? 'es' : ''} proposed → ${s.last_patch || 'agent_contract_proposed.yaml'}`;
+        banner.classList.add('show');
+        setTimeout(() => banner.classList.remove('show'), 6000);
+      }
+
+    } catch (e) {
+      // Server not up yet — dim all dots
+      ['dotKafka','dotProducer','dotGate','dotDbt'].forEach(id => setDot(id, false));
+    }
+    pollTimer = setTimeout(pollStatus, 1500);
+  }
+
+  // ── Toggle button ───────────────────────────────────────────────────────
+  const btn = document.getElementById('toggle');
+  btn.textContent = '⏸ pause';
+  btn.addEventListener('click', () => {
+    running = !running;
+    btn.textContent = running ? '⏸ pause' : '▶ resume';
+    if (running) pollStatus();
+    else clearTimeout(pollTimer);
+  });
+
+  updateGauges();
+  pollStatus();  // auto-start
+})();
+</script>
+</body>
+</html>
+

@@ -1,0 +1,18 @@
+# Exclude all large data, virtual env, docs, images, and binary artifacts from Vercel static deployment
+.venv/
+data/
+checkpoints/
+.hadoop/
+.ivy2/
+.git/
+.pytest_cache/
+dbt_delta_guard/
+docs/
+logs/
+checkpoints/
+jars/
+*.png
+*.jpg
+*.jpeg
+*.mp4
+*.zip
