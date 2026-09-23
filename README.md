@@ -1,11 +1,67 @@
 # 🛡️ Agentic Delta Guard
 ### Contract Enforcement and Local Analytics for Autonomous AI-Agent Events
 
-> **Portfolio scope (2026-09-09):** This is a rigorously tested local prototype for contract validation, quarantine, analytical modeling, and MCP-based pre-flight checks for AI-agent events. The Kafka-to-Delta live demo remains an active integration gate; see [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for evidence and limitations.
-
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Live%20Console-000000?logo=vercel&logoColor=white)](https://agentic-delta-guard.vercel.app)
+[![CI](https://github.com/laila-kz/kafka_streaming_project/actions/workflows/ci.yml/badge.svg)](https://github.com/laila-kz/kafka_streaming_project/actions/workflows/ci.yml)
 [![Engine](https://img.shields.io/badge/Engine-PySpark%203.5%20%7C%20Delta%20Lake-00A4E4?logo=apachespark)](https://delta.io/)
 [![Quality](https://img.shields.io/badge/Quality-dbt%20%2B%20DuckDB-FF694B?logo=dbt)](https://getdbt.com)
-[![Tests](https://img.shields.io/badge/Pytest%20Suite-35%20passed%2C%202%20skipped-blue)](tests/)
+[![Tests](https://img.shields.io/badge/Pytest%20Suite-35%20passed%2C%203%20skipped-blue)](tests/)
+
+> 🌐 **Live Deployed Web Console:** [https://agentic-delta-guard.vercel.app](https://agentic-delta-guard.vercel.app)
+
+---
+
+## ⚡ Quickstart — 1 Command Demo
+
+### Option A — Full Docker (Recommended)
+```bash
+git clone https://github.com/laila-kz/kafka_streaming_project.git
+cd kafka_streaming_project
+make up          # builds & starts Kafka + producer + gatekeeper + console in background
+```
+
+### Option B — Single-Command Terminal Launcher (Real Streaming + Textual HUD)
+```bash
+python run_pipeline.py   # orchestrates Kafka + Producer + PySpark Gatekeeper + Terminal HUD
+# OR
+make pipeline
+```
+
+### Option C — Local Web Console Launcher
+```bash
+python run_demo.py   # orchestrates Kafka + Producer + Gatekeeper + Web Console (http://localhost:8888)
+```
+
+```bash
+make down        # stop all Docker services
+make test        # run pytest + dbt build
+```
+
+---
+
+## 🖥️ System Media & Screenshots Showcase
+
+### 🌐 1. Live Web Console (Deployed on Vercel)
+![Live Animated Console Dashboard](docs/screenshots/live_console.png)
+*Figure 1: Live Animated Console ([https://agentic-delta-guard.vercel.app](https://agentic-delta-guard.vercel.app)) showing real-time event particles flowing from AI Agent nodes through the contract gate to Bronze & Quarantine Delta tanks, error signature breakdown, and contract patch banners.*
+
+### 💻 2. Real-Time Textual Terminal HUD (`python run_pipeline.py`)
+![Textual Terminal HUD Interface](docs/screenshots/hud_interface.png)
+*Figure 2: Textual Terminal HUD interface (`python run_pipeline.py`) monitoring Kafka connection health, live Bronze row counts, Quarantine violation rates, and system CPU/Memory utilization.*
+
+### 🏗️ 3. End-to-End Pipeline Architecture & Workflow
+![Agentic Delta Guard Workflow Diagram](docs/screenshots/workflow_diagram.png)
+*Figure 3: High-level architectural data flow from Agent Fleet → Kafka Topic → PySpark Contract Gatekeeper → Delta Lake Bronze/Quarantine → dbt Analytics & Automated LLM Triage Engine.*
+
+### 📡 4. Kafka Control Center UI
+![Kafka UI Topic Control Center](docs/screenshots/kafka_ui.png)
+*Figure 4: Kafka Control Center UI (http://localhost:8080) displaying topic partition health, byte rate throughput, and live message streams for `agent-write-events`.*
+
+### 🎥 5. Video Demonstration Walkthrough
+▶️ **[Download / Watch Console Video Demo](docs/screenshots/console_demo.mp4)** — Full screen recording demonstrating real-time event streaming, contract violations, quarantine routing, and patch generation.
+
+---
+
 
 ---
 
