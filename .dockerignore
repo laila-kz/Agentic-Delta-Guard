@@ -1,0 +1,46 @@
+# Exclude large data directories from Docker build context.
+# Without this, Docker copies the entire project (600MB+) on every build.
+
+# Delta Lake data and checkpoints
+data/
+checkpoints/
+
+# Spark/Ivy JAR cache (downloaded at runtime if needed)
+.ivy2/
+.ivy/
+
+# Python virtualenv
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Test cache
+.pytest_cache/
+*.egg-info/
+
+# dbt build artifacts
+dbt_delta_guard/target/
+dbt_delta_guard/logs/
+dbt_delta_guard/.pytest_cache/
+
+# Editor / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+
+# Local dev scripts / logs
+*.log
+*.tmp

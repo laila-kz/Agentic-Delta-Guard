@@ -1,0 +1,37 @@
+# Dockerfile.worker — Shared image for producer, gatekeeper, and console server.
+#
+# Uses the official Spark 3.5 + Java 17 base with Delta Lake pre-installed.
+# We add the project's Python dependencies on top.
+#
+# Build:  docker compose build   (automatic via docker-compose.yml build context)
+FROM python:3.11-slim
+
+# Install Java 21 for PySpark (openjdk-17 not available on Debian trixie)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends openjdk-21-jre-headless procps && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+
+WORKDIR /workspace
+
+# Layer 1 — the two largest packages in isolation (317 MB + ~50 MB).
+RUN pip install --no-cache-dir --prefer-binary --timeout 300 --retries 5 \
+    pyspark==3.5.1 \
+    delta-spark==3.2.0
+
+
+# Layer 2 — rest of requirements (excludes pyspark/delta already installed above)
+COPY requirements.txt .
+RUN pip install --no-cache-dir --timeout 300 --retries 5 \
+    $(grep -v -E '^(pyspark|delta-spark)' requirements.txt | tr '\n' ' ')
+
+# Layer 3 — console server deps
+RUN pip install --no-cache-dir --timeout 120 --retries 3 \
+    "fastapi>=0.111.0" "uvicorn[standard]>=0.29.0"
+
+# Copy project source
+COPY . .
+
+# Default: nothing — each service overrides via command in docker-compose.yml
+CMD ["python", "--version"]

@@ -42,3 +42,10 @@ derby.log
 *.swo
 .DS_Store
 Thumbs.db
+.vercel
+
+# Runtime logs & transient status
+status.json
+logs/
+*.log
+
