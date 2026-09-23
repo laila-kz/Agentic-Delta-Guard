@@ -255,7 +255,41 @@ class LLMTriageEngine:
         }
         self._write_incident_report(report)
         self._write_proposed_contract(diagnosis.get("recommended_patches", []))
+        self._update_status_with_triage(clusters, diagnosis)
         return report
+
+    def _update_status_with_triage(
+        self, clusters: list[dict[str, Any]], diagnosis: dict[str, Any]
+    ) -> None:
+        """Merge triage results into status.json so the console shows live signatures."""
+        status_path = PROJECT_ROOT / "status.json"
+        # Read existing status (written by gatekeeper) or start fresh
+        status: dict = {}
+        if status_path.exists():
+            try:
+                status = json.loads(status_path.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                status = {}
+        # Merge signature counts from latest triage run
+        sig_counts: dict[str, int] = {}
+        for cluster in clusters:
+            sig_counts[cluster["signature"]] = cluster["count"]
+        status["per_signature_counts"] = sig_counts
+        # Patch info
+        patches = diagnosis.get("recommended_patches", [])
+        status["patch_count"] = len(patches)
+        if patches and self.proposed_contract_path.exists():
+            try:
+                rel = self.proposed_contract_path.relative_to(PROJECT_ROOT)
+                status["last_patch"] = str(rel)
+            except ValueError:
+                status["last_patch"] = str(self.proposed_contract_path)
+
+        # Atomic write
+        tmp = str(status_path) + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as fh:
+            json.dump(status, fh)
+        os.replace(tmp, str(status_path))
 
     def _write_incident_report(self, report: dict[str, Any]) -> None:
         diagnosis = report["diagnosis"]

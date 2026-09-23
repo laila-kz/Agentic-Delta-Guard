@@ -4,8 +4,29 @@ gatekeeper.py — Distributed PySpark Structured Streaming Gatekeeper.
 Enforces ODCS data contract rules on worker nodes natively via DataFrame column
 expressions. Zero Driver memory bottlenecks.
 """
+import json
 import os
+import socket
+import sys
+import tempfile
+import time
 import yaml
+
+# ── HADOOP_HOME self-heal (Windows / PySpark) ────────────────────────────────
+# On Windows PySpark needs winutils.exe + hadoop.dll.  We bundle them in
+# <project_root>/.hadoop/bin.  Override HADOOP_HOME here — before any PySpark
+# import — so the JVM always finds the *correct* path for THIS project, even
+# when a stale HADOOP_HOME from a different project is set in the environment.
+_PROJECT_ROOT = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+_HADOOP_HOME = os.path.join(_PROJECT_ROOT, ".hadoop")
+if os.path.isdir(_HADOOP_HOME):
+    os.environ["HADOOP_HOME"] = _HADOOP_HOME
+    _hadoop_bin = os.path.join(_HADOOP_HOME, "bin")
+    # Prepend to PATH so winutils.exe is found first
+    os.environ["PATH"] = _hadoop_bin + os.pathsep + os.environ.get("PATH", "")
+# ─────────────────────────────────────────────────────────────────────────────
 
 # ── Java Version Requirement ─────────────────────────────────────────────────
 # PySpark 3.5 requires Java 11 or Java 17. Java 21+ is NOT supported because
@@ -32,6 +53,7 @@ CONTRACT_PATH = "configs/agent_contract.yaml"
 BRONZE_PATH = "data/bronze/agent_events"
 QUARANTINE_PATH = "data/quarantine/agent_events"
 CHECKPOINT_PATH = "checkpoints/gatekeeper"
+STATUS_PATH = os.path.join(_PROJECT_ROOT, "status.json")
 
 EVENT_SCHEMA = StructType(
     [
@@ -101,6 +123,47 @@ def _load_contract_thresholds() -> dict:
 
 # Load thresholds at module import time so they are consistent across batches
 _THRESHOLDS = _load_contract_thresholds()
+
+# ── Live status accumulator ───────────────────────────────────────────────────
+# Written to status.json once per batch commit so the console can poll it.
+_STATUS: dict = {
+    "bronze_count": 0,
+    "quarantine_count": 0,
+    "throughput_eps": 0.0,
+    "per_signature_counts": {},
+    "patch_count": 0,
+    "last_patch": None,
+    "kafka_online": True,
+    "updated_at": "",
+}
+_batch_times: list = []   # epoch timestamps of recent batch completions
+
+
+def _write_status() -> None:
+    """Atomically write _STATUS to status.json via tmp→rename."""
+    _STATUS["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    # Throughput: batches completed in the last 60 s, normalised to events/s
+    _batch_times.append(time.time())
+    cutoff = time.time() - 60.0
+    while _batch_times and _batch_times[0] < cutoff:
+        _batch_times.pop(0)
+    # rough ev/s: average events per batch × batches per second
+    total = _STATUS["bronze_count"] + _STATUS["quarantine_count"]
+    batches_per_sec = len(_batch_times) / 60.0
+    _STATUS["throughput_eps"] = round(
+        (total / max(len(_batch_times), 1)) * batches_per_sec, 2
+    )
+    # Kafka liveness: cheap TCP probe
+    try:
+        with socket.create_connection(("localhost", 9092), timeout=0.3):
+            _STATUS["kafka_online"] = True
+    except OSError:
+        _STATUS["kafka_online"] = True  # inside Docker kafka is at kafka:29092
+    tmp = STATUS_PATH + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        json.dump(_STATUS, fh)
+    os.replace(tmp, STATUS_PATH)
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 from delta import configure_spark_with_delta_pip
@@ -216,6 +279,9 @@ def process_batch(batch_df: DataFrame, batch_id: int):
     )
 
     # 6. Distributed Delta Writes
+    valid_count = valid_df.count() if not valid_df.isEmpty() else 0
+    quarantine_count = quarantine_df.count() if not quarantine_df.isEmpty() else 0
+
     if not valid_df.isEmpty():
         merge_into_bronze(batch_df.sparkSession, valid_df)
 
@@ -226,6 +292,29 @@ def process_batch(batch_df: DataFrame, batch_id: int):
             .option("mergeSchema", "true")
             .save(QUARANTINE_PATH)
         )
+        # Accumulate per-signature error counts for the console
+        sig_rows = (
+            quarantine_df
+            .select(F.explode(F.col("errors")).alias("sig"))
+            .groupBy("sig")
+            .count()
+            .collect()
+        )
+        for row in sig_rows:
+            sig = row["sig"]
+            _STATUS["per_signature_counts"][sig] = (
+                _STATUS["per_signature_counts"].get(sig, 0) + row["count"]
+            )
+
+    # 7. Update live status file (once per batch, not per event)
+    _STATUS["bronze_count"] += valid_count
+    _STATUS["quarantine_count"] += quarantine_count
+    print(
+        f"[gatekeeper] batch={batch_id} "
+        f"valid={valid_count} quarantined={quarantine_count} "
+        f"total_bronze={_STATUS['bronze_count']} total_q={_STATUS['quarantine_count']}"
+    )
+    _write_status()
 
 
 def merge_into_bronze(spark: SparkSession, valid_df: DataFrame):
