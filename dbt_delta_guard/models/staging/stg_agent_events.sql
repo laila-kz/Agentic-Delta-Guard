@@ -1,8 +1,9 @@
 {{ config(materialized='view') }}
 
--- NOTE: This reads from Bronze layer parquet exports
--- In production (dbt-spark), we would read directly from delta.`../data/bronze/agent_events`
--- For now, both duckdb (local dev) and spark (prod) can read the parquet format
+-- Reads Bronze Delta Lake table via DuckDB's delta extension (delta_scan reads
+-- the _delta_log transaction log so it finds all Parquet files regardless of how
+-- deeply nested they are under the table root).
+-- Fallback: read_parquet with ** recursive glob for non-Delta Parquet exports.
 
 with raw_bronze as (
 	select
@@ -15,7 +16,8 @@ with raw_bronze as (
 		cast(cost_usd as double) as cost_usd,
 		status,
 		tool_args
-	from read_parquet('../data/bronze/agent_events/*.parquet')
+	-- delta_scan() reads _delta_log → finds all part-*.parquet files, no glob needed
+	from delta_scan('../data/bronze/agent_events')
 ),
 
 deduplicated as (

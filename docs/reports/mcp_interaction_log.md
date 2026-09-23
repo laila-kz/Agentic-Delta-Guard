@@ -1,6 +1,6 @@
 # 🤖 MCP Server Interaction Log: Shift-Left Agent Validation
 
-**Generated At:** `2026-09-16T23:09:43.109443+00:00`  
+**Generated At:** `2026-09-22T21:49:02.703492+00:00`  
 **Protocol Version:** Model Context Protocol (MCP) v1.0.0  
 **Target Architecture:** Agentic Delta Guard (`src/delta_guard/mcp/`)
 
@@ -138,8 +138,8 @@ An autonomous agent queries the active data contract upon session initialization
   ],
   "max_cost_per_call": 50.0,
   "freshness_window_hours": 24,
-  "loaded_at": "2026-09-16T23:09:43.109443+00:00",
-  "contract_path": "C:\\Users\\kheza\\Desktop\\Data Engineering\\kafka_streaming_project\\configs\\agent_contract.yaml"
+  "loaded_at": "2026-09-22T21:49:02.853984+00:00",
+  "contract_path": "C:\\Users\\kheza\\Desktop\\Data Engineering\\Agentic-Delta-Guard\\configs\\agent_contract.yaml"
 }
 ```
 
@@ -159,7 +159,7 @@ The agent tests a compliant action payload before streaming it to Kafka.
   "agent_id": "analytics-agent-01",
   "session_id": "sess-prod-789",
   "action_id": "act-val-101",
-  "timestamp": "2026-09-16T23:09:43.109443+00:00",
+  "timestamp": "2026-09-22T21:49:02.703492+00:00",
   "tool_name": "vector_search",
   "execution_time_ms": 142,
   "cost_usd": 0.045,
@@ -180,7 +180,7 @@ The agent tests a compliant action payload before streaming it to Kafka.
   "violations": [],
   "remediation_hints": [],
   "contract_version": "1.0.0",
-  "validation_timestamp": "2026-09-16T23:09:43.109443+00:00",
+  "validation_timestamp": "2026-09-22T21:49:02.903712+00:00",
   "message": "Payload passes all data contract checks. Safe to emit to Kafka."
 }
 ```
@@ -201,7 +201,7 @@ The agent attempts to execute an unauthorized tool (`unauthorized_shell_exec`) w
   "agent_id": "rogue-agent-07",
   "session_id": "sess-prod-994",
   "action_id": "act-rej-662",
-  "timestamp": "2026-09-16T23:09:43.109443+00:00",
+  "timestamp": "2026-09-22T21:49:02.703492+00:00",
   "tool_name": "unauthorized_shell_exec",
   "execution_time_ms": 420000,
   "cost_usd": 128.5,
@@ -227,7 +227,7 @@ The agent attempts to execute an unauthorized tool (`unauthorized_shell_exec`) w
     "Optimize model token parameters or cap invocation cost below $50.00."
   ],
   "contract_version": "1.0.0",
-  "validation_timestamp": "2026-09-16T23:09:43.109443+00:00",
+  "validation_timestamp": "2026-09-22T21:49:02.906828+00:00",
   "message": "Payload rejected (2 violation(s)). Self-correct using remediation hints."
 }
 ```
@@ -255,26 +255,86 @@ A supervisor or SRE agent inspects the quarantined records in Delta Lake to anal
 ```json
 {
   "status": "quarantine_active",
-  "total_records_in_sample": 1,
+  "total_records_in_sample": 5,
   "error_signatures": {
-    "type_mismatch:cost_usd_not_double; missing_required_field:agent_id": 1
+    "missing_required_field:agent_id": 2,
+    "freshness:stale_timestamp": 1,
+    "semantic_rule:cost_out_of_bounds": 1,
+    "type_mismatch:cost_usd_not_double": 1
   },
   "records": [
     {
-      "agent_id": "unknown_agent",
-      "session_id": "sess_99",
-      "action_id": "act_99",
-      "timestamp": "2026-09-05 12:00:00",
+      "agent_id": NaN,
+      "session_id": "9cc64e8c-78b9-4154-af54-a22d34179169",
+      "action_id": "89f2a47a-d4f9-48c0-8417-96633c3fadfc",
+      "timestamp": "2026-09-22T21:46:37.493110+00:00",
+      "tool_name": "db_writer",
+      "execution_time_ms": 1033,
+      "cost_usd": "0.240971",
+      "status": "SUCCESS",
+      "tool_args": "{\"query\":\"Together itself concern just she star.\",\"limit\":10}",
+      "errors": "['missing_required_field:agent_id']",
+      "quarantined_at": "2026-09-22 20:48:29.424332+00:00",
+      "error_summary": "missing_required_field:agent_id"
+    },
+    {
+      "agent_id": NaN,
+      "session_id": "d86faf71-5e81-429d-9ebb-6ff60a9ffdc1",
+      "action_id": "3aa9fb63-95f2-4226-b173-285e458950ab",
+      "timestamp": "2026-09-22T21:45:46.413676+00:00",
+      "tool_name": "sql_query_executor",
+      "execution_time_ms": 261,
+      "cost_usd": "0.133234",
+      "status": "SUCCESS",
+      "tool_args": "{\"query\":\"Man certain region.\",\"limit\":23}",
+      "errors": "['missing_required_field:agent_id']",
+      "quarantined_at": "2026-09-22 20:48:29.424332+00:00",
+      "error_summary": "missing_required_field:agent_id"
+    },
+    {
+      "agent_id": "agent_001",
+      "session_id": "802bb6dc-5fa7-4362-a89b-452206ba071c",
+      "action_id": "e6ad67af-f495-4132-aeb6-8d671b40127f",
+      "timestamp": "2026-09-20T21:45:02.778633+00:00",
+      "tool_name": "db_writer",
+      "execution_time_ms": 755,
+      "cost_usd": "0.182984",
+      "status": "SUCCESS",
+      "tool_args": "{\"query\":\"White attention price her seek method.\",\"limit\":46}",
+      "errors": "['freshness:stale_timestamp']",
+      "quarantined_at": "2026-09-22 20:48:29.424332+00:00",
+      "error_summary": "freshness:stale_timestamp"
+    },
+    {
+      "agent_id": "agent_007",
+      "session_id": "a850fbca-35ce-42ba-93ca-f0dba820c96b",
+      "action_id": "6e13e613-86f1-4f59-a153-e6154376f882",
+      "timestamp": "2026-09-22T21:46:10.854541+00:00",
+      "tool_name": "db_writer",
+      "execution_time_ms": 240,
+      "cost_usd": "850.0",
+      "status": "SUCCESS",
+      "tool_args": "{\"query\":\"Traditional arm into or within throw machine.\",\"limit\":42}",
+      "errors": "['semantic_rule:cost_out_of_bounds']",
+      "quarantined_at": "2026-09-22 20:48:29.424332+00:00",
+      "error_summary": "semantic_rule:cost_out_of_bounds"
+    },
+    {
+      "agent_id": "agent_002",
+      "session_id": "a1f3187d-4a1f-4cb1-8f2f-450393143ab5",
+      "action_id": "68b2ad1e-f11b-4139-8a73-fb1c93813a98",
+      "timestamp": "2026-09-22T21:45:36.803278+00:00",
       "tool_name": "web_scraper",
-      "execution_time_ms": 999,
+      "execution_time_ms": 1177,
       "cost_usd": "UNMETERED",
-      "status": "FAILED",
-      "tool_args": "{\"url\": \"bad\"}",
-      "quarantined_at": "2026-09-05 12:01:00",
-      "error_summary": "type_mismatch:cost_usd_not_double; missing_required_field:agent_id"
+      "status": "SUCCESS",
+      "tool_args": "{\"query\":\"Apply building from already specific recently people.\",\"limit\":41}",
+      "errors": "['type_mismatch:cost_usd_not_double']",
+      "quarantined_at": "2026-09-22 20:48:29.424332+00:00",
+      "error_summary": "type_mismatch:cost_usd_not_double"
     }
   ],
-  "message": "Retrieved 1 recent quarantine records."
+  "message": "Retrieved 5 recent quarantine records."
 }
 ```
 
@@ -301,18 +361,40 @@ Inspects valid records committed to the Bronze Delta Lake storage layer.
 ```json
 {
   "status": "online",
-  "inspected_records": 1,
+  "inspected_records": 3,
   "records": [
     {
-      "agent_id": "agent_001",
-      "session_id": "sess_01",
-      "action_id": "act_01",
-      "timestamp": "2026-09-09 03:04:14",
-      "tool_name": "sql_query_executor",
-      "execution_time_ms": 150,
-      "cost_usd": 0.002,
+      "agent_id": "agent_017",
+      "session_id": "0ba3af83-0c3e-4118-930c-8032d20b9258",
+      "action_id": "c6c2b9da-dea0-4ba1-b210-5c00b22ae47e",
+      "timestamp": "2026-09-22 20:46:50.766234+00:00",
+      "tool_name": "vector_search",
+      "execution_time_ms": 603,
+      "cost_usd": 0.206593,
       "status": "SUCCESS",
-      "tool_args": "{\"query\": \"SELECT 1\"}"
+      "tool_args": "{\"query\":\"Specific agree day risk current sell apply.\",\"limit\":50}"
+    },
+    {
+      "agent_id": "agent_009",
+      "session_id": "ba7c3739-6741-449a-8ffb-67cef1b0cb67",
+      "action_id": "4ae81b94-730a-4966-a556-2b0cf0212046",
+      "timestamp": "2026-09-22 20:46:50.564437+00:00",
+      "tool_name": "sql_query_executor",
+      "execution_time_ms": 311,
+      "cost_usd": 0.097638,
+      "status": "SUCCESS",
+      "tool_args": "{\"query\":\"Trade manager own truth word.\",\"limit\":14}"
+    },
+    {
+      "agent_id": "agent_010",
+      "session_id": "d0eb9d8e-5063-4d5b-8bf0-149ff8570be6",
+      "action_id": "24eed3d8-25cb-4a69-9272-881e32ad476b",
+      "timestamp": "2026-09-22 20:46:50.361486+00:00",
+      "tool_name": "db_writer",
+      "execution_time_ms": 1056,
+      "cost_usd": 0.245975,
+      "status": "SUCCESS",
+      "tool_args": "{\"query\":\"Try this character mind discuss this.\",\"limit\":18}"
     }
   ]
 }
@@ -353,8 +435,9 @@ When new tools are introduced, an authorized agent proposes a schema evolution p
   ],
   "triage_context": {
     "provider": "deterministic",
-    "summary": "Found 1 quarantined records across 1 error signatures.",
+    "summary": "Found 75 quarantined records across 5 error signatures.",
     "findings": [
+      "Cost values violate the contract range [0.0, 50.0].",
       "Timestamps violate the rolling freshness window.",
       "Observed quarantine columns differ from the contract schema."
     ],
@@ -362,17 +445,23 @@ When new tools are introduced, an authorized agent proposes a schema evolution p
       "missing_fields": [],
       "unexpected_fields": [
         "error_summary",
+        "errors",
         "quarantined_at",
         "status",
         "tool_args"
       ]
     },
     "metrics": {
-      "cost_anomaly_rows": 0,
-      "stale_timestamp_rows": 1,
-      "future_timestamp_rows": 0
+      "cost_anomaly_rows": 21,
+      "stale_timestamp_rows": 6,
+      "future_timestamp_rows": 9
     },
     "recommended_patches": [
+      {
+        "rule_id": "cost_non_negative",
+        "rule": "cost_usd >= 0.0 AND cost_usd <= 50.0",
+        "message": "cost_usd out of valid boundaries [0.0, 50.0]"
+      },
       {
         "rule_id": "timestamp_freshness",
         "rule": "timestamp >= (current_timestamp() - INTERVAL 24 HOURS) AND timestamp <= (current_timestamp() + INTERVAL 5 MINUTES)",
@@ -380,7 +469,7 @@ When new tools are introduced, an authorized agent proposes a schema evolution p
       }
     ]
   },
-  "artifact_path": "C:\\Users\\kheza\\Desktop\\Data Engineering\\kafka_streaming_project\\configs\\agent_contract_proposed.yaml",
+  "artifact_path": "C:\\Users\\kheza\\Desktop\\Data Engineering\\Agentic-Delta-Guard\\configs\\agent_contract_proposed.yaml",
   "next_steps": [
     "1. Automated CI / Invariant checks will evaluate proposed contract against quarantine history.",
     "2. Run 'pytest tests/' to verify no regressions on existing telemetry.",
@@ -427,7 +516,7 @@ Validates overall storage layer integrity, contract availability, and component 
     {
       "name": "Validator Latency Benchmark",
       "status": "passed",
-      "detail": "Average pre-flight latency: 0.013 ms (Target: <5.000 ms)."
+      "detail": "Average pre-flight latency: 0.024 ms (Target: <5.000 ms)."
     }
   ]
 }

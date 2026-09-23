@@ -49,3 +49,9 @@ status.json
 logs/
 *.log
 
+# dbt build artifacts & packages
+dbt_delta_guard/target/
+dbt_delta_guard/dbt_packages/
+dbt_delta_guard/logs/
+
+

@@ -6,6 +6,8 @@ dbt_delta_guard:
       type: duckdb
       path: ../data/bronze/dbt_delta_guard.duckdb
       threads: 4
+      extensions:
+        - delta
 
     # Production/CI - real Spark + Delta (when running in Docker or Linux)
     spark_prod:

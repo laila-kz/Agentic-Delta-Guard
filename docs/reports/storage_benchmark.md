@@ -1,37 +1,36 @@
 # Streaming Pipeline & Storage Benchmark Report
 
 - **Status:** VERIFIED & PASSING
-- **Generated:** 2026-09-17T12:14:19.795947+00:00
-- **Throughput:** ~41,975.01 events/sec (single-core validation, no Kafka)
-- **P95 Latency:** 0.0067 ms
-- **Quarantine Rate:** 15.1% routed correctly
+- **Generated:** 2026-09-22T21:54:25.789706+00:00
+- **Throughput:** ~23,833.70 events/sec (single-core validation, no Kafka)
+- **P95 Latency:** 0.0131 ms
+- **Quarantine Rate:** 15.8% routed correctly
 
 ## 1. End-to-End Throughput & Latency
 
 | Metric | Measured Value | Note |
 | --- | ---: | --- |
 | Total Events Evaluated | 1,000 | per benchmark run |
-| Validation Throughput | **41,975.01 events/sec** | single-core Python, no Kafka overhead |
-| P50 Latency | 0.0041 ms | per-event validation |
-| P95 Latency | 0.0067 ms | per-event validation |
-| P99 Latency | 0.0131 ms | per-event validation |
-| Injected Poison Ratio | 15.1% | ~15% expected |
+| Validation Throughput | **23,833.70 events/sec** | single-core Python, no Kafka overhead |
+| P50 Latency | 0.0070 ms | per-event validation |
+| P95 Latency | 0.0131 ms | per-event validation |
+| P99 Latency | 0.0223 ms | per-event validation |
+| Injected Poison Ratio | 15.8% | ~15% expected |
 
 > **Note:** These numbers measure the validation logic only (pure Python, single-core). Real end-to-end throughput through Kafka -> PySpark -> Delta will be lower due to serialization, Spark scheduling, and disk I/O. Run the full streaming pipeline and measure from Kafka publish to Bronze commit for production-representative numbers.
 
 ## 2. Lakehouse Storage Layer Footprint
 
-- **Total Files:** 241
-- **Total Storage Size:** 1640.06 KB (1,679,425 bytes)
-- **Measurement Duration:** 0.120025 seconds
+- **Total Files:** 1381
+- **Total Storage Size:** 4705.91 KB (4,818,852 bytes)
+- **Measurement Duration:** 0.584526 seconds
 
 | Layer | Files | Size (Bytes) | Format |
 | --- | ---: | ---: | --- |
-| `bronze` | 7 | 1,066,877 | Delta Lake (ACID) |
+| `bronze` | 827 | 3,204,838 | Delta Lake (ACID) |
 | `bronze_parquet` | 4 | 1,053 | Parquet / DuckDB |
-| `gold` | 44 | 118,565 | Delta Lake (ACID) |
-| `quarantine` | 6 | 9,337 | Delta Lake (ACID) |
-| `sandbox` | 180 | 483,593 | Parquet / DuckDB |
+| `quarantine` | 346 | 1,065,538 | Delta Lake (ACID) |
+| `sandbox` | 204 | 547,423 | Parquet / DuckDB |
 
 ## 3. Benchmark Methodology & Defensibility
 
