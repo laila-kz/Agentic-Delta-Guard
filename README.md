@@ -245,7 +245,10 @@ python -m pytest tests/ -v --tb=short
 
 ### Skipped tests
 
-The test suite collects **39 test cases** (37 passed, 1 skipped on Windows host; 38 passed in Linux CI):
+The test suite collects **39 test cases** — 37 passed, 2 skipped, 0 deselected on a
+Windows host (`.venv\Scripts\python.exe -m pytest tests/ -q`, verified 2026-09-28).
+Both skipped tests below are env-gated and are expected to skip on Linux CI as well,
+so the Linux CI expectation is 37 passed / 2 skipped (not yet re-verified against a CI run):
 
 | Test | Module | Marker | Reason for Skip | How to Enable |
 | :--- | :--- | :--- | :--- | :--- |

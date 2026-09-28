@@ -26,3 +26,7 @@ Found 221 quarantined records across 6 error signatures. 1 contract change(s) pr
 ## Recommended Contract Patches
 
 - `cost_non_negative`
+
+The proposed upper bound 935.0 is computed as `max_observed_cost * 1.1` (10% headroom),
+floored at 60.0 and rounded to 1 decimal: `round(max(850.0 * 1.1, 60.0), 1) = 935.0`
+(`src/delta_guard/triage.py:145`). This is an auto-proposal, not an approved change.
