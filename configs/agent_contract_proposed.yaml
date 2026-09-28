@@ -26,7 +26,6 @@ schema:
     - vector_search
     - web_scraper
     - db_writer
-    - data_extractor_v2
   - name: execution_time_ms
     type: integer
     nullable: false
@@ -35,8 +34,11 @@ schema:
     nullable: false
 semantic_rules:
 - id: cost_non_negative
-  rule: cost_usd >= 0.0 AND cost_usd <= 80.0
-  message: cost_usd out of valid boundaries [0.0, 80.0]
+  # 935.0 = max_observed_cost (850.0) * 1.1 (10% headroom), floored at 60.0 and
+  # rounded to 1 decimal: round(max(850.0 * 1.1, 60.0), 1) = 935.0
+  # Formula source: src/delta_guard/triage.py:145
+  rule: cost_usd >= 0.0 AND cost_usd <= 935.0
+  message: cost_usd out of valid boundaries [0.0, 935.0]
 - id: timestamp_freshness
   rule: timestamp >= (current_timestamp() - INTERVAL 24 HOURS) AND timestamp <= (current_timestamp()
     + INTERVAL 5 MINUTES)
@@ -47,5 +49,4 @@ idempotency:
   - session_id
   - action_id
   strategy: merge_upsert
-thresholds:
-  max_cost_per_call: 80.0
+proposed_at: '2026-09-28T19:53:54.542798+00:00'

@@ -115,17 +115,10 @@ def _validate_event(event: dict) -> tuple[bool, str | None]:
     return True, None
 
 
-def run_throughput_benchmark(
-    num_events: int = 1000,
+def run_single_throughput_run(
+    num_events: int = 100_000,
 ) -> dict:
-    """
-    Measures sustained events/sec through the validation logic and reports
-    p50/p95/p99 per-event validation latency.
-
-    This runs an in-process simulation (no Kafka/Spark required) so it is
-    always safe to call in CI. The numbers reflect the raw Python validation
-    speed on a single core — real Spark+Kafka throughput will differ.
-    """
+    """Run a single throughput pass over num_events."""
     latencies: list[float] = []
     valid_count = 0
     quarantine_count = 0
@@ -163,6 +156,43 @@ def run_throughput_benchmark(
     }
 
 
+def run_throughput_benchmark(
+    num_events: int = 100_000,
+    num_runs: int = 5,
+) -> dict:
+    """
+    Measures sustained events/sec through the validation logic across multiple runs
+    with 1 discarded warmup run, returning the median metrics.
+
+    This runs an in-process simulation (no Kafka/Spark required) so it is
+    always safe to call in CI. The numbers reflect the raw Python validation
+    speed on a single core — real Spark+Kafka throughput will differ.
+    """
+    # Discard 1 warmup run
+    _ = run_single_throughput_run(num_events=min(num_events, 20_000))
+
+    runs = []
+    for _ in range(num_runs):
+        runs.append(run_single_throughput_run(num_events=num_events))
+
+    eps_values = [r["events_per_sec"] for r in runs]
+    p50_values = [r["p50_ms"] for r in runs]
+    p95_values = [r["p95_ms"] for r in runs]
+    p99_values = [r["p99_ms"] for r in runs]
+    q_pct_values = [r["quarantine_pct"] for r in runs]
+
+    return {
+        "total_events": num_events,
+        "num_runs": num_runs,
+        "runs_eps": eps_values,
+        "events_per_sec": round(statistics.median(eps_values), 2),
+        "p50_ms": round(statistics.median(p50_values), 4),
+        "p95_ms": round(statistics.median(p95_values), 4),
+        "p99_ms": round(statistics.median(p99_values), 4),
+        "quarantine_pct": round(statistics.median(q_pct_values), 1),
+    }
+
+
 # ---------------------------------------------------------------------------
 # 3. Report renderer
 # ---------------------------------------------------------------------------
@@ -181,7 +211,7 @@ def render_report(
         "",
         f"- **Status:** VERIFIED & PASSING",
         f"- **Generated:** {generated_at}",
-        f"- **Throughput:** ~{throughput['events_per_sec']:,.2f} events/sec (single-core validation, no Kafka)",
+        f"- **Throughput:** ~{throughput['events_per_sec']:,.2f} events/sec (median of {throughput.get('num_runs', 5)} runs of {throughput['total_events']:,} events, single-core Python)",
         f"- **P95 Latency:** {throughput['p95_ms']:.4f} ms",
         f"- **Quarantine Rate:** {throughput['quarantine_pct']}% routed correctly",
         "",
@@ -189,11 +219,11 @@ def render_report(
         "",
         "| Metric | Measured Value | Note |",
         "| --- | ---: | --- |",
-        f"| Total Events Evaluated | {throughput['total_events']:,} | per benchmark run |",
-        f"| Validation Throughput | **{throughput['events_per_sec']:,.2f} events/sec** | single-core Python, no Kafka overhead |",
-        f"| P50 Latency | {throughput['p50_ms']:.4f} ms | per-event validation |",
-        f"| P95 Latency | {throughput['p95_ms']:.4f} ms | per-event validation |",
-        f"| P99 Latency | {throughput['p99_ms']:.4f} ms | per-event validation |",
+        f"| Total Events Evaluated | {throughput['total_events']:,} | per benchmark run ({throughput.get('num_runs', 5)} runs + 1 warmup) |",
+        f"| Validation Throughput | **{throughput['events_per_sec']:,.2f} events/sec** | median across {throughput.get('num_runs', 5)} runs, single-core Python |",
+        f"| P50 Latency | {throughput['p50_ms']:.4f} ms | per-event validation (median) |",
+        f"| P95 Latency | {throughput['p95_ms']:.4f} ms | per-event validation (median) |",
+        f"| P99 Latency | {throughput['p99_ms']:.4f} ms | per-event validation (median) |",
         f"| Injected Poison Ratio | {throughput['quarantine_pct']}% | ~{POISON_RATIO*100:.0f}% expected |",
         "",
         "> **Note:** These numbers measure the validation logic only (pure Python,"
@@ -248,7 +278,7 @@ def main() -> int:
     storage_duration = time.perf_counter() - storage_start
 
     # Throughput benchmark
-    throughput = run_throughput_benchmark(num_events=1000)
+    throughput = run_throughput_benchmark(num_events=100_000, num_runs=5)
 
     # Write report
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -258,7 +288,8 @@ def main() -> int:
     )
 
     print(f"Benchmark completed: {REPORT_PATH}")
-    print(f"  Throughput: {throughput['events_per_sec']:,.2f} events/sec")
+    print(f"  Throughput (median of 5 runs): {throughput['events_per_sec']:,.2f} events/sec")
+    print(f"  Runs: {throughput['runs_eps']}")
     print(f"  P50/P95/P99: {throughput['p50_ms']:.4f} / {throughput['p95_ms']:.4f} / {throughput['p99_ms']:.4f} ms")
     print(f"  Quarantine rate: {throughput['quarantine_pct']}%")
     return 0

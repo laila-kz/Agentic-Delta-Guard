@@ -167,6 +167,283 @@ def test_sandbox_assertion_rejection_on_poison(setup_test_lakehouse):
     assert guard.promote_sandbox_to_production() is False
 
 
+def test_benchmark_validation_parity():
+    """
+    Parity test: verifies that the in-process Python benchmark validator (_validate_event)
+    and the actual PySpark gatekeeper column-expression logic enforce identical accept/reject
+    decisions and exact matching error tags across valid events and all poison types.
+    """
+    from datetime import datetime, timedelta, timezone
+    from pyspark.sql import functions as F
+    from pyspark.sql.types import DoubleType
+    from src.delta_guard.benchmark import _validate_event
+    from src.delta_guard.gatekeeper import EVENT_SCHEMA, build_spark
+
+    os.environ["PYSPARK_PYTHON"] = os.sys.executable
+    os.environ["PYSPARK_DRIVER_PYTHON"] = os.sys.executable
+
+    now = datetime.now(timezone.utc)
+    valid_ts = now.isoformat()
+    stale_ts = (now - timedelta(hours=48)).isoformat()
+    future_ts = (now + timedelta(minutes=30)).isoformat()
+
+    fixtures = [
+        # (name, payload, expected_valid, expected_tags)
+        (
+            "valid_event",
+            {
+                "agent_id": "agent-1",
+                "session_id": "sess-1",
+                "action_id": "act-1",
+                "timestamp": valid_ts,
+                "tool_name": "sql_query_executor",
+                "execution_time_ms": 120,
+                "cost_usd": "0.05",
+                "status": "SUCCESS",
+                "tool_args": "{}",
+            },
+            True,
+            [],
+        ),
+        (
+            "missing_agent_id",
+            {
+                "agent_id": None,
+                "session_id": "sess-1",
+                "action_id": "act-1",
+                "timestamp": valid_ts,
+                "tool_name": "sql_query_executor",
+                "execution_time_ms": 100,
+                "cost_usd": "0.05",
+                "status": "SUCCESS",
+                "tool_args": "{}",
+            },
+            False,
+            ["missing_required_field:agent_id"],
+        ),
+        (
+            "missing_session_id",
+            {
+                "agent_id": "agent-1",
+                "session_id": None,
+                "action_id": "act-1",
+                "timestamp": valid_ts,
+                "tool_name": "sql_query_executor",
+                "execution_time_ms": 100,
+                "cost_usd": "0.05",
+                "status": "SUCCESS",
+                "tool_args": "{}",
+            },
+            False,
+            ["missing_required_field:session_id"],
+        ),
+        (
+            "missing_action_id",
+            {
+                "agent_id": "agent-1",
+                "session_id": "sess-1",
+                "action_id": None,
+                "timestamp": valid_ts,
+                "tool_name": "sql_query_executor",
+                "execution_time_ms": 100,
+                "cost_usd": "0.05",
+                "status": "SUCCESS",
+                "tool_args": "{}",
+            },
+            False,
+            ["missing_required_field:action_id"],
+        ),
+        (
+            "bad_cost_string",
+            {
+                "agent_id": "agent-1",
+                "session_id": "sess-1",
+                "action_id": "act-1",
+                "timestamp": valid_ts,
+                "tool_name": "sql_query_executor",
+                "execution_time_ms": 100,
+                "cost_usd": "not-a-number",
+                "status": "SUCCESS",
+                "tool_args": "{}",
+            },
+            False,
+            ["type_mismatch:cost_usd_not_double"],
+        ),
+        (
+            "negative_cost",
+            {
+                "agent_id": "agent-1",
+                "session_id": "sess-1",
+                "action_id": "act-1",
+                "timestamp": valid_ts,
+                "tool_name": "sql_query_executor",
+                "execution_time_ms": 100,
+                "cost_usd": "-5.0",
+                "status": "SUCCESS",
+                "tool_args": "{}",
+            },
+            False,
+            ["semantic_rule:cost_out_of_bounds"],
+        ),
+        (
+            "exceeded_cost",
+            {
+                "agent_id": "agent-1",
+                "session_id": "sess-1",
+                "action_id": "act-1",
+                "timestamp": valid_ts,
+                "tool_name": "sql_query_executor",
+                "execution_time_ms": 100,
+                "cost_usd": "500.0",
+                "status": "SUCCESS",
+                "tool_args": "{}",
+            },
+            False,
+            ["semantic_rule:cost_out_of_bounds"],
+        ),
+        (
+            "stale_timestamp",
+            {
+                "agent_id": "agent-1",
+                "session_id": "sess-1",
+                "action_id": "act-1",
+                "timestamp": stale_ts,
+                "tool_name": "sql_query_executor",
+                "execution_time_ms": 100,
+                "cost_usd": "0.05",
+                "status": "SUCCESS",
+                "tool_args": "{}",
+            },
+            False,
+            ["freshness:stale_timestamp"],
+        ),
+        (
+            "future_timestamp",
+            {
+                "agent_id": "agent-1",
+                "session_id": "sess-1",
+                "action_id": "act-1",
+                "timestamp": future_ts,
+                "tool_name": "sql_query_executor",
+                "execution_time_ms": 100,
+                "cost_usd": "0.05",
+                "status": "SUCCESS",
+                "tool_args": "{}",
+            },
+            False,
+            ["freshness:future_timestamp"],
+        ),
+        (
+            "invalid_timestamp_format",
+            {
+                "agent_id": "agent-1",
+                "session_id": "sess-1",
+                "action_id": "act-1",
+                "timestamp": "bad-date-time",
+                "tool_name": "sql_query_executor",
+                "execution_time_ms": 100,
+                "cost_usd": "0.05",
+                "status": "SUCCESS",
+                "tool_args": "{}",
+            },
+            False,
+            ["parse_error:invalid_timestamp_format"],
+        ),
+        (
+            "multi_poison_missing_id_and_bad_cost",
+            {
+                "agent_id": None,
+                "session_id": "sess-1",
+                "action_id": "act-1",
+                "timestamp": valid_ts,
+                "tool_name": "sql_query_executor",
+                "execution_time_ms": 100,
+                "cost_usd": "invalid",
+                "status": "SUCCESS",
+                "tool_args": "{}",
+            },
+            False,
+            ["missing_required_field:agent_id", "type_mismatch:cost_usd_not_double"],
+        ),
+    ]
+
+    spark = build_spark()
+    try:
+        # Run through PySpark gatekeeper path
+        df = spark.createDataFrame([f[1] for f in fixtures], schema=EVENT_SCHEMA)
+        max_cost = 50.0
+        age_hours = 24
+        skew_mins = 5
+
+        validated_df = (
+            df.withColumn("event_timestamp", F.to_timestamp(F.col("timestamp")))
+            .withColumn("cost_usd_double", F.col("cost_usd").cast(DoubleType()))
+            .withColumn("timestamp_ts", F.col("event_timestamp"))
+            .withColumn(
+                "errors",
+                F.filter(
+                    F.array(
+                        F.when(F.col("agent_id").isNull(), "missing_required_field:agent_id"),
+                        F.when(F.col("session_id").isNull(), "missing_required_field:session_id"),
+                        F.when(F.col("action_id").isNull(), "missing_required_field:action_id"),
+                        F.when(F.col("cost_usd_double").isNull(), "type_mismatch:cost_usd_not_double"),
+                        F.when(
+                            (F.col("cost_usd_double") < 0.0) | (F.col("cost_usd_double") > max_cost),
+                            "semantic_rule:cost_out_of_bounds",
+                        ),
+                        F.when(F.col("timestamp_ts").isNull(), "parse_error:invalid_timestamp_format"),
+                        F.when(
+                            F.col("timestamp_ts") < (F.current_timestamp() - F.expr(f"INTERVAL {age_hours} HOURS")),
+                            "freshness:stale_timestamp",
+                        ),
+                        F.when(
+                            F.col("timestamp_ts") > (F.current_timestamp() + F.expr(f"INTERVAL {skew_mins} MINUTES")),
+                            "freshness:future_timestamp",
+                        ),
+                    ),
+                    lambda x: x.isNotNull(),
+                ),
+            )
+        )
+
+        spark_rows = validated_df.select("errors").collect()
+
+        for (name, payload, expected_valid, expected_tags), row in zip(fixtures, spark_rows):
+            # 1. Python validator results
+            py_valid, py_error_summary = _validate_event(payload)
+            py_errors = set(py_error_summary.split("; ")) if py_error_summary else set()
+
+            # 2. PySpark Gatekeeper results
+            spark_errors = set(row["errors"])
+            spark_valid = (len(spark_errors) == 0)
+
+            # Assert Python matches expected
+            assert py_valid == expected_valid, (
+                f"Python validator mismatch on {name}: expected valid={expected_valid}, got {py_valid}"
+            )
+            assert py_errors == set(expected_tags), (
+                f"Python tag mismatch on {name}: expected {set(expected_tags)}, got {py_errors}"
+            )
+
+            # Assert Spark Gatekeeper matches expected
+            assert spark_valid == expected_valid, (
+                f"Spark Gatekeeper mismatch on {name}: expected valid={expected_valid}, got {spark_valid}"
+            )
+            assert spark_errors == set(expected_tags), (
+                f"Spark tag mismatch on {name}: expected {set(expected_tags)}, got {spark_errors}"
+            )
+
+            # Assert Spark and Python are in 100% exact parity
+            assert spark_valid == py_valid, (
+                f"Parity mismatch on {name}: Spark valid={spark_valid} vs Python valid={py_valid}"
+            )
+            assert spark_errors == py_errors, (
+                f"Parity tag mismatch on {name}: Spark errors={spark_errors} vs Python errors={py_errors}"
+            )
+    finally:
+        spark.stop()
+
+
 @pytest.mark.skipif(
     not (os.getenv("OPENAI_API_KEY") and os.getenv("LIVE_LLM_TEST") == "1"),
     reason="Set OPENAI_API_KEY and LIVE_LLM_TEST=1 to run the manual live test",

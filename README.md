@@ -1,113 +1,16 @@
 # 🛡️ Agentic Delta Guard
-### Contract Enforcement and Local Analytics for Autonomous AI-Agent Events
 
-[![Vercel Deployment](https://img.shields.io/badge/Vercel-Live%20Console-000000?logo=vercel&logoColor=white)](https://agentic-delta-guard.vercel.app)
-[![CI](https://github.com/laila-kz/kafka_streaming_project/actions/workflows/ci.yml/badge.svg)](https://github.com/laila-kz/kafka_streaming_project/actions/workflows/ci.yml)
+**A data-contract gate for AI-agent event streams: validates events against a YAML contract, quarantines violations without stalling the stream, and proposes YAML contract patches from the failures.**
+
+[![CI](https://github.com/laila-kz/agentic-delta-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/laila-kz/agentic-delta-guard/actions/workflows/ci.yml)
 [![Engine](https://img.shields.io/badge/Engine-PySpark%203.5%20%7C%20Delta%20Lake-00A4E4?logo=apachespark)](https://delta.io/)
 [![Quality](https://img.shields.io/badge/Quality-dbt%20%2B%20DuckDB-FF694B?logo=dbt)](https://getdbt.com)
-[![Tests](https://img.shields.io/badge/Pytest%20Suite-35%20passed%2C%203%20skipped-blue)](tests/)
 
-> 🌐 **Live Deployed Web Console:** [https://agentic-delta-guard.vercel.app](https://agentic-delta-guard.vercel.app)
-
----
-
-## ⚡ Quickstart — 1 Command Demo
-
-### Option A — Full Docker (Recommended)
-```bash
-git clone https://github.com/laila-kz/kafka_streaming_project.git
-cd kafka_streaming_project
-make up          # builds & starts Kafka + producer + gatekeeper + console in background
-```
-
-### Option B — Single-Command Terminal Launcher (Real Streaming + Textual HUD)
-```bash
-python run_pipeline.py   # orchestrates Kafka + Producer + PySpark Gatekeeper + Terminal HUD
-# OR
-make pipeline
-```
-
-### Option C — Local Web Console Launcher
-```bash
-python run_demo.py   # orchestrates Kafka + Producer + Gatekeeper + Web Console (http://localhost:8888)
-```
-
-```bash
-make down        # stop all Docker services
-make test        # run pytest + dbt build
-```
+> 🌐 **Interactive Simulation (no live pipeline):** [https://agentic-delta-guard.vercel.app](https://agentic-delta-guard.vercel.app)
 
 ---
 
-## 🖥️ System Media & Screenshots Showcase
-
-### 🌐 1. Live Web Console (Deployed on Vercel)
-![Live Animated Console Dashboard](docs/screenshots/live_console.png)
-*Figure 1: Live Animated Console ([https://agentic-delta-guard.vercel.app](https://agentic-delta-guard.vercel.app)) showing real-time event particles flowing from AI Agent nodes through the contract gate to Bronze & Quarantine Delta tanks, error signature breakdown, and contract patch banners.*
-
-### 💻 2. Real-Time Textual Terminal HUD (`python run_pipeline.py`)
-![Textual Terminal HUD Interface](docs/screenshots/hud_interface.png)
-*Figure 2: Textual Terminal HUD interface (`python run_pipeline.py`) monitoring Kafka connection health, live Bronze row counts, Quarantine violation rates, and system CPU/Memory utilization.*
-
-### 🏗️ 3. End-to-End Pipeline Architecture & Workflow
-![Agentic Delta Guard Workflow Diagram](docs/screenshots/workflow_diagram.png)
-*Figure 3: High-level architectural data flow from Agent Fleet → Kafka Topic → PySpark Contract Gatekeeper → Delta Lake Bronze/Quarantine → dbt Analytics & Automated LLM Triage Engine.*
-
-### 📡 4. Kafka Control Center UI
-![Kafka UI Topic Control Center](docs/screenshots/kafka_ui.png)
-*Figure 4: Kafka Control Center UI (http://localhost:8080) displaying topic partition health, byte rate throughput, and live message streams for `agent-write-events`.*
-
-### 🎥 5. Video Demonstration Walkthrough
-▶️ **[Download / Watch Console Video Demo](docs/screenshots/console_demo.mp4)** — Full screen recording demonstrating real-time event streaming, contract violations, quarantine routing, and patch generation.
-
----
-
-
----
-
-## 🚨 The Problem: The "Silent Poison" in Multi-Agent Pipelines
-
-As enterprises grant autonomous LLM agents (AutoGPT, CrewAI, LangGraph, custom tool-calling agents) write permissions to production data lakes, traditional batch validation fails:
-1. **Schema Hallucinations & Drift:** Agents dynamically mutate tool outputs, injecting unexpected fields or invalid types.
-2. **Cost & Rate Runaways:** Rogue agent loops blow through token and API budgets without warning.
-3. **Pipeline Stalls:** One malformed record in a traditional streaming job crashes the entire micro-batch.
-
-**Agentic Delta Guard** is a local data-quality boundary for AI-agent tool events: it validates event contracts, isolates violations for diagnosis, builds DuckDB analytical marts, and exposes pre-flight checks through an MCP server. The deterministic path is implemented and tested; live LLM enrichment and end-to-end Kafka-to-Delta routing remain explicitly scoped limitations.
-
----
-
-## 📊 Quantified Performance & Benchmarks
-
-The following numbers are scoped local measurements, not production or end-to-end service guarantees. See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) for evidence:
-
-| Performance Metric | Baseline / Naive Approach | Agentic Delta Guard | Impact |
-| :--- | :--- | :--- | :--- |
-| **Deterministic triage** | Manual comparison is simulated | Local deterministic report generation | No live LLM claim |
-| **Validation Throughput** | 120 ev/s (Row-by-Row UDF) | **~9,447 ev/s (local validation benchmark)** | **🚀 ~78.7x Throughput Gain** |
-| **Stream interruption** | Not measured end-to-end | Quarantine path implemented | Live routing gate remains open |
-| **Triage cost** | Not measured with live provider calls | No live LLM cost claim | Deterministic fallback has no API cost |
-
-Detailed reports available at [docs/reports/triage_benchmark.md](docs/reports/triage_benchmark.md) and [docs/reports/storage_benchmark.md](docs/reports/storage_benchmark.md).
-
----
-
-## 🌐 Live Interactive Demo (`demo_app.py`)
-
-Try the interactive governance gateway without running local Docker or Spark:
-
-```powershell
-# Run the interactive demo locally
-pip install -r requirements-demo.txt
-streamlit run demo_app.py
-```
-
-- **Live Stream Generator:** Simulate agent tool calls, inject schema drift or budget spikes, and watch the gateway make real-time routing decisions.
-- **Automated Incident Triage:** Trigger the LLM triage engine against quarantined batches to produce root-cause diagnoses and YAML contract patches.
-- **Contract Playground:** Inspect live constraints defined in `configs/agent_contract.yaml`.
-
----
-
-## 💡 Architecture & Data Flow
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -123,123 +26,252 @@ flowchart LR
         Engine -->|Contract Violations| Quarantine[(Quarantine Delta Lake)]
     end
 
-    subgraph Transformation ["Analytics & Operations"]
-        Bronze --> DBT[dbt Core + DuckDB]
-        DBT --> Gold[(Gold Analytics Marts)]
-        Quarantine --> Triage[LLM Incident Triage Engine]
+    subgraph Analytics ["Analytics & Operations"]
+        Bronze --> DBT["dbt Core + DuckDB\ndelta_scan reads _delta_log"]
+        DBT --> Gold[(Gold Marts)]
+        Quarantine --> Triage["Deterministic Triage Engine\noptional LLM mode"]
         Triage --> Patch[Proposed YAML Contract Patch]
     end
 
-    Bronze -.-> HUD[Live Textual Terminal HUD]
+    Bronze -.-> HUD[Terminal HUD]
     Quarantine -.-> HUD
-    Kafka -.-> HUD
 ```
 
-The complete architecture and failure handling are documented in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+![Real-Time Terminal HUD](docs/screenshots/hud_interface.png)
+*Figure: Real-time Textual terminal HUD monitoring Kafka connection status, Bronze commits, Quarantine routing, and cluster resource utilization.*
+
+> **Scope:** The deterministic validation path, quarantine routing, dbt/DuckDB analytics, and idempotent merge are implemented and tested. End-to-end Kafka-to-Delta routing in a live cluster and live LLM enrichment are opt-in and not exercised in CI. See [Limitations](#limitations) and [docs/CLAIMS.md](docs/CLAIMS.md) for verification evidence.
 
 ---
 
-## 🧠 The Engineering Deep Dive: Solving Agent Retry Storms & Out-of-Order Merges
+## What It Does
 
-> **The Edge Case:** Distributed LLM agents running across intermittent networks experience HTTP timeouts and retry tool executions 5–10 seconds later with duplicate sequence IDs. Meanwhile, network latency causes older events to arrive *after* newer state updates.
+### 1. Event Contract (`configs/agent_contract.yaml`)
 
-### The Dual-Stage Architecture
-1. **Bounded PySpark Watermark:** `.withWatermark("event_timestamp", "10 minutes")` evicts late-event state, preventing unbounded streaming state.
-2. **Idempotent Delta Lake Merge:** The gatekeeper upserts records via conditional `MERGE INTO` keyed on `(agent_id, session_id, action_id)`:
-    - If not matched → Insert new event.
-    - If matched → Leave the existing Bronze row unchanged.
-    - Duplicate events therefore do not create additional Bronze rows.
+Every agent event is validated against a single YAML contract. A valid payload committed to Bronze:
 
-Verified via [`tests/test_chaos_infra.py`](tests/test_chaos_infra.py) under synthetic retry bursts.
+```yaml
+# Compliant event — committed to Bronze Delta table
+agent_id:          "agent_008"
+session_id:        "2352e973-51de-462d-bc81-a17804a8f8c5"
+action_id:         "462cdc67-c7c3-4a6e-830f-4cfcec22a9a3"
+timestamp:         "2026-09-22 21:49:03.157045"
+tool_name:         "web_scraper"                          # must be one of allowed tools
+execution_time_ms: 903
+cost_usd:          0.183546                               # must be in [0.0, 50.0]
+status:            "SUCCESS"
+tool_args:         '{"query":"Or stuff generation style hour admit return.","limit":48}'
+```
+
+Contract rules enforced per micro-batch:
+- All nine fields present; `agent_id`, `session_id`, `action_id` non-nullable.
+- `tool_name` in `{sql_query_executor, vector_search, web_scraper, db_writer}`.
+- `cost_usd` in `[0.0, 50.0]`.
+- `timestamp` within a rolling 24-hour freshness window (not stale, not in the future).
+
+### 2. Quarantined Record
+
+Records failing contract rules are appended to the Quarantine Delta table with an `error_summary` diagnostic string without failing the micro-batch:
+
+```json
+{
+  "agent_id":          null,
+  "session_id":        "c7593eba-38fa-4bd6-b88b-dc6dfe7a0a45",
+  "action_id":         "0744c95d-2f67-4a58-acf4-37255dbb3c7c",
+  "timestamp":         "2026-09-22T21:48:20.308360+00:00",
+  "tool_name":         "db_writer",
+  "execution_time_ms": 488,
+  "cost_usd":          "0.031163",
+  "status":            "SUCCESS",
+  "tool_args":         "{\"query\":\"Small stock focus note.\",\"limit\":12}",
+  "quarantined_at":    "2026-09-22 21:49:57.118049",
+  "error_summary":     "missing_required_field:agent_id"
+}
+```
+
+DuckDB reads both Bronze and Quarantine tables directly via `delta_scan('../data/bronze/agent_events')`, reading the Delta `_delta_log` transaction log without requiring a Spark session for analytics.
+
+### 3. Proposed YAML Contract Patch
+
+The triage engine clusters quarantine signatures, diffs observed patterns against the active contract, and writes proposed evolution patches to `configs/agent_contract_proposed.yaml`:
+
+```yaml
+# Generated patch — deterministic triage engine
+# Quarantined records analysed: 221 across 6 error signatures
+
+version: "1.1.0"
+contract_id: agent_events_v1_proposed
+
+semantic_rules:
+  - id: cost_non_negative
+    rule: "cost_usd >= 0.0 AND cost_usd <= 935.0"
+    message: "cost_usd out of valid boundaries [0.0, 935.0]"
+```
+
+*Patch novelty:* The triage engine emits only new or widened rules based on evidence (e.g. widening the upper cost bound to accommodate 60 observed high-cost executions reaching $850.0). Stale timestamps and invalid types are identified as defects and isolated without proposing contract relaxation. If no valid evolution is supported, triage emits an explicit "no contract change recommended" result.
+
+Run `python src/delta_guard/triage.py` (or `make triage`) to regenerate proposals against the current Quarantine table.
 
 ---
 
-## 🖥️ Real-Time Terminal HUD
+## Quick Start
 
-The terminal dashboard monitors Kafka partition offsets, Delta ingestion throughput, and quarantine incident signals with a 2-second live refresh:
+Two paths. Pick one.
 
-![Terminal HUD](docs/hud_screenshot.jpg)
+### Path A — Streamlit demo (no Docker, no Spark)
+
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements-demo.txt
+streamlit run demo_app.py
+```
+
+The interactive demo simulates the gateway's routing decisions with synthetic event replays. No Kafka or Spark cluster required.
+
+### Path B — Full streaming pipeline (Docker + Spark)
+
+```powershell
+# Requires Docker Desktop and Java 11 or 17 (not 21+)
+docker compose up -d    # starts Kafka (KRaft), Kafka UI, producer, gatekeeper, and web console
+# Live console  → http://localhost:8888
+# Kafka UI      → http://localhost:8080
+docker compose down     # stop all services
+```
+
+*Note on `make`:* `Makefile` targets are provided for Linux/macOS/WSL environments. On native Windows, run the PowerShell equivalents shown above or via [`run_gatekeeper.ps1`](run_gatekeeper.ps1).
 
 ---
 
-## 📁 Project Structure
+## Benchmarks
+
+Measured using [`src/delta_guard/benchmark.py`](src/delta_guard/benchmark.py) (median across 5 runs of 100,000 events + 1 discarded warmup run). Full report: [`docs/reports/storage_benchmark.md`](docs/reports/storage_benchmark.md).
+
+| Metric | Measured Value | Scope & Test Environment |
+| :--- | ---: | :--- |
+| **Validation Throughput** | **47,820.88 ev/s** | Single-core Python in-process validation logic (`_validate_event`, 100k events/run, 5 runs + 1 warmup, no Kafka / Spark I/O overhead) |
+| **P50 Latency** | 0.0040 ms | Per-event contract validation latency (median) |
+| **P95 Latency** | 0.0071 ms | Per-event contract validation latency (median) |
+| **P99 Latency** | 0.0095 ms | Per-event contract validation latency (median) |
+| **Poison Quarantine Rate** | 14.9% | Correctly routed to Quarantine (target: ~15% injected synthetic anomalies) |
+
+*Environment:* Intel64 Family 6 Model 166 (x86_64), Windows 10/11, Python 3.11.9, 100,000-event workload per run.
+
+> **Benchmark Scope Note:** `benchmark.py` measures in-process Python validation logic (`_validate_event`), whereas `gatekeeper.py` executes native Spark Catalyst column expressions in the JVM. Parity between the two implementations is verified via `tests/test_contract_validation.py::test_benchmark_validation_parity`. Real end-to-end streaming throughput across Kafka $\rightarrow$ PySpark micro-batches $\rightarrow$ Delta disk commits will be lower due to network serialization, Spark task scheduling, and filesystem I/O.
+
+---
+
+## Design Decisions
+
+### Idempotent retry handling & streaming state
+
+Distributed agents retrying tool executions generate duplicate events sharing the same composite key `(agent_id, session_id, action_id)`.
+
+Two mechanisms provide resilience:
+
+1. **Delta Lake `MERGE INTO`** — keyed on `(agent_id, session_id, action_id)`:
+   - When not matched $\rightarrow$ insert new event row into Bronze.
+   - When matched $\rightarrow$ **leave existing row unchanged** (`whenNotMatchedInsertAll()`), dropping duplicate deliveries.
+
+2. **In-batch deduplication & watermarking behavior** — `dropDuplicates(["agent_id", "session_id", "action_id"])` removes duplicates within a micro-batch. Inside `foreachBatch`, the DataFrame is a static micro-batch; Spark Structured Streaming watermarks do not perform stateful state eviction across micro-batches inside `foreachBatch`. Cross-batch idempotency across streaming restarts is guaranteed downstream by the Delta `MERGE INTO`.
+
+3. **Late and stale events** — Events older than 24 hours are routed to Quarantine with the tag `freshness:stale_timestamp`.
+
+Verified in [`tests/test_chaos_infra.py`](tests/test_chaos_infra.py) under synthetic checkpoint wipes and retry storm bursts.
+
+> *Scope:* This handles idempotent retries (identical composite key, duplicate arrival). It does not reorder late out-of-sequence events with timestamps newer than stored state.
+
+### PySpark Catalyst expression validation
+
+Validation rules in `src/delta_guard/gatekeeper.py` are implemented using native PySpark DataFrame column expressions (`F.when`, `F.filter`, `F.array`), executing directly inside the JVM on executor nodes with zero Python row-by-row UDF overhead.
+
+### Bronze / Quarantine → dbt / DuckDB handoff
+
+Bronze and Quarantine tables are committed as native Delta Lake tables by PySpark. The analytical dbt layer reads them using DuckDB's `delta` extension:
+
+```sql
+-- dbt_delta_guard/models/staging/stg_agent_events.sql
+from delta_scan('../data/bronze/agent_events')
+```
+
+`delta_scan` reads the Delta `_delta_log` transaction log to discover active Parquet data files without starting a Spark session. The DuckDB profile (`dbt_delta_guard/profiles.yml`) uses `type: duckdb` locally and can be configured with `type: spark` for distributed deployments.
+
+### Delta sandbox mutation testing
+
+`src/delta_guard/sandbox_guard.py` executes mutation testing against an isolated copy of Bronze data. The portable default creates an **independent Delta snapshot** (copy fallback). Native Spark `SHALLOW CLONE` (zero-copy metadata cloning) requires a working Spark + Delta runtime with native Hadoop binaries (`winutils.exe` on Windows), and is executed when that environment is present.
+
+### Deterministic triage; optional LLM mode
+
+`src/delta_guard/triage.py` operates deterministically by default: it clusters quarantine records by `error_summary`, evaluates cost/freshness/schema-drift heuristics, and writes proposed YAML patches. When `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` is provided, it calls the LLM provider for enriched diagnosis. **CI and automated tests always execute the deterministic fallback path without external network dependencies or API token costs.**
+
+### Vercel console
+
+The deployment at `https://agentic-delta-guard.vercel.app` is an **interactive simulation** of the gateway's behavior using pre-rendered event particle animations. Vercel hosts static frontend assets; no live Kafka or Spark infrastructure runs on Vercel.
+
+---
+
+## Project Structure
+
+<details>
+<summary>Expand file table</summary>
 
 | Path | Purpose |
 | :--- | :--- |
-| `demo_app.py` | Interactive Streamlit web demo for cloud or local deployment |
-| `src/delta_guard/gatekeeper.py` | Vectorized PySpark streaming engine with Delta Bronze & Quarantine routing |
-| `src/delta_guard/producer.py` | Synthetic multi-agent event generator with deliberate error injection |
-| `src/delta_guard/triage.py` | Deterministic and LLM-assisted quarantine root-cause clustering |
-| `src/delta_guard/hud.py` | Real-time Textual operations dashboard |
-| `src/delta_guard/sandbox_guard.py` | Zero-copy shallow clone sandbox mutation testing |
-| `scripts/measure_triage_efficiency.py` | Reproducible MTTR & cost benchmark generator |
-| `configs/agent_contract.yaml` | Single source of truth event contract & quality constraints |
-| `dbt_delta_guard/` | dbt data models, staging views, and DuckDB analytical marts |
-| `tests/test_chaos_infra.py` | Chaos resilience tests (checkpoint loss, broker outage, retry storms) |
+| `configs/agent_contract.yaml` | Single source of truth — contract rules consumed by gatekeeper and dbt |
+| `src/delta_guard/gatekeeper.py` | PySpark Structured Streaming engine: validates and routes Bronze / Quarantine |
+| `src/delta_guard/producer.py` | Synthetic agent event generator with ~15% injected poison records |
+| `src/delta_guard/triage.py` | Deterministic triage + optional LLM mode; generates proposed YAML patches |
+| `src/delta_guard/benchmark.py` | Reproducible validation-throughput and storage footprint benchmark |
+| `src/delta_guard/sandbox_guard.py` | Mutation testing against Delta snapshots / shallow clones |
+| `src/delta_guard/hud.py` | Real-time Textual terminal dashboard |
+| `dbt_delta_guard/` | dbt models + DuckDB profiles; staging reads Bronze via `delta_scan` |
+| `demo_app.py` | Streamlit gateway simulation — no Docker or Spark required |
+| `tests/test_contract_validation.py` | Contract rule, parity, and triage unit tests |
+| `tests/test_chaos_infra.py` | Checkpoint-wipe, retry-burst, and late-event infrastructure tests |
+| `tests/test_delta_clone_utils.py` | Sandbox clone and idempotent merge tests |
+| `tests/test_mcp_server.py` | MCP contract-proposal endpoint tests |
+| `docs/CLAIMS.md` | Verification matrix mapping all claims to source files and tests |
 | `docs/reports/` | Auto-generated benchmark, quality, and triage audit reports |
 
----
-
-## 🚀 Quick Start
-
-### Local Docker & Python Environment
-
-```powershell
-# 1. Setup isolated virtualenv
-py -3.11 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-
-# 2. Install dependencies
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-python -m pip install dbt-core dbt-duckdb pytest streamlit
-
-# 3. Start Kafka (KRaft mode) & Kafka UI
-docker compose up -d
-
-# 4. Launch streaming pipeline (separate terminals)
-python src/delta_guard/producer.py        # Terminal 1: Event Producer
-$env:KAFKA_BOOTSTRAP_SERVERS = "localhost:9092"
-python src/delta_guard/gatekeeper.py      # Terminal 2: Streaming Gatekeeper
-python src/delta_guard/hud.py             # Terminal 3: Real-Time HUD
-```
-
-Kafka UI is available at [http://localhost:8080](http://localhost:8080).
+</details>
 
 ---
 
-## 🧪 Test & Chaos Verification
+## Test Suite
 
 ```powershell
-# Run the complete test suite
 python -m pytest tests/ -v --tb=short
-
-# Run the automated triage MTTR benchmark
-python scripts/measure_triage_efficiency.py
-
-# Run dbt data quality marts and tests
-cd dbt_delta_guard
-dbt deps --profiles-dir .
-dbt run --profiles-dir .
-dbt test --profiles-dir .
 ```
 
+### Skipped tests
+
+The test suite collects **39 test cases** — 37 passed, 2 skipped, 0 deselected on a
+Windows host (`.venv\Scripts\python.exe -m pytest tests/ -q`, verified 2026-09-28).
+Linux CI reproduces the same counts — 37 passed, 2 skipped — confirmed by run
+[`36497648770`](https://github.com/laila-kz/Agentic-Delta-Guard/actions/runs/36497648770)
+(PR #1, head `efa5eb1`), where `test_gatekeeper_error_array_keeps_valid_rows_writable`
+reports `PASSED`. Both skipped tests below are env-gated and skip on Linux CI as well:
+
+| Test | Module | Marker | Reason for Skip | How to Enable |
+| :--- | :--- | :--- | :--- | :--- |
+| `test_gatekeeper_survives_broker_restart` | `test_chaos_infra.py` | `requires_docker` | Requires active Docker Compose cluster | `CHAOS_DOCKER_TESTS=1` |
+| `test_llm_triage_with_openai` | `test_contract_validation.py` | `requires_llm` | Requires OpenAI API key and explicit opt-in | `LIVE_LLM_TEST=1` + `OPENAI_API_KEY` |
+
 ---
 
-## 📑 Verification Reports & Artifacts
+## Limitations
 
-- [`docs/reports/triage_benchmark.md`](docs/reports/triage_benchmark.md): Verified MTTR and cost efficiency report.
-- [`docs/reports/storage_benchmark.md`](docs/reports/storage_benchmark.md): Delta storage footprint and compression benchmarks.
-- [`docs/INCIDENT_LOG.md`](docs/INCIDENT_LOG.md): Autonomous incident diagnoses and proposed contract patches.
-- [`docs/reports/quality_audit.md`](docs/reports/quality_audit.md): Automated dbt test summary.
+- **Throughput is single-node validation logic:** ~47.8k ev/s measures in-process Python validation only (`_validate_event`). End-to-end Kafka-to-Delta streaming throughput is not claimed.
+- **Validator independence:** `_validate_event` (Python benchmark) and the gatekeeper's Catalyst column expressions are independently tested against the same 11 fixtures and produce identical results; they are not a single shared implementation.
+- **Late-event data loss (watermark drop):** Events arriving after the 10-minute streaming watermark are silently dropped by Spark — they are not routed to Quarantine and produce no quarantine record. This is true data loss, distinct from the 24-hour freshness rule that tags stale events with `freshness:stale_timestamp` and routes them to Quarantine. Verified by `TestWatermarkLateEventHandling`.
+- **LLM triage untested in CI:** The deterministic path is exercised in CI. Live LLM enrichment is opt-in (`LIVE_LLM_TEST=1`).
+- **Sandbox portability:** Portable `SandboxGuard` uses an independent Delta snapshot (copy fallback). Native shallow clone requires a Spark/Delta runtime with native Hadoop support.
+- **Single-broker footprint:** Evaluated on a single Docker Compose KRaft broker.
+- **MCP server:** `run_mcp_server.py` is tested in `tests/test_mcp_server.py` with `MCP_PROPOSAL_TOKEN` gating; this is a local review workflow, not production IAM.
+- **Video asset:** `docs/screenshots/console_demo.mp4` is stored in the repository.
 
 ---
 
-## 🔍 Engineering Trade-Offs & Limitations
+## License
 
-- **Single-Broker / Single-Worker Footprint:** Evaluated on a single Docker Compose broker; numbers represent single-node throughput ceiling.
-- **Bronze/Silver Storage Boundary:** Bronze & Quarantine use native Delta Lake; Silver and Gold models execute in DuckDB/dbt Parquet for lightweight local analytics. (See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#storage-layer-boundary-deliberate-trade-off)).
-- **LLM Triage Testing:** Continuous CI uses deterministic fallback heuristics for speed and zero API cost; live LLM verification is opt-in via `LIVE_LLM_TEST=1`.
-- **Clone Runtime:** Native Spark/Delta clone tests require a working Spark Delta runtime and Windows Hadoop native support; the portable `SandboxGuard` path uses an independent Delta snapshot fallback.
-- **MCP Governance:** MCP contract proposals require the local `MCP_PROPOSAL_TOKEN` gate and produce a review artifact; this is not production authentication.
-- **Benchmark Scope:** Throughput figures measure local validation logic only, not Kafka-to-Delta end-to-end throughput.
+[LGPL-2.1](LICENSE)

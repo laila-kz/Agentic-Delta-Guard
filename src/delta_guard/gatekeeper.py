@@ -26,6 +26,9 @@ if os.path.isdir(_HADOOP_HOME):
     _hadoop_bin = os.path.join(_HADOOP_HOME, "bin")
     # Prepend to PATH so winutils.exe is found first
     os.environ["PATH"] = _hadoop_bin + os.pathsep + os.environ.get("PATH", "")
+if sys.platform == "win32":
+    os.environ["PYSPARK_PYTHON"] = sys.executable
+    os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ── Java Version Requirement ─────────────────────────────────────────────────

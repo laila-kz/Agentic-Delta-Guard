@@ -87,24 +87,17 @@ def _count_duplicates(table_path: Path) -> int:
     return int((df.groupby(["agent_id", "session_id", "action_id"]).size() > 1).sum())
 
 
-@pytest.mark.skipif(
-    sys.platform == "win32",
-    reason="Local PySpark worker cannot connect back on this Windows host; runs in Linux CI.",
-)
 def test_gatekeeper_error_array_keeps_valid_rows_writable():
     """The validation split must represent no errors as an empty array, not null."""
     pyspark = pytest.importorskip("pyspark")
-    from pyspark.sql import SparkSession, functions as F
+    from pyspark.sql import functions as F
     from pyspark.sql.types import DoubleType, StringType, StructField, StructType
+    from src.delta_guard.gatekeeper import build_spark
 
-    spark = (
-        SparkSession.builder.master("local[2]")
-        .appName("gatekeeper-error-array-test")
-        .config("spark.ui.enabled", "false")
-        .config("spark.pyspark.python", sys.executable)
-        .config("spark.pyspark.driver.python", sys.executable)
-        .getOrCreate()
-    )
+    os.environ["PYSPARK_PYTHON"] = sys.executable
+    os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
+
+    spark = build_spark()
     try:
         schema = StructType(
             [

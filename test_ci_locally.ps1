@@ -11,9 +11,8 @@ Write-Host $separator -ForegroundColor Cyan
 Write-Host "RUNNING CI CHECKS LOCALLY" -ForegroundColor Cyan
 Write-Host $separator -ForegroundColor Cyan
 
-Write-Host "`nInstalling compatible test dependencies..." -ForegroundColor Yellow
-& $python -m pip install -r requirements.txt
-& $python -m pip install --upgrade "typing_extensions>=4.12.2" pytest dbt-core dbt-duckdb
+Write-Host "`nVerifying test dependencies..." -ForegroundColor Yellow
+& $python -m pip install -r requirements.txt --quiet
 if ($LASTEXITCODE -ne 0) { throw "Dependency installation failed" }
 
 Write-Host "`n[1/6] Validating Data Contract..." -ForegroundColor Yellow
