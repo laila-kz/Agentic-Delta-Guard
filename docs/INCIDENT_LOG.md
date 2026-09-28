@@ -1,12 +1,12 @@
 # Agent Events Incident Log
 
-Generated: 2026-09-23T17:35:30.582064+00:00
-Quarantined records: 222
+Generated: 2026-09-28T17:44:09.240897+00:00
+Quarantined records: 221
 Diagnosis provider: deterministic
 
 ## Diagnosis
 
-Found 222 quarantined records across 5 error signatures.
+Found 221 quarantined records across 6 error signatures.
 
 ## Findings
 
@@ -20,7 +20,8 @@ Found 222 quarantined records across 5 error signatures.
 - `missing_required_field:agent_id`: 55 record(s)
 - `type_mismatch:cost_usd_not_double`: 55 record(s)
 - `freshness:future_timestamp`: 29 record(s)
-- `freshness:stale_timestamp`: 23 record(s)
+- `freshness:stale_timestamp`: 21 record(s)
+- `type_mismatch:cost_usd_not_double; missing_required_field:agent_id`: 1 record(s)
 
 ## Recommended Contract Patches
 
