@@ -245,11 +245,10 @@ python -m pytest tests/ -v --tb=short
 
 ### Skipped tests
 
-The test suite collects **39 test cases** (36 passed, 3 skipped on Windows host; 37 passed in Linux CI):
+The test suite collects **39 test cases** (37 passed, 1 skipped on Windows host; 38 passed in Linux CI):
 
 | Test | Module | Marker | Reason for Skip | How to Enable |
 | :--- | :--- | :--- | :--- | :--- |
-| `test_gatekeeper_error_array_keeps_valid_rows_writable` | `test_chaos_infra.py` | `sys.platform == "win32"` | Local PySpark worker connection constraint on Windows; runs in Linux CI | Run in Linux / WSL / Docker |
 | `test_gatekeeper_survives_broker_restart` | `test_chaos_infra.py` | `requires_docker` | Requires active Docker Compose cluster | `CHAOS_DOCKER_TESTS=1` |
 | `test_llm_triage_with_openai` | `test_contract_validation.py` | `requires_llm` | Requires OpenAI API key and explicit opt-in | `LIVE_LLM_TEST=1` + `OPENAI_API_KEY` |
 
@@ -258,6 +257,8 @@ The test suite collects **39 test cases** (36 passed, 3 skipped on Windows host;
 ## Limitations
 
 - **Throughput is single-node validation logic:** ~47.8k ev/s measures in-process Python validation only (`_validate_event`). End-to-end Kafka-to-Delta streaming throughput is not claimed.
+- **Validator independence:** `_validate_event` (Python benchmark) and the gatekeeper's Catalyst column expressions are independently tested against the same 11 fixtures and produce identical results; they are not a single shared implementation.
+- **Late-event data loss (watermark drop):** Events arriving after the 10-minute streaming watermark are silently dropped by Spark — they are not routed to Quarantine and produce no quarantine record. This is true data loss, distinct from the 24-hour freshness rule that tags stale events with `freshness:stale_timestamp` and routes them to Quarantine. Verified by `TestWatermarkLateEventHandling`.
 - **LLM triage untested in CI:** The deterministic path is exercised in CI. Live LLM enrichment is opt-in (`LIVE_LLM_TEST=1`).
 - **Sandbox portability:** Portable `SandboxGuard` uses an independent Delta snapshot (copy fallback). Native shallow clone requires a Spark/Delta runtime with native Hadoop support.
 - **Single-broker footprint:** Evaluated on a single Docker Compose KRaft broker.

@@ -151,7 +151,8 @@ class LLMTriageEngine:
                         "rule": new_rule,
                         "message": f"cost_usd out of valid boundaries [0.0, {widened_bound}]",
                         "evidence_count": high_cost_count,
-                        "rationale": f"Widened upper cost bound from $50.0 to ${widened_bound} based on {high_cost_count} observed executions.",
+                        "max_observed_cost": max_cost,
+                        "rationale": f"Widened upper cost bound from $50.0 to ${widened_bound} (max observed: ${max_cost:.2f} + 10% buffer) based on {high_cost_count} observed executions.",
                     }
                 )
         if (costs < 0).any():
