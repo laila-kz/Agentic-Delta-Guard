@@ -99,7 +99,7 @@ class LLMTriageEngine:
     def _deterministic_triage_engine(
         self, records: pd.DataFrame, clusters: list[dict[str, Any]], contract: dict[str, Any]
     ) -> dict[str, Any]:
-        """Diagnose common quarantine causes without an external model."""
+        """Diagnose common quarantine causes without an external model and emit only novel rule diffs."""
         frame = records.copy()
         costs = pd.to_numeric(frame.get("cost_usd", pd.Series(dtype=float)), errors="coerce")
         timestamps = pd.to_datetime(
@@ -114,37 +114,84 @@ class LLMTriageEngine:
             for field in contract.get("schema", {}).get("fields", [])
             if field.get("name")
         }
-        observed_fields = set(frame.columns)
+        observed_fields = set(frame.columns) - {"error_summary", "quarantined_at", "errors"}
         schema_drift = {
             "missing_fields": sorted(schema_fields - observed_fields),
             "unexpected_fields": sorted(observed_fields - schema_fields),
         }
+
+        # Check existing active semantic rules
+        active_rules = {r.get("id"): r.get("rule", "") for r in contract.get("semantic_rules", [])}
+
+        # Check tool allowed values
+        tool_field = next(
+            (f for f in contract.get("schema", {}).get("fields", []) if f.get("name") == "tool_name"),
+            {},
+        )
+        allowed_tools = set(tool_field.get("allowed_values", []))
+        observed_tools = set(frame.get("tool_name", pd.Series(dtype=str)).dropna().unique())
+        unseen_tools = sorted(observed_tools - allowed_tools)
+
         findings = []
         patches = []
-        if (costs > 50).any() or (costs < 0).any():
-            findings.append("Cost values violate the contract range [0.0, 50.0].")
-            patches.append(
-                {
-                    "rule_id": "cost_non_negative",
-                    "rule": "cost_usd >= 0.0 AND cost_usd <= 50.0",
-                    "message": "cost_usd out of valid boundaries [0.0, 50.0]",
-                }
+
+        # 1. Cost analysis
+        if (costs > 50.0).any():
+            max_cost = float(costs.max())
+            high_cost_count = int((costs > 50.0).sum())
+            findings.append(
+                f"Observed {high_cost_count} record(s) with cost exceeding $50.0 (max observed: ${max_cost:.2f})."
             )
+            widened_bound = round(max(max_cost * 1.1, 60.0), 1)
+            new_rule = f"cost_usd >= 0.0 AND cost_usd <= {widened_bound}"
+            if active_rules.get("cost_non_negative") != new_rule:
+                patches.append(
+                    {
+                        "rule_id": "cost_non_negative",
+                        "rule": new_rule,
+                        "message": f"cost_usd out of valid boundaries [0.0, {widened_bound}]",
+                        "evidence_count": high_cost_count,
+                        "rationale": f"Widened upper cost bound from $50.0 to ${widened_bound} based on {high_cost_count} observed executions.",
+                    }
+                )
+        if (costs < 0).any():
+            neg_count = int((costs < 0).sum())
+            findings.append(f"Observed {neg_count} record(s) with invalid negative costs (genuine defect, no contract relaxation).")
+
+        # 2. Freshness analysis
         if stale.any() or future.any():
-            findings.append("Timestamps violate the rolling freshness window.")
+            stale_count = int(stale.fillna(False).sum())
+            future_count = int(future.fillna(False).sum())
+            findings.append(
+                f"Observed {stale_count} stale record(s) (>24h) and {future_count} future record(s) (>5m skew) (isolated by contract freshness rule)."
+            )
+
+        # 3. Tool name evolution
+        if unseen_tools:
+            findings.append(f"Observed unseen tool name(s): {', '.join(unseen_tools)}.")
             patches.append(
                 {
-                    "rule_id": "timestamp_freshness",
-                    "rule": "timestamp >= (current_timestamp() - INTERVAL 24 HOURS) AND timestamp <= (current_timestamp() + INTERVAL 5 MINUTES)",
-                    "message": "timestamp violates rolling 24h freshness window or is in future",
+                    "rule_id": "tool_name_allowed_values",
+                    "field": "tool_name",
+                    "added_tools": unseen_tools,
+                    "evidence_count": int(frame["tool_name"].isin(unseen_tools).sum()),
+                    "rationale": f"Add newly observed tool(s) {unseen_tools} to allowed_values.",
                 }
             )
+
         if schema_drift["missing_fields"] or schema_drift["unexpected_fields"]:
             findings.append("Observed quarantine columns differ from the contract schema.")
 
+        summary = (
+            f"Found {len(records)} quarantined records across {len(clusters)} error signatures. "
+            f"{len(patches)} contract change(s) proposed."
+            if patches
+            else f"Found {len(records)} quarantined records across {len(clusters)} error signatures. No contract change recommended (violations represent genuine poison isolated by active rules)."
+        )
+
         return {
             "provider": "deterministic",
-            "summary": f"Found {len(records)} quarantined records across {len(clusters)} error signatures.",
+            "summary": summary,
             "findings": findings or ["No known cost, freshness, or schema-drift anomaly detected."],
             "schema_drift": schema_drift,
             "metrics": {
@@ -328,7 +375,12 @@ class LLMTriageEngine:
         }
         for patch in patches:
             rule_id = patch.get("rule_id")
-            if rule_id:
+            if rule_id == "tool_name_allowed_values":
+                for field in proposed.get("schema", {}).get("fields", []):
+                    if field.get("name") == "tool_name":
+                        current = set(field.get("allowed_values", []))
+                        field["allowed_values"] = sorted(list(current | set(patch.get("added_tools", []))))
+            elif rule_id and rule_id in existing:
                 existing[rule_id] = {
                     "id": rule_id,
                     "rule": patch.get("rule", ""),

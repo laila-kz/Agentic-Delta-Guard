@@ -1,17 +1,17 @@
 # Agent Events Incident Log
 
-Generated: 2026-09-28T17:44:09.240897+00:00
+Generated: 2026-09-28T18:55:41.771556+00:00
 Quarantined records: 221
 Diagnosis provider: deterministic
 
 ## Diagnosis
 
-Found 221 quarantined records across 6 error signatures.
+Found 221 quarantined records across 6 error signatures. 1 contract change(s) proposed.
 
 ## Findings
 
-- Cost values violate the contract range [0.0, 50.0].
-- Timestamps violate the rolling freshness window.
+- Observed 60 record(s) with cost exceeding $50.0 (max observed: $850.00).
+- Observed 220 stale record(s) (>24h) and 0 future record(s) (>5m skew) (isolated by contract freshness rule).
 - Observed quarantine columns differ from the contract schema.
 
 ## Error Signatures
@@ -26,4 +26,3 @@ Found 221 quarantined records across 6 error signatures.
 ## Recommended Contract Patches
 
 - `cost_non_negative`
-- `timestamp_freshness`
