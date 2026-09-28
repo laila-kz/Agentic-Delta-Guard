@@ -93,7 +93,7 @@ DuckDB reads both Bronze and Quarantine tables directly via `delta_scan('../data
 
 ### 3. Proposed YAML Contract Patch
 
-The triage engine clusters quarantine signatures and writes proposed evolution patches to `configs/agent_contract_proposed.yaml`:
+The triage engine clusters quarantine signatures, diffs observed patterns against the active contract, and writes proposed evolution patches to `configs/agent_contract_proposed.yaml`:
 
 ```yaml
 # Generated patch — deterministic triage engine
@@ -104,16 +104,11 @@ contract_id: agent_events_v1_proposed
 
 semantic_rules:
   - id: cost_non_negative
-    rule: "cost_usd >= 0.0 AND cost_usd <= 50.0"
-    message: "cost_usd out of valid boundaries [0.0, 50.0]"
-
-  - id: timestamp_freshness
-    rule: "timestamp >= (current_timestamp() - INTERVAL 24 HOURS)
-           AND timestamp <= (current_timestamp() + INTERVAL 5 MINUTES)"
-    message: "timestamp violates rolling 24h freshness window or is in future"
+    rule: "cost_usd >= 0.0 AND cost_usd <= 935.0"
+    message: "cost_usd out of valid boundaries [0.0, 935.0]"
 ```
 
-*Note on signature counts:* Out of 221 quarantined records in the reference triage run, 60 cost violations and 50 timestamp freshness violations trigger semantic rule proposals, while the remaining 111 records represent structural schema anomalies (e.g., missing `agent_id` or non-numeric `cost_usd`).
+*Patch novelty:* The triage engine emits only new or widened rules based on evidence (e.g. widening the upper cost bound to accommodate 60 observed high-cost executions reaching $850.0). Stale timestamps and invalid types are identified as defects and isolated without proposing contract relaxation. If no valid evolution is supported, triage emits an explicit "no contract change recommended" result.
 
 Run `python src/delta_guard/triage.py` (or `make triage`) to regenerate proposals against the current Quarantine table.
 
@@ -150,35 +145,37 @@ docker compose down     # stop all services
 
 ## Benchmarks
 
-Measured using [`src/delta_guard/benchmark.py`](src/delta_guard/benchmark.py). Full methodology: [`docs/reports/storage_benchmark.md`](docs/reports/storage_benchmark.md).
+Measured using [`src/delta_guard/benchmark.py`](src/delta_guard/benchmark.py) (median across 5 runs of 100,000 events + 1 discarded warmup run). Full report: [`docs/reports/storage_benchmark.md`](docs/reports/storage_benchmark.md).
 
 | Metric | Measured Value | Scope & Test Environment |
 | :--- | ---: | :--- |
-| **Validation Throughput** | **45,254.19 ev/s** | Single-core Python in-process validation logic (1,000 synthetic events evaluated, no Kafka / Spark I/O overhead) |
-| **P50 Latency** | 0.0041 ms | Per-event contract validation latency |
-| **P95 Latency** | 0.0070 ms | Per-event contract validation latency |
-| **P99 Latency** | 0.0115 ms | Per-event contract validation latency |
-| **Poison Quarantine Rate** | 15.5% | Correctly routed to Quarantine (target: ~15% injected synthetic anomalies) |
+| **Validation Throughput** | **47,820.88 ev/s** | Single-core Python in-process validation logic (`_validate_event`, 100k events/run, 5 runs + 1 warmup, no Kafka / Spark I/O overhead) |
+| **P50 Latency** | 0.0040 ms | Per-event contract validation latency (median) |
+| **P95 Latency** | 0.0071 ms | Per-event contract validation latency (median) |
+| **P99 Latency** | 0.0095 ms | Per-event contract validation latency (median) |
+| **Poison Quarantine Rate** | 14.9% | Correctly routed to Quarantine (target: ~15% injected synthetic anomalies) |
 
-*Environment:* Intel64 Family 6 Model 166 (x86_64), Windows 10/11, Python 3.11.9, 1,000-event workload.
+*Environment:* Intel64 Family 6 Model 166 (x86_64), Windows 10/11, Python 3.11.9, 100,000-event workload per run.
 
-> **Throughput note:** This benchmark measures the contract validation logic in pure Python on a single core. Real end-to-end throughput across Kafka → PySpark micro-batches → Delta disk commits will be lower due to network serialization, Spark task scheduling, and filesystem I/O. Throughput numbers vary across hardware (e.g. ~9.4k ev/s on lower-clock virtual cores, ~23.8k in CI runner VMs, and ~45.2k on bare-metal desktop CPU).
+> **Benchmark Scope Note:** `benchmark.py` measures in-process Python validation logic (`_validate_event`), whereas `gatekeeper.py` executes native Spark Catalyst column expressions in the JVM. Parity between the two implementations is verified via `tests/test_contract_validation.py::test_benchmark_validation_parity`. Real end-to-end streaming throughput across Kafka $\rightarrow$ PySpark micro-batches $\rightarrow$ Delta disk commits will be lower due to network serialization, Spark task scheduling, and filesystem I/O.
 
 ---
 
 ## Design Decisions
 
-### Idempotent retry handling
+### Idempotent retry handling & streaming state
 
 Distributed agents retrying tool executions generate duplicate events sharing the same composite key `(agent_id, session_id, action_id)`.
 
 Two mechanisms provide resilience:
 
 1. **Delta Lake `MERGE INTO`** — keyed on `(agent_id, session_id, action_id)`:
-   - When not matched → insert new event row into Bronze.
-   - When matched → **leave existing row unchanged** (`whenNotMatchedInsertAll()`), dropping duplicate deliveries.
+   - When not matched $\rightarrow$ insert new event row into Bronze.
+   - When matched $\rightarrow$ **leave existing row unchanged** (`whenNotMatchedInsertAll()`), dropping duplicate deliveries.
 
-2. **In-batch deduplication & watermarking** — `dropDuplicates(["agent_id", "session_id", "action_id"])` removes duplicates within a micro-batch. Inside `foreachBatch`, the DataFrame is static; cross-batch idempotency across restarts is guaranteed by the downstream Delta `MERGE INTO`.
+2. **In-batch deduplication & watermarking behavior** — `dropDuplicates(["agent_id", "session_id", "action_id"])` removes duplicates within a micro-batch. Inside `foreachBatch`, the DataFrame is a static micro-batch; Spark Structured Streaming watermarks do not perform stateful state eviction across micro-batches inside `foreachBatch`. Cross-batch idempotency across streaming restarts is guaranteed downstream by the Delta `MERGE INTO`.
+
+3. **Late and stale events** — Events older than 24 hours are routed to Quarantine with the tag `freshness:stale_timestamp`.
 
 Verified in [`tests/test_chaos_infra.py`](tests/test_chaos_infra.py) under synthetic checkpoint wipes and retry storm bursts.
 
@@ -201,7 +198,7 @@ from delta_scan('../data/bronze/agent_events')
 
 ### Delta sandbox mutation testing
 
-`src/delta_guard/sandbox_guard.py` executes mutation testing against an isolated copy of Bronze data. The portable default creates an **independent Delta snapshot**. Native Spark `SHALLOW CLONE` (zero-copy metadata cloning) requires a working Spark + Delta runtime with native Hadoop binaries (`winutils.exe` on Windows), and is executed when that environment is present.
+`src/delta_guard/sandbox_guard.py` executes mutation testing against an isolated copy of Bronze data. The portable default creates an **independent Delta snapshot** (copy fallback). Native Spark `SHALLOW CLONE` (zero-copy metadata cloning) requires a working Spark + Delta runtime with native Hadoop binaries (`winutils.exe` on Windows), and is executed when that environment is present.
 
 ### Deterministic triage; optional LLM mode
 
@@ -229,7 +226,7 @@ The deployment at `https://agentic-delta-guard.vercel.app` is an **interactive s
 | `src/delta_guard/hud.py` | Real-time Textual terminal dashboard |
 | `dbt_delta_guard/` | dbt models + DuckDB profiles; staging reads Bronze via `delta_scan` |
 | `demo_app.py` | Streamlit gateway simulation — no Docker or Spark required |
-| `tests/test_contract_validation.py` | Contract rule and triage unit tests |
+| `tests/test_contract_validation.py` | Contract rule, parity, and triage unit tests |
 | `tests/test_chaos_infra.py` | Checkpoint-wipe, retry-burst, and late-event infrastructure tests |
 | `tests/test_delta_clone_utils.py` | Sandbox clone and idempotent merge tests |
 | `tests/test_mcp_server.py` | MCP contract-proposal endpoint tests |
@@ -248,7 +245,7 @@ python -m pytest tests/ -v --tb=short
 
 ### Skipped tests
 
-The test suite collects **38 test cases** (35 passed, 3 skipped on Windows host; 36 passed in Linux CI):
+The test suite collects **39 test cases** (36 passed, 3 skipped on Windows host; 37 passed in Linux CI):
 
 | Test | Module | Marker | Reason for Skip | How to Enable |
 | :--- | :--- | :--- | :--- | :--- |
@@ -260,9 +257,9 @@ The test suite collects **38 test cases** (35 passed, 3 skipped on Windows host;
 
 ## Limitations
 
-- **Throughput is single-node validation logic:** ~45k ev/s measures in-process Python validation only. End-to-end Kafka-to-Delta streaming throughput is not claimed.
+- **Throughput is single-node validation logic:** ~47.8k ev/s measures in-process Python validation only (`_validate_event`). End-to-end Kafka-to-Delta streaming throughput is not claimed.
 - **LLM triage untested in CI:** The deterministic path is exercised in CI. Live LLM enrichment is opt-in (`LIVE_LLM_TEST=1`).
-- **Sandbox portability:** Portable `SandboxGuard` uses an independent Delta snapshot. Native shallow clone requires a Spark/Delta runtime with native Hadoop support.
+- **Sandbox portability:** Portable `SandboxGuard` uses an independent Delta snapshot (copy fallback). Native shallow clone requires a Spark/Delta runtime with native Hadoop support.
 - **Single-broker footprint:** Evaluated on a single Docker Compose KRaft broker.
 - **MCP server:** `run_mcp_server.py` is tested in `tests/test_mcp_server.py` with `MCP_PROPOSAL_TOKEN` gating; this is a local review workflow, not production IAM.
 - **Video asset:** `docs/screenshots/console_demo.mp4` is stored in the repository.
