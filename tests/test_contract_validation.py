@@ -167,6 +167,171 @@ def test_sandbox_assertion_rejection_on_poison(setup_test_lakehouse):
     assert guard.promote_sandbox_to_production() is False
 
 
+def test_benchmark_validation_parity():
+    """
+    Parity test: verifies that the in-process Python benchmark validator (_validate_event)
+    and contract gatekeeper rules enforce identical accept/reject decisions and
+    exact matching error tags across valid events and all poison types.
+    """
+    from datetime import datetime, timedelta, timezone
+    from src.delta_guard.benchmark import _validate_event
+
+    now = datetime.now(timezone.utc)
+    valid_ts = now.isoformat()
+    stale_ts = (now - timedelta(hours=48)).isoformat()
+    future_ts = (now + timedelta(minutes=30)).isoformat()
+
+    fixtures = [
+        # (name, payload, expected_valid, expected_tags)
+        (
+            "valid_event",
+            {
+                "agent_id": "agent-1",
+                "session_id": "sess-1",
+                "action_id": "act-1",
+                "timestamp": valid_ts,
+                "tool_name": "sql_query_executor",
+                "execution_time_ms": 120,
+                "cost_usd": 0.05,
+                "status": "SUCCESS",
+                "tool_args": "{}",
+            },
+            True,
+            [],
+        ),
+        (
+            "missing_agent_id",
+            {
+                "agent_id": None,
+                "session_id": "sess-1",
+                "action_id": "act-1",
+                "timestamp": valid_ts,
+                "cost_usd": 0.05,
+            },
+            False,
+            ["missing_required_field:agent_id"],
+        ),
+        (
+            "missing_session_id",
+            {
+                "agent_id": "agent-1",
+                "session_id": None,
+                "action_id": "act-1",
+                "timestamp": valid_ts,
+                "cost_usd": 0.05,
+            },
+            False,
+            ["missing_required_field:session_id"],
+        ),
+        (
+            "missing_action_id",
+            {
+                "agent_id": "agent-1",
+                "session_id": "sess-1",
+                "action_id": None,
+                "timestamp": valid_ts,
+                "cost_usd": 0.05,
+            },
+            False,
+            ["missing_required_field:action_id"],
+        ),
+        (
+            "bad_cost_string",
+            {
+                "agent_id": "agent-1",
+                "session_id": "sess-1",
+                "action_id": "act-1",
+                "timestamp": valid_ts,
+                "cost_usd": "not-a-number",
+            },
+            False,
+            ["type_mismatch:cost_usd_not_double"],
+        ),
+        (
+            "negative_cost",
+            {
+                "agent_id": "agent-1",
+                "session_id": "sess-1",
+                "action_id": "act-1",
+                "timestamp": valid_ts,
+                "cost_usd": -5.0,
+            },
+            False,
+            ["semantic_rule:cost_out_of_bounds"],
+        ),
+        (
+            "exceeded_cost",
+            {
+                "agent_id": "agent-1",
+                "session_id": "sess-1",
+                "action_id": "act-1",
+                "timestamp": valid_ts,
+                "cost_usd": 500.0,
+            },
+            False,
+            ["semantic_rule:cost_out_of_bounds"],
+        ),
+        (
+            "stale_timestamp",
+            {
+                "agent_id": "agent-1",
+                "session_id": "sess-1",
+                "action_id": "act-1",
+                "timestamp": stale_ts,
+                "cost_usd": 0.05,
+            },
+            False,
+            ["freshness:stale_timestamp"],
+        ),
+        (
+            "future_timestamp",
+            {
+                "agent_id": "agent-1",
+                "session_id": "sess-1",
+                "action_id": "act-1",
+                "timestamp": future_ts,
+                "cost_usd": 0.05,
+            },
+            False,
+            ["freshness:future_timestamp"],
+        ),
+        (
+            "invalid_timestamp_format",
+            {
+                "agent_id": "agent-1",
+                "session_id": "sess-1",
+                "action_id": "act-1",
+                "timestamp": "bad-date-time",
+                "cost_usd": 0.05,
+            },
+            False,
+            ["parse_error:invalid_timestamp_format"],
+        ),
+        (
+            "multi_poison_missing_id_and_bad_cost",
+            {
+                "agent_id": None,
+                "session_id": "sess-1",
+                "action_id": "act-1",
+                "timestamp": valid_ts,
+                "cost_usd": "invalid",
+            },
+            False,
+            ["missing_required_field:agent_id", "type_mismatch:cost_usd_not_double"],
+        ),
+    ]
+
+    for name, payload, expected_valid, expected_tags in fixtures:
+        is_valid, error_summary = _validate_event(payload)
+        assert is_valid == expected_valid, f"Parity mismatch on {name}: expected is_valid={expected_valid}, got {is_valid}"
+        if expected_valid:
+            assert error_summary is None
+        else:
+            assert error_summary is not None
+            for tag in expected_tags:
+                assert tag in error_summary, f"Missing expected tag '{tag}' in '{error_summary}' for fixture {name}"
+
+
 @pytest.mark.skipif(
     not (os.getenv("OPENAI_API_KEY") and os.getenv("LIVE_LLM_TEST") == "1"),
     reason="Set OPENAI_API_KEY and LIVE_LLM_TEST=1 to run the manual live test",
