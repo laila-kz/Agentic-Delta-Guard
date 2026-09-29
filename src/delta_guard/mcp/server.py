@@ -203,6 +203,7 @@ def propose_contract_patch(
     rationale: str,
     proposed_change: dict[str, Any],
     authorization_token: Optional[str] = None,
+    output_path: Optional[str] = None,
 ) -> str:
     """
     AUTONOMOUS GOVERNANCE: Proposes a formal update to configs/agent_contract_proposed.yaml
@@ -215,6 +216,9 @@ def propose_contract_patch(
                          - increase_max_cost: float
                          - add_required_field: str
         authorization_token: Deployment-configured token required to write a proposal.
+        output_path: Optional override for the destination file. Defaults to
+                     configs/agent_contract_proposed.yaml in the project root.
+                     Tests pass a tmp_path here so they never write to the repo.
 
     Returns:
         JSON string detailing proposal status, diff preview, and CI validation instructions.
@@ -231,7 +235,9 @@ def propose_contract_patch(
             "message": "A valid authorization token is required to create contract proposals.",
         }, indent=2)
 
-    proposed_path = PROJECT_ROOT / "configs" / "agent_contract_proposed.yaml"
+    proposed_path = (
+        Path(output_path) if output_path else PROJECT_ROOT / "configs" / "agent_contract_proposed.yaml"
+    )
     validator.reload()
     current = dict(validator.contract)
 

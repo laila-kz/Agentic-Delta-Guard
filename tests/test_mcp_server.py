@@ -115,15 +115,19 @@ def test_mcp_propose_contract_patch_tool(tmp_path, monkeypatch):
         "add_allowed_tool": "data_extractor_v2",
         "increase_max_cost": 80.0,
     }
+    proposed_file = tmp_path / "proposed.yaml"
     response = json.loads(propose_contract_patch(
         "Adding specialized data extractor",
         proposal,
         authorization_token="test-proposal-token",
+        output_path=str(proposed_file),
     ))
     assert response["status"] == "PROPOSAL_CREATED"
     assert len(response["changes_applied"]) >= 2
     assert "triage_context" in response
-    assert Path(response["artifact_path"]).exists()
+    assert proposed_file.exists()
+    # The repo's tracked proposal file must never be written by a test run.
+    assert Path(response["artifact_path"]).resolve() == proposed_file.resolve()
 
 
 def test_mcp_propose_contract_patch_requires_authorization(monkeypatch):
