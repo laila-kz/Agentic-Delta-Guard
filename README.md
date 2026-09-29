@@ -247,10 +247,12 @@ python -m pytest tests/ -v --tb=short
 
 The test suite collects **40 test cases** — 38 passed, 2 skipped, 0 deselected on a
 Windows host (`.venv\Scripts\python.exe -m pytest tests/ -q`, verified 2026-09-29).
-The prior Linux CI baseline of 37 passed / 2 skipped was confirmed by run
+Linux CI reproduces the new counts — 38 passed, 2 skipped — confirmed by run
+[`36576348615`](https://github.com/laila-kz/Agentic-Delta-Guard/actions/runs/36576348615)
+(PR #2, head `50d9d91`), where `test_gatekeeper_process_batch_quarantines_unauthorized_tool`
+reports `PASSED`. The prior 37/2 baseline is run
 [`36497648770`](https://github.com/laila-kz/Agentic-Delta-Guard/actions/runs/36497648770)
-(PR #1, head `efa5eb1`), where `test_gatekeeper_error_array_keeps_valid_rows_writable`
-reports `PASSED`. Both skipped tests below are env-gated and skip on Linux CI as well:
+(PR #1, head `efa5eb1`). Both skipped tests below are env-gated and skip on Linux CI as well:
 
 | Test | Module | Marker | Reason for Skip | How to Enable |
 | :--- | :--- | :--- | :--- | :--- |
