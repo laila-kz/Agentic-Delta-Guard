@@ -2,7 +2,7 @@
 
 **A data-contract gate for AI-agent event streams: validates events against a YAML contract, quarantines violations without stalling the stream, and proposes YAML contract patches from the failures.**
 
-[![CI](https://github.com/laila-kz/agentic-delta-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/laila-kz/agentic-delta-guard/actions/workflows/ci.yml)
+[![CI](https://github.com/laila-kz/Agentic-Delta-Guard/actions/workflows/ci.yml/badge.svg)](https://github.com/laila-kz/Agentic-Delta-Guard/actions/workflows/ci.yml)
 [![Engine](https://img.shields.io/badge/Engine-PySpark%203.5%20%7C%20Delta%20Lake-00A4E4?logo=apachespark)](https://delta.io/)
 [![Quality](https://img.shields.io/badge/Quality-dbt%20%2B%20DuckDB-FF694B?logo=dbt)](https://getdbt.com)
 
@@ -271,9 +271,14 @@ reports `PASSED`. The prior 37/2 baseline is run
 - **Single-broker footprint:** Evaluated on a single Docker Compose KRaft broker.
 - **MCP server:** `run_mcp_server.py` is tested in `tests/test_mcp_server.py` with `MCP_PROPOSAL_TOKEN` gating; this is a local review workflow, not production IAM.
 - **Video asset:** `docs/screenshots/console_demo.mp4` is stored in the repository.
+- **Schema drift (silent field drop):** `from_json` is called with a fixed schema; unknown fields in incoming events are silently dropped rather than flagged. There is no policy for detecting or alerting on schema drift from producers.
+- **No quarantine re-drive path:** Once a contract is updated (e.g. via a proposed patch), previously-quarantined records that would now pass the new rules are not replayed. They remain in the Quarantine table indefinitely with no automated backfill mechanism.
+- **Small-file problem:** The Bronze table accumulates one Parquet file per micro-batch; a 1,159-row sample produced 403 files with no partitioning or `OPTIMIZE`/`ZORDER` compaction. This is a known production anti-pattern and would require a compaction job at scale.
+- **Exactly-once gap:** `foreachBatch` provides at-least-once delivery — Kafka offsets are committed after the Delta write, but there is a narrow window between the offset commit and the Delta commit where a crash could replay an already-written batch. The Delta `MERGE INTO` keyed on `(agent_id, session_id, action_id)` prevents duplicate rows from landing in Bronze, but does not cover the Quarantine append path.
+
 
 ---
 
 ## License
 
-[LGPL-2.1](LICENSE)
+[MIT](LICENSE)
