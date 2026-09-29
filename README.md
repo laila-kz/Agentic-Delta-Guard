@@ -63,9 +63,9 @@ status:            "SUCCESS"
 tool_args:         '{"query":"Or stuff generation style hour admit return.","limit":48}'
 ```
 
-Contract rules enforced per micro-batch:
+Contract rules enforced per micro-batch (all applied as native Catalyst expressions in `process_batch`):
 - All nine fields present; `agent_id`, `session_id`, `action_id` non-nullable.
-- `tool_name` in `{sql_query_executor, vector_search, web_scraper, db_writer}`.
+- `tool_name` in `{sql_query_executor, vector_search, web_scraper, db_writer}` — the allowlist is read from `configs/agent_contract.yaml` at load time, and an out-of-allowlist value is quarantined as `semantic_rule:tool_not_allowed` rather than reaching Bronze.
 - `cost_usd` in `[0.0, 50.0]`.
 - `timestamp` within a rolling 24-hour freshness window (not stale, not in the future).
 
@@ -245,9 +245,9 @@ python -m pytest tests/ -v --tb=short
 
 ### Skipped tests
 
-The test suite collects **39 test cases** — 37 passed, 2 skipped, 0 deselected on a
-Windows host (`.venv\Scripts\python.exe -m pytest tests/ -q`, verified 2026-09-28).
-Linux CI reproduces the same counts — 37 passed, 2 skipped — confirmed by run
+The test suite collects **40 test cases** — 38 passed, 2 skipped, 0 deselected on a
+Windows host (`.venv\Scripts\python.exe -m pytest tests/ -q`, verified 2026-09-29).
+The prior Linux CI baseline of 37 passed / 2 skipped was confirmed by run
 [`36497648770`](https://github.com/laila-kz/Agentic-Delta-Guard/actions/runs/36497648770)
 (PR #1, head `efa5eb1`), where `test_gatekeeper_error_array_keeps_valid_rows_writable`
 reports `PASSED`. Both skipped tests below are env-gated and skip on Linux CI as well:

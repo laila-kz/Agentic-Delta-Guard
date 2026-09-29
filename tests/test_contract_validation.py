@@ -1,4 +1,6 @@
+import json
 import os
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import duckdb
@@ -463,6 +465,96 @@ def test_llm_triage_with_openai(setup_test_lakehouse, monkeypatch):
 
     assert diagnosis["provider"] == "openai_or_anthropic"
     assert diagnosis["summary"]
+
+
+def test_gatekeeper_process_batch_quarantines_unauthorized_tool(tmp_path, monkeypatch):
+    """
+    The streaming gate must enforce schema.fields[tool_name].allowed_values.
+
+    This drives the real process_batch (build_spark + the production column
+    expressions + real Delta writes), not _validate_event, because the gap this
+    covers existed only in the Spark path -- the Python validator already
+    rejected unauthorized tools. An event whose tool_name is outside the
+    allowlist must be routed to Quarantine and must not reach Bronze.
+
+    NOTE: this test ends in .collect()/.count() against a Spark DataFrame. On
+    some Windows hosts that intermittently fails with "Python worker failed to
+    connect back" (WinError 10061); Linux CI is the source of truth here.
+    """
+    pyspark = pytest.importorskip("pyspark")
+    from src.delta_guard import gatekeeper
+    from src.delta_guard.gatekeeper import build_spark
+
+    bronze = tmp_path / "bronze"
+    quarantine = tmp_path / "quarantine"
+
+    # Redirect every side effect of process_batch away from the repo.
+    monkeypatch.setattr(gatekeeper, "BRONZE_PATH", str(bronze))
+    monkeypatch.setattr(gatekeeper, "QUARANTINE_PATH", str(quarantine))
+    monkeypatch.setattr(gatekeeper, "STATUS_PATH", str(tmp_path / "status.json"))
+
+    # Read the allowlist from the contract itself (the source of truth), not from
+    # gatekeeper's internal cache, so this test fails on missing enforcement
+    # rather than on a missing implementation detail.
+    contract_file = Path(gatekeeper.__file__).resolve().parents[2] / "configs" / "agent_contract.yaml"
+    contract = yaml.safe_load(contract_file.read_text(encoding="utf-8"))
+    allowed = next(
+        field["allowed_values"]
+        for field in contract["schema"]["fields"]
+        if field["name"] == "tool_name"
+    )
+    assert allowed, "contract must declare tool_name.allowed_values"
+    assert "unauthorized_admin_bash" not in allowed
+
+    # Fresh timestamp: the contract has a 24h staleness window, so a hardcoded
+    # date would quarantine both events for the wrong reason.
+    now = datetime.now(timezone.utc) - timedelta(seconds=30)
+
+    def _event(tool: str) -> dict:
+        return {
+            "agent_id": f"agent-{tool}",
+            "session_id": "sess-allowlist",
+            "action_id": f"act-{tool}",
+            "timestamp": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "tool_name": tool,
+            "execution_time_ms": 120,
+            "cost_usd": "1.25",
+            "status": "success",
+            "tool_args": "{}",
+        }
+
+    payloads = [_event(allowed[0]), _event("unauthorized_admin_bash")]
+
+    spark = build_spark()
+    try:
+        batch_df = spark.createDataFrame(
+            [(json.dumps(p),) for p in payloads], "value string"
+        )
+        gatekeeper.process_batch(batch_df, 0)
+    finally:
+        spark.stop()
+
+    # Security invariant first: the unauthorized event must NOT reach Bronze.
+    bronze_rows = DeltaTable(str(bronze)).to_pyarrow_table().to_pylist()
+    bronze_action_ids = {row["action_id"] for row in bronze_rows}
+    assert "act-unauthorized_admin_bash" not in bronze_action_ids, (
+        f"unauthorized tool leaked into Bronze: {bronze_action_ids}"
+    )
+    assert f"act-{allowed[0]}" in bronze_action_ids, (
+        f"allowed tool should have reached Bronze: {bronze_action_ids}"
+    )
+
+    # And it must be quarantined, carrying the allowlist signature.
+    assert quarantine.exists(), "quarantine table was never created"
+    quarantine_df = DeltaTable(str(quarantine)).to_pyarrow_table().to_pylist()
+    quarantined_action_ids = {row["action_id"] for row in quarantine_df}
+    assert "act-unauthorized_admin_bash" in quarantined_action_ids, (
+        f"unauthorized tool was not quarantined; quarantine has {quarantined_action_ids}"
+    )
+    summaries = [row["error_summary"] for row in quarantine_df]
+    assert any(
+        "semantic_rule:tool_not_allowed" in (s or "") for s in summaries
+    ), f"expected semantic_rule:tool_not_allowed signature, got {summaries}"
 
 
 if __name__ == "__main__":
