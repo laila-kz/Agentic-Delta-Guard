@@ -2,7 +2,7 @@
 
 **A data-contract gate for AI-agent event streams: validates events against a YAML contract, quarantines violations without stalling the stream, and proposes YAML contract patches from the failures.**
 
-[![CI](https://github.com/laila-kz/agentic-delta-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/laila-kz/agentic-delta-guard/actions/workflows/ci.yml)
+[![CI](https://github.com/laila-kz/Agentic-Delta-Guard/actions/workflows/ci.yml/badge.svg)](https://github.com/laila-kz/Agentic-Delta-Guard/actions/workflows/ci.yml)
 [![Engine](https://img.shields.io/badge/Engine-PySpark%203.5%20%7C%20Delta%20Lake-00A4E4?logo=apachespark)](https://delta.io/)
 [![Quality](https://img.shields.io/badge/Quality-dbt%20%2B%20DuckDB-FF694B?logo=dbt)](https://getdbt.com)
 
@@ -63,9 +63,9 @@ status:            "SUCCESS"
 tool_args:         '{"query":"Or stuff generation style hour admit return.","limit":48}'
 ```
 
-Contract rules enforced per micro-batch:
+Contract rules enforced per micro-batch (all applied as native Catalyst expressions in `process_batch`):
 - All nine fields present; `agent_id`, `session_id`, `action_id` non-nullable.
-- `tool_name` in `{sql_query_executor, vector_search, web_scraper, db_writer}`.
+- `tool_name` in `{sql_query_executor, vector_search, web_scraper, db_writer}` — the allowlist is read from `configs/agent_contract.yaml` at load time, and an out-of-allowlist value is quarantined as `semantic_rule:tool_not_allowed` rather than reaching Bronze.
 - `cost_usd` in `[0.0, 50.0]`.
 - `timestamp` within a rolling 24-hour freshness window (not stale, not in the future).
 
@@ -245,12 +245,14 @@ python -m pytest tests/ -v --tb=short
 
 ### Skipped tests
 
-The test suite collects **39 test cases** — 37 passed, 2 skipped, 0 deselected on a
-Windows host (`.venv\Scripts\python.exe -m pytest tests/ -q`, verified 2026-09-28).
-Linux CI reproduces the same counts — 37 passed, 2 skipped — confirmed by run
+The test suite collects **40 test cases** — 38 passed, 2 skipped, 0 deselected on a
+Windows host (`.venv\Scripts\python.exe -m pytest tests/ -q`, verified 2026-09-29).
+Linux CI reproduces the new counts — 38 passed, 2 skipped — confirmed by run
+[`36576348615`](https://github.com/laila-kz/Agentic-Delta-Guard/actions/runs/36576348615)
+(PR #2, head `50d9d91`), where `test_gatekeeper_process_batch_quarantines_unauthorized_tool`
+reports `PASSED`. The prior 37/2 baseline is run
 [`36497648770`](https://github.com/laila-kz/Agentic-Delta-Guard/actions/runs/36497648770)
-(PR #1, head `efa5eb1`), where `test_gatekeeper_error_array_keeps_valid_rows_writable`
-reports `PASSED`. Both skipped tests below are env-gated and skip on Linux CI as well:
+(PR #1, head `efa5eb1`). Both skipped tests below are env-gated and skip on Linux CI as well:
 
 | Test | Module | Marker | Reason for Skip | How to Enable |
 | :--- | :--- | :--- | :--- | :--- |
@@ -269,9 +271,14 @@ reports `PASSED`. Both skipped tests below are env-gated and skip on Linux CI as
 - **Single-broker footprint:** Evaluated on a single Docker Compose KRaft broker.
 - **MCP server:** `run_mcp_server.py` is tested in `tests/test_mcp_server.py` with `MCP_PROPOSAL_TOKEN` gating; this is a local review workflow, not production IAM.
 - **Video asset:** `docs/screenshots/console_demo.mp4` is stored in the repository.
+- **Schema drift (silent field drop):** `from_json` is called with a fixed schema; unknown fields in incoming events are silently dropped rather than flagged. There is no policy for detecting or alerting on schema drift from producers.
+- **No quarantine re-drive path:** Once a contract is updated (e.g. via a proposed patch), previously-quarantined records that would now pass the new rules are not replayed. They remain in the Quarantine table indefinitely with no automated backfill mechanism.
+- **Small-file problem:** The Bronze table accumulates one Parquet file per micro-batch; a 1,159-row sample produced 403 files with no partitioning or `OPTIMIZE`/`ZORDER` compaction. This is a known production anti-pattern and would require a compaction job at scale.
+- **Exactly-once gap:** `foreachBatch` provides at-least-once delivery — Kafka offsets are committed after the Delta write, but there is a narrow window between the offset commit and the Delta commit where a crash could replay an already-written batch. The Delta `MERGE INTO` keyed on `(agent_id, session_id, action_id)` prevents duplicate rows from landing in Bronze, but does not cover the Quarantine append path.
+
 
 ---
 
 ## License
 
-[LGPL-2.1](LICENSE)
+[MIT](LICENSE)

@@ -86,6 +86,7 @@ def _load_contract_thresholds() -> dict:
         max_event_age_hours   (int,   default 24)
         max_future_skew_mins  (int,   default 5)
         watermark_minutes     (int,   default 10)
+        allowed_tools         (list[str], from schema.fields[tool_name].allowed_values)
     """
     import re
 
@@ -94,6 +95,7 @@ def _load_contract_thresholds() -> dict:
         "max_event_age_hours": 24,
         "max_future_skew_mins": 5,
         "watermark_minutes": 10,
+        "allowed_tools": [],
     }
 
     contract_file = os.path.join(
@@ -105,6 +107,10 @@ def _load_contract_thresholds() -> dict:
 
     with open(contract_file, "r", encoding="utf-8") as fh:
         contract = yaml.safe_load(fh) or {}
+
+    for field in contract.get("schema", {}).get("fields", []):
+        if field.get("name") == "tool_name" and field.get("allowed_values"):
+            defaults["allowed_tools"] = list(field["allowed_values"])
 
     for rule in contract.get("semantic_rules", []):
         rule_text = rule.get("rule", "")
@@ -211,6 +217,7 @@ def process_batch(batch_df: DataFrame, batch_id: int):
     age_hours = _THRESHOLDS["max_event_age_hours"]
     skew_mins = _THRESHOLDS["max_future_skew_mins"]
     watermark_mins = _THRESHOLDS["watermark_minutes"]
+    allowed_tools = _THRESHOLDS["allowed_tools"]
 
     # 1. Parse JSON payload
     parsed_df = batch_df.select(
@@ -259,6 +266,17 @@ def process_batch(batch_df: DataFrame, batch_id: int):
                     F.when(
                         F.col("timestamp_ts") > (F.current_timestamp() + F.expr(f"INTERVAL {skew_mins} MINUTES")),
                         "freshness:future_timestamp",
+                    ),
+                    *(
+                        [
+                            F.when(
+                                F.col("tool_name").isNotNull()
+                                & ~F.col("tool_name").isin(allowed_tools),
+                                "semantic_rule:tool_not_allowed",
+                            )
+                        ]
+                        if allowed_tools
+                        else []
                     ),
                 ),
                 lambda error_message: error_message.isNotNull(),
