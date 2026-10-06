@@ -118,18 +118,18 @@ Run `python src/delta_guard/triage.py` (or `make triage`) to regenerate proposal
 
 Two paths. Pick one.
 
-### Path A — Streamlit demo (no Docker, no Spark)
+### Path A — Textual Terminal HUD (local Python execution)
 
 ```powershell
-py -3.11 -m venv .venv
+python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -r requirements-demo.txt
-streamlit run demo_app.py
+pip install -r requirements.txt
+python run_pipeline.py
 ```
 
-The interactive demo simulates the gateway's routing decisions with synthetic event replays. No Kafka or Spark cluster required.
+Runs the Producer, PySpark Streaming Gatekeeper, and live Textual Terminal HUD locally in a single terminal session.
 
-### Path B — Full streaming pipeline (Docker + Spark)
+### Path B — Full streaming pipeline (Docker Compose + Spark)
 
 ```powershell
 # Requires Docker Desktop and Java 11 or 17 (not 21+)
@@ -225,7 +225,6 @@ The deployment at `https://agentic-delta-guard.vercel.app` is an **interactive s
 | `src/delta_guard/sandbox_guard.py` | Mutation testing against Delta snapshots / shallow clones |
 | `src/delta_guard/hud.py` | Real-time Textual terminal dashboard |
 | `dbt_delta_guard/` | dbt models + DuckDB profiles; staging reads Bronze via `delta_scan` |
-| `demo_app.py` | Streamlit gateway simulation — no Docker or Spark required |
 | `tests/test_contract_validation.py` | Contract rule, parity, and triage unit tests |
 | `tests/test_chaos_infra.py` | Checkpoint-wipe, retry-burst, and late-event infrastructure tests |
 | `tests/test_delta_clone_utils.py` | Sandbox clone and idempotent merge tests |
