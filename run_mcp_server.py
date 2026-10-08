@@ -16,4 +16,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.delta_guard.mcp.server import mcp
 
 if __name__ == "__main__":
-    mcp.run()
+    try:
+        mcp.run()
+    except KeyboardInterrupt:
+        print("\n[OK] MCP server stopped cleanly.", file=sys.stderr)

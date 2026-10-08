@@ -23,26 +23,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[3]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-# MCP FastMCP import with fallback
-try:
-    from mcp.server.fastmcp import FastMCP
-except ImportError:
-    # Mock FastMCP for running/testing in lightweight environments without mcp
-    class FastMCP:  # type: ignore
-        def __init__(self, name: str, dependencies: Optional[List[str]] = None):
-            self.name = name
-            self.tools: Dict[str, Any] = {}
-
-        def tool(self, fn=None, **kwargs):
-            def decorator(func):
-                self.tools[func.__name__] = func
-                return func
-            return decorator if fn is None else decorator(fn)
-
-        def run(self, transport: str = "stdio"):
-            print(f"Running MCP server: {self.name} (Transport: {transport})")
-            print(f"Available tools: {list(self.tools.keys())}")
-            return self
+# MCP FastMCP import
+from mcp.server.fastmcp import FastMCP
 
 # Import Validator
 from src.delta_guard.mcp.validators.contract_validator import ContractValidator
@@ -241,16 +223,36 @@ def propose_contract_patch(
     validator.reload()
     current = dict(validator.contract)
 
-    triage_context: Optional[dict[str, Any]] = None
-    try:
-        from src.delta_guard.triage import LLMTriageEngine
-
-        triage_engine = LLMTriageEngine()
-        quarantine_records = triage_engine.load_quarantine_records()
-        clusters = triage_engine.cluster_error_signatures(quarantine_records)
-        triage_context = triage_engine.generate_llm_diagnosis(quarantine_records, clusters)
-    except Exception as exc:
-        triage_context = {"provider": "unavailable", "error": str(exc)}
+    # --- Why triage context is NOT embedded here ---
+    #
+    # Earlier versions of this tool called LLMTriageEngine() inline, which ran
+    # duckdb.connect() + delta_scan() inside the thread pool anyio uses to
+    # execute synchronous MCP tool handlers.  On Windows, DuckDB's C++ extension
+    # loader (delta extension) acquires Win32 CONDITION_VARIABLE/CRITICAL_SECTION
+    # objects that interact with asyncio's ProactorEventLoop IOCP while the loop
+    # is simultaneously waiting for the thread to yield.  The result is a
+    # circular wait: the thread can't return until the extension loads; the event
+    # loop won't process I/O completions until the thread returns.  The stdio
+    # writer coroutine therefore never drains the write_stream, the JSON-RPC
+    # response is never sent, and the client times out (confirmed: a pure
+    # time.sleep(2) probe over the same transport succeeds in ~2s, ruling out
+    # generic event-loop starvation).
+    #
+    # The fix is intentional separation of concerns:
+    #   1. propose_contract_patch  — fast write-path: auth, YAML diff, file write.
+    #   2. get_quarantine_summary  — caller queries this BEFORE promoting the proposal
+    #                               to understand current quarantine state.
+    #   3. run_health_check        — validates governance subsystems post-proposal.
+    #
+    # Wire-level regression test: tests/test_mcp_stdio.py::
+    #   test_stdio_call_tool_propose_contract_patch_with_valid_token
+    triage_context: Optional[dict[str, Any]] = {
+        "provider": "advisory",
+        "note": (
+            "Run 'get_quarantine_summary' or 'run_health_check' before promoting "
+            "this proposal to configs/agent_contract.yaml."
+        ),
+    }
 
     changes_applied = []
 
@@ -458,6 +460,8 @@ def main():
     """Main entrypoint to run the FastMCP server via stdio."""
     # If running with FastMCP
     mcp.run()
+
+
 
 
 if __name__ == "__main__":
