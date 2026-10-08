@@ -9,9 +9,24 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
+
+# ── HADOOP_HOME self-heal (Windows / PySpark) ─────────────────────────────
+_PROJECT_ROOT = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+_HADOOP_HOME = os.path.join(_PROJECT_ROOT, ".hadoop")
+if os.path.isdir(_HADOOP_HOME):
+    os.environ["HADOOP_HOME"] = _HADOOP_HOME
+    _hadoop_bin = os.path.join(_HADOOP_HOME, "bin")
+    os.environ["PATH"] = _hadoop_bin + os.pathsep + os.environ.get("PATH", "")
+if sys.platform == "win32":
+    os.environ["PYSPARK_PYTHON"] = sys.executable
+    os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
+# ─────────────────────────────────────────────────────────────────────────
 
 import pandas as pd
 import pyarrow as pa

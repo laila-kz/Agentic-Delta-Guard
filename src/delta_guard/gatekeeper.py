@@ -1,5 +1,5 @@
 """
-gatekeeper.py — Distributed PySpark Structured Streaming Gatekeeper.
+gatekeeper.py â€” Distributed PySpark Structured Streaming Gatekeeper.
 
 Enforces ODCS data contract rules on worker nodes natively via DataFrame column
 expressions. Zero Driver memory bottlenecks.
@@ -12,10 +12,10 @@ import tempfile
 import time
 import yaml
 
-# ── HADOOP_HOME self-heal (Windows / PySpark) ────────────────────────────────
+# â”€â”€ HADOOP_HOME self-heal (Windows / PySpark) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # On Windows PySpark needs winutils.exe + hadoop.dll.  We bundle them in
-# <project_root>/.hadoop/bin.  Override HADOOP_HOME here — before any PySpark
-# import — so the JVM always finds the *correct* path for THIS project, even
+# <project_root>/.hadoop/bin.  Override HADOOP_HOME here â€” before any PySpark
+# import â€” so the JVM always finds the *correct* path for THIS project, even
 # when a stale HADOOP_HOME from a different project is set in the environment.
 _PROJECT_ROOT = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,14 +24,14 @@ _HADOOP_HOME = os.path.join(_PROJECT_ROOT, ".hadoop")
 if os.path.isdir(_HADOOP_HOME):
     os.environ["HADOOP_HOME"] = _HADOOP_HOME
     _hadoop_bin = os.path.join(_HADOOP_HOME, "bin")
-    # Prepend to PATH so winutils.exe is found first
+    # Prepend hadoop bin to PATH so the JVM's DLL loader finds hadoop.dll
     os.environ["PATH"] = _hadoop_bin + os.pathsep + os.environ.get("PATH", "")
 if sys.platform == "win32":
     os.environ["PYSPARK_PYTHON"] = sys.executable
     os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-# ── Java Version Requirement ─────────────────────────────────────────────────
+# â”€â”€ Java Version Requirement â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # PySpark 3.5 requires Java 11 or Java 17. Java 21+ is NOT supported because
 # Hadoop's UserGroupInformation calls Subject.getSubject() which was removed.
 # Use run_gatekeeper.ps1 to launch with Java 17, or set JAVA_HOME manually:
@@ -48,9 +48,9 @@ from pyspark.sql.types import (
     StructType,
 )
 
-# Running on your HOST MACHINE (outside Docker) → use localhost:9092
-# Running INSIDE a Docker container             → use kafka:29092
-BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:29092")
+# Running on your HOST MACHINE (outside Docker) â†’ use localhost:9092
+# Running INSIDE a Docker container             â†’ use kafka:29092
+BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 TOPIC = "agent-events"
 CONTRACT_PATH = "configs/agent_contract.yaml"
 BRONZE_PATH = "data/bronze/agent_events"
@@ -77,7 +77,7 @@ def _load_contract_thresholds() -> dict:
     """
     Load cost and freshness thresholds from agent_contract.yaml.
 
-    This is the single source of truth for contract bounds — both the
+    This is the single source of truth for contract bounds â€” both the
     PySpark gatekeeper and the dbt tests (via sync_contract_to_dbt_vars.py)
     derive their limits from this file.
 
@@ -133,7 +133,7 @@ def _load_contract_thresholds() -> dict:
 # Load thresholds at module import time so they are consistent across batches
 _THRESHOLDS = _load_contract_thresholds()
 
-# ── Live status accumulator ───────────────────────────────────────────────────
+# â”€â”€ Live status accumulator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Written to status.json once per batch commit so the console can poll it.
 _STATUS: dict = {
     "bronze_count": 0,
@@ -149,14 +149,14 @@ _batch_times: list = []   # epoch timestamps of recent batch completions
 
 
 def _write_status() -> None:
-    """Atomically write _STATUS to status.json via tmp→rename."""
+    """Atomically write _STATUS to status.json via tmpâ†’rename."""
     _STATUS["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     # Throughput: batches completed in the last 60 s, normalised to events/s
     _batch_times.append(time.time())
     cutoff = time.time() - 60.0
     while _batch_times and _batch_times[0] < cutoff:
         _batch_times.pop(0)
-    # rough ev/s: average events per batch × batches per second
+    # rough ev/s: average events per batch Ã— batches per second
     total = _STATUS["bronze_count"] + _STATUS["quarantine_count"]
     batches_per_sec = len(_batch_times) / 60.0
     _STATUS["throughput_eps"] = round(
@@ -172,7 +172,7 @@ def _write_status() -> None:
     with open(tmp, "w", encoding="utf-8") as fh:
         json.dump(_STATUS, fh)
     os.replace(tmp, STATUS_PATH)
-# ─────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 from delta import configure_spark_with_delta_pip
@@ -181,11 +181,27 @@ from delta import configure_spark_with_delta_pip
 def build_spark() -> SparkSession:
     builder = (
         SparkSession.builder.appName("AgenticDeltaGuard-Gatekeeper")
+        .master("local[2]")
+        .config("spark.python.worker.reuse", "true")
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
         .config(
             "spark.sql.catalog.spark_catalog",
             "org.apache.spark.sql.delta.catalog.DeltaCatalog",
         )
+        # Pin session timezone to UTC so current_timestamp() matches the producer's
+        # timezone.utc timestamps.  Without this, on a non-UTC host the freshness
+        # window check compares UTC producer timestamps against local wall-time,
+        # falsely routing valid events to Quarantine as stale or future.
+        .config("spark.sql.session.timeZone", "UTC")
+        # Disable Hadoop NativeIO on Windows to avoid UnsatisfiedLinkError on
+        # NativeIO$Windows.access0 caused by JNI signature mismatch between the
+        # bundled hadoop-client-api-3.3.4.jar and the local hadoop.dll.
+        # With native IO disabled Spark falls back to pure-Java FileSystem APIs.
+        .config("spark.hadoop.io.nativeio.enabled", "false")
+        # Force the local filesystem to use the non-FileContext implementation
+        # so that AbstractFileContextBasedCheckpointFileManager is never invoked
+        # (it is the direct caller of NativeIO$Windows.access0).
+        .config("spark.hadoop.fs.file.impl", "org.apache.hadoop.fs.RawLocalFileSystem")
     )
     # Check if local pre-downloaded jars exist in /workspace/jars
     jars_dir = "/workspace/jars"
@@ -380,9 +396,13 @@ def main():
         .start()
     )
 
-    print("[gatekeeper] Distributed PySpark Gatekeeper running — press Ctrl+C to stop")
+    print("[gatekeeper] Distributed PySpark Gatekeeper running â€” press Ctrl+C to stop")
     query.awaitTermination()
 
 
 if __name__ == "__main__":
     main()
+
+
+
+

@@ -67,6 +67,7 @@ def main():
 
     # Step 3: dbt Run & Test
     dbt_dir = os.path.join(PROJECT_ROOT, "dbt_delta_guard")
+    subprocess.run(["dbt", "deps", "--profiles-dir", "."], cwd=dbt_dir, check=True)
     run_step(
         3, 5,
         "Running dbt Transformations and Data Quality Tests",

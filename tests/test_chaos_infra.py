@@ -312,17 +312,26 @@ class TestWatermarkLateEventHandling:
         )
 
 
-# ---------------------------------------------------------------------------
-# Test 3: Broker kill mid-stream (requires Docker Compose)
-# ---------------------------------------------------------------------------
+def _is_docker_kafka_running() -> bool:
+    if os.getenv("CHAOS_DOCKER_TESTS") == "0":
+        return False
+    try:
+        res = subprocess.run(
+            ["docker", "compose", "ps", "--services", "--filter", "status=running"],
+            cwd=str(PROJECT_ROOT),
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        return res.returncode == 0 and "kafka" in res.stdout.lower()
+    except Exception:
+        return False
+
 
 @pytest.mark.requires_docker
 @pytest.mark.skipif(
-    not os.getenv("CHAOS_DOCKER_TESTS"),
-    reason=(
-        "Broker-kill test requires Docker Compose and CHAOS_DOCKER_TESTS=1. "
-        "Run manually: CHAOS_DOCKER_TESTS=1 pytest tests/test_chaos_infra.py::TestBrokerKill -v"
-    ),
+    not _is_docker_kafka_running(),
+    reason="Broker-kill test requires a running Docker Compose cluster with Kafka.",
 )
 class TestBrokerKill:
     """
