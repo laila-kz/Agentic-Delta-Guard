@@ -42,6 +42,8 @@ class LLMTriageEngine:
 
     def load_quarantine_records(self) -> pd.DataFrame:
         """Load quarantine records through DuckDB Delta or Parquet readers."""
+        if not self.quarantine_path.exists():
+            return pd.DataFrame()
         path = str(self.quarantine_path).replace("'", "''")
         connection = duckdb.connect()
         try:
@@ -53,9 +55,12 @@ class LLMTriageEngine:
                 parquet_path = str(self.quarantine_path / "**" / "*.parquet").replace(
                     "'", "''"
                 )
-                return connection.execute(
-                    f"select * from read_parquet('{parquet_path}')"
-                ).df()
+                try:
+                    return connection.execute(
+                        f"select * from read_parquet('{parquet_path}')"
+                    ).df()
+                except Exception:
+                    return pd.DataFrame()
         finally:
             connection.close()
 
@@ -116,8 +121,8 @@ class LLMTriageEngine:
         }
         observed_fields = set(frame.columns) - {"error_summary", "quarantined_at", "errors"}
         schema_drift = {
-            "missing_fields": sorted(schema_fields - observed_fields),
-            "unexpected_fields": sorted(observed_fields - schema_fields),
+            "missing_fields": sorted(list(schema_fields - observed_fields)) if not frame.empty else [],
+            "unexpected_fields": sorted(list(observed_fields - schema_fields)) if not frame.empty else [],
         }
 
         # Check existing active semantic rules
