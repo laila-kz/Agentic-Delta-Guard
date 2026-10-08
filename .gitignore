@@ -70,7 +70,8 @@ data/gold/
 .hadoop/bin/stub.c
 hadoop_patch.c
 hadoop_patch2.c
-
+.hadoop/bin/hadoop.dll
+.hadoop/bin/winutils.exe
 
 scratch/
 check_counts.py
