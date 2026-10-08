@@ -10,6 +10,19 @@
 
 ---
 
+## Live Demo State
+
+The HUD below is from a sustained run of the Docker Compose stack:
+
+![Real-Time Terminal HUD](docs/screenshots/hud_interface.png)
+
+- Bronze (validated): &lt;BRONZE_ROWS&gt; rows
+- Quarantine (rejected): &lt;QUARANTINE_ROWS&gt; rows
+- Quarantine rate: &lt;RATE&gt;% (the synthetic producer injects ~15% poison records)
+- Pipeline: single Kafka broker, PySpark Structured Streaming micro-batches
+
+---
+
 ## Architecture
 
 ```mermaid
@@ -143,19 +156,52 @@ docker compose down     # stop all services
 
 ---
 
+## Real Agent Instrumentation (LangChain)
+
+Instead of using the synthetic `producer.py` event generator, you can instrument any LangChain agent directly using the [`LangChainEventCallback`](src/delta_guard/langchain_adapter.py) adapter. The adapter hooks into LangChain's callback system (`on_tool_start`, `on_tool_end`, `on_tool_error`, `on_llm_end`, `on_agent_finish`) and translates real agent execution events into canonical 9-field Agentic Delta Guard contract events, publishing them asynchronously to the same Kafka topic the PySpark gatekeeper consumes.
+
+```python
+from src.delta_guard.langchain_adapter import create_langchain_producer
+
+callback = create_langchain_producer(
+    agent_id="langchain_agent_001",
+    tool_name_mapping={
+        "web_search": "web_scraper",      # mapped -> Bronze
+        "sql": "sql_query_executor",       # mapped -> Bronze
+        # "calculator" not mapped -> Quarantine (semantic_rule:tool_not_allowed)
+    },
+)
+
+# Attach to any LangChain chain, AgentExecutor, or LLM
+chain.invoke({"input": "Research quantum computing"}, config={"callbacks": [callback]})
+```
+
+Run the no-API-key demo locally:
+
+```powershell
+pip install -r requirements-dev.txt    # adds langchain-core
+.\.venv\Scripts\python.exe examples/langchain_demo.py
+```
+
+> **Note:** This adapter publishes real LangChain callback events — tool calls, LLM completions, errors — to the same Kafka topic the gatekeeper consumes. The synthetic `producer.py` remains for load testing; this adapter is for demonstrating contract enforcement against real agent behaviour. See [`examples/langchain_demo.py`](examples/langchain_demo.py) for a complete runnable example and [`src/delta_guard/langchain_adapter.py`](src/delta_guard/langchain_adapter.py) for the full implementation.
+
+---
+
 ## Benchmarks
 
 Measured using [`src/delta_guard/benchmark.py`](src/delta_guard/benchmark.py) (median across 5 runs of 100,000 events + 1 discarded warmup run). Full report: [`docs/reports/storage_benchmark.md`](docs/reports/storage_benchmark.md).
 
 | Metric | Measured Value | Scope & Test Environment |
 | :--- | ---: | :--- |
-| **Validation Throughput** | **47,820.88 ev/s** | Single-core Python in-process validation logic (`_validate_event`, 100k events/run, 5 runs + 1 warmup, no Kafka / Spark I/O overhead) |
+| **Validation Throughput** | **28,427.92 ev/s** | Single-core Python in-process validation logic (`_validate_event`, 100k events/run, 5 runs + 1 warmup, no Kafka / Spark I/O overhead) |
 | **P50 Latency** | 0.0040 ms | Per-event contract validation latency (median) |
 | **P95 Latency** | 0.0071 ms | Per-event contract validation latency (median) |
 | **P99 Latency** | 0.0095 ms | Per-event contract validation latency (median) |
 | **Poison Quarantine Rate** | 14.9% | Correctly routed to Quarantine (target: ~15% injected synthetic anomalies) |
 
 *Environment:* Intel64 Family 6 Model 166 (x86_64), Windows 10/11, Python 3.11.9, 100,000-event workload per run.
+
+*Throughput varies with machine load (observed range: 13.9k–48.2k ev/s across 5 runs on a shared developer machine). The README reports the median of the most recent full run.*
 
 > **Benchmark Scope Note:** `benchmark.py` measures in-process Python validation logic (`_validate_event`), whereas `gatekeeper.py` executes native Spark Catalyst column expressions in the JVM. Parity between the two implementations is verified via `tests/test_contract_validation.py::test_benchmark_validation_parity`. Real end-to-end streaming throughput across Kafka $\rightarrow$ PySpark micro-batches $\rightarrow$ Delta disk commits will be lower due to network serialization, Spark task scheduling, and filesystem I/O.
 
@@ -228,7 +274,9 @@ The deployment at `https://agentic-delta-guard.vercel.app` is an **interactive s
 | `tests/test_contract_validation.py` | Contract rule, parity, and triage unit tests |
 | `tests/test_chaos_infra.py` | Checkpoint-wipe, retry-burst, and late-event infrastructure tests |
 | `tests/test_delta_clone_utils.py` | Sandbox clone and idempotent merge tests |
-| `tests/test_mcp_server.py` | MCP contract-proposal endpoint tests |
+| `tests/test_mcp_server.py` | MCP contract-proposal endpoint tests (handler-level) |
+| `tests/test_mcp_stdio.py` | Wire-level stdio integration tests — spawns server subprocess, communicates over real JSON-RPC |
+| `tests/test_langchain_adapter.py` | LangChain callback adapter unit tests |
 | `docs/CLAIMS.md` | Verification matrix mapping all claims to source files and tests |
 | `docs/reports/` | Auto-generated benchmark, quality, and triage audit reports |
 
@@ -244,14 +292,11 @@ python -m pytest tests/ -v --tb=short
 
 ### Skipped tests
 
-The test suite collects **40 test cases** — 38 passed, 2 skipped, 0 deselected on a
-Windows host (`.venv\Scripts\python.exe -m pytest tests/ -q`, verified 2026-09-29).
-Linux CI reproduces the new counts — 38 passed, 2 skipped — confirmed by run
-[`36576348615`](https://github.com/laila-kz/Agentic-Delta-Guard/actions/runs/36576348615)
-(PR #2, head `50d9d91`), where `test_gatekeeper_process_batch_quarantines_unauthorized_tool`
-reports `PASSED`. The prior 37/2 baseline is run
-[`36497648770`](https://github.com/laila-kz/Agentic-Delta-Guard/actions/runs/36497648770)
-(PR #1, head `efa5eb1`). Both skipped tests below are env-gated and skip on Linux CI as well:
+The test suite collects **52 test cases** — 50 passed, 2 skipped, 0 deselected on a
+Windows host (`.venv\Scripts\python.exe -m pytest tests/ -q`, verified 2026-10-06).
+This includes 4 wire-level MCP stdio integration tests (`tests/test_mcp_stdio.py`) and
+8 LangChain adapter tests (`tests/test_langchain_adapter.py`) added during the session.
+Both skipped tests below are env-gated and skip on Linux CI as well:
 
 | Test | Module | Marker | Reason for Skip | How to Enable |
 | :--- | :--- | :--- | :--- | :--- |
