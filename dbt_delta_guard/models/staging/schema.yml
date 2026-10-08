@@ -6,28 +6,28 @@ models:
     columns:
       - name: agent_id
         description: "Unique identifier for the AI agent."
-        tests:
+        data_tests:
           - not_null
 
       - name: session_id
         description: "Identifier for the agent session."
-        tests:
+        data_tests:
           - not_null
 
       - name: action_id
         description: "Identifier for the tool execution action."
-        tests:
+        data_tests:
           - not_null
           - unique
 
       - name: timestamp
         description: "Timestamp when the tool execution occurred."
-        tests:
+        data_tests:
           - not_null
 
       - name: tool_name
         description: "Name of the tool executed by the agent."
-        tests:
+        data_tests:
           - not_null
           - accepted_values:
               values:
@@ -38,12 +38,12 @@ models:
 
       - name: execution_time_ms
         description: "Tool execution duration in milliseconds."
-        tests:
+        data_tests:
           - not_null
 
       - name: cost_usd
         description: "Execution cost in US dollars."
-        tests:
+        data_tests:
           - not_null
           - dbt_utils.accepted_range:
               min_value: 0.0
@@ -51,7 +51,7 @@ models:
 
       - name: status
         description: "Execution status of the tool invocation."
-        tests:
+        data_tests:
           - not_null
 
       - name: query
@@ -62,5 +62,5 @@ models:
 
       - name: extracted_at
         description: "Ingestion timestamp."
-        tests:
+        data_tests:
           - not_null

@@ -5,14 +5,14 @@ models:
     description: "Agent activity events enriched with latency, cost, and success classifications."
     columns:
       - name: action_id
-        tests:
+        data_tests:
           - not_null
           - unique
       - name: agent_id
-        tests:
+        data_tests:
           - not_null
       - name: cost_tier
-        tests:
+        data_tests:
           - accepted_values:
               values:
                 - "FREE"
@@ -20,7 +20,7 @@ models:
                 - "MEDIUM_COST ($0.01-$0.10)"
                 - "HIGH_COST (>=$0.10)"
       - name: latency_tier
-        tests:
+        data_tests:
           - accepted_values:
               values:
                 - "FAST (<100ms)"
@@ -31,14 +31,14 @@ models:
     description: "Tool-level execution, cost, latency, and success metrics."
     columns:
       - name: tool_name
-        tests:
+        data_tests:
           - not_null
           - unique
       - name: total_invocations
-        tests:
+        data_tests:
           - not_null
       - name: success_rate_pct
-        tests:
+        data_tests:
           - not_null
           - dbt_utils.accepted_range:
               min_value: 0
