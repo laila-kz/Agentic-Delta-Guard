@@ -75,3 +75,5 @@ hadoop_patch2.c
 
 scratch/
 check_counts.py
+
+Project_summary.md

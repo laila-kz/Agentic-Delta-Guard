@@ -9,6 +9,7 @@ Emits realistic agent tool calls (LangGraph / MCP server events) with
   4. cost_anomaly      -> cost_usd exceeds plausible boundary ($850.0)
 """
 import json
+import os
 import random
 import time
 import uuid
@@ -19,9 +20,9 @@ from kafka import KafkaProducer
 
 fake = Faker()
 
-# Running on your HOST MACHINE (outside Docker) → use localhost:9092
-# Running INSIDE a Docker container             → use kafka:29092
-BOOTSTRAP_SERVERS = "localhost:9092"
+# Running on your HOST MACHINE (outside Docker) → set KAFKA_BOOTSTRAP_SERVERS=localhost:9092 (default)
+# Running INSIDE a Docker container             → set KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 TOPIC = "agent-events"
 KNOWN_AGENTS = [f"agent_{i:03d}" for i in range(1, 21)]
 TOOL_NAMES = ["sql_query_executor", "vector_search", "web_scraper", "db_writer"]
