@@ -181,6 +181,7 @@ class LangChainEventCallback(BaseCallbackHandler):
         strict: bool = True,
         cost_per_token: float = COST_PER_TOKEN,
         max_tool_args_length: int = MAX_TOOL_ARGS_LENGTH,
+        session_id: Optional[str] = None,
     ) -> None:
         super().__init__()
         self.agent_id = agent_id
@@ -189,7 +190,8 @@ class LangChainEventCallback(BaseCallbackHandler):
         self.strict = strict
         self.cost_per_token = cost_per_token
         self.max_tool_args_length = max_tool_args_length
-        self._session_id: Optional[str] = None
+        self._explicit_session_id = session_id
+        self._session_id: Optional[str] = session_id
         self._tool_start_times: Dict[str, float] = {}
         self._tool_names: Dict[str, str] = {}
         self._tool_args: Dict[str, str] = {}
@@ -205,8 +207,12 @@ class LangChainEventCallback(BaseCallbackHandler):
         metadata: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> None:
-        if self._session_id is None:
-            self._session_id = str(uuid.uuid4())
+        if metadata and "session_id" in metadata:
+            self._session_id = str(metadata["session_id"])
+        elif isinstance(inputs, dict) and "session_id" in inputs:
+            self._session_id = str(inputs["session_id"])
+        elif self._session_id is None:
+            self._session_id = str(run_id) if parent_run_id is None else str(uuid.uuid4())
 
     def on_chain_end(
         self,
@@ -217,7 +223,7 @@ class LangChainEventCallback(BaseCallbackHandler):
         **kwargs: Any,
     ) -> None:
         if parent_run_id is None:
-            self._session_id = None
+            self._session_id = self._explicit_session_id
 
     def on_tool_start(
         self,
@@ -399,6 +405,7 @@ def create_langchain_producer(
     cost_per_token: float = COST_PER_TOKEN,
     max_tool_args_length: int = MAX_TOOL_ARGS_LENGTH,
     queue_maxsize: int = _BACKGROUND_QUEUE_MAXSIZE,
+    session_id: Optional[str] = None,
 ) -> LangChainEventCallback:
     """Factory: returns a configured LangChainEventCallback with a running Kafka publisher."""
     kafka_producer = LangChainKafkaProducer(
@@ -413,4 +420,5 @@ def create_langchain_producer(
         strict=strict,
         cost_per_token=cost_per_token,
         max_tool_args_length=max_tool_args_length,
+        session_id=session_id,
     )

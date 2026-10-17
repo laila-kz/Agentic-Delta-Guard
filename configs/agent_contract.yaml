@@ -28,6 +28,12 @@ schema:
     - name: cost_usd
       type: double
       nullable: false
+    - name: status
+      type: string
+      nullable: false
+    - name: tool_args
+      type: string
+      nullable: true
 
 semantic_rules:
   - id: cost_non_negative

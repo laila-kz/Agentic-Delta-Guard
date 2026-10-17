@@ -57,6 +57,7 @@ def _make_callback(
     tool_name_mapping: Optional[Dict[str, str]] = None,
     strict: bool = True,
     agent_id: str = "test_agent",
+    session_id: Optional[str] = None,
 ) -> tuple[LangChainEventCallback, _FakeKafkaProducer]:
     fake_producer = _FakeKafkaProducer()
     callback = LangChainEventCallback(
@@ -64,6 +65,7 @@ def _make_callback(
         kafka_producer=fake_producer,
         tool_name_mapping=tool_name_mapping,
         strict=strict,
+        session_id=session_id,
     )
     return callback, fake_producer
 
@@ -274,6 +276,35 @@ def test_adapter_is_base_callback_handler_subclass():
     """LangChainEventCallback is a subclass of BaseCallbackHandler."""
     callback, _ = _make_callback()
     assert isinstance(callback, BaseCallbackHandler)
+
+
+def test_session_id_explicit_and_metadata_propagation():
+    """Explicit session_id and metadata['session_id'] propagate deterministically."""
+    callback, fake_producer = _make_callback(
+        tool_name_mapping={"dummy": "web_scraper"},
+        session_id="explicit_session_123",
+    )
+
+    @tool
+    def dummy(q: str) -> str:
+        """Dummy docstring."""
+        return "ok"
+
+    dummy.invoke({"q": "test"}, config={"callbacks": [callback]})
+    assert len(fake_producer.events_sent) == 1
+    assert fake_producer.events_sent[0]["session_id"] == "explicit_session_123"
+
+    # Also test chain metadata propagation
+    callback2, fake_producer2 = _make_callback(
+        tool_name_mapping={"dummy": "web_scraper"},
+    )
+    chain = RunnableLambda(lambda inp: dummy.invoke({"q": "test"}, config=inp.get("config")))
+    chain.invoke(
+        {"config": {"callbacks": [callback2]}},
+        config={"callbacks": [callback2], "metadata": {"session_id": "meta_sess_456"}},
+    )
+    assert len(fake_producer2.events_sent) == 1
+    assert fake_producer2.events_sent[0]["session_id"] == "meta_sess_456"
 
 
 if __name__ == "__main__":

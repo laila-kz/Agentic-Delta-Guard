@@ -56,7 +56,8 @@ def benchmark_llm_triage(incident_count: int = 10) -> dict:
     # Generate mock quarantine frame for clustering & triage
     mock_data = pd.DataFrame([
         {
-            "event_id": f"evt-{i}",
+            "action_id": f"act-{i}",
+            "session_id": f"sess-{i // 5}",
             "agent_id": f"agent_{i % 3}",
             "tool_name": "database_writer",
             "error_summary": "SCHEMA_VIOLATION: missing required field 'event_type'" if i % 2 == 0 else "COST_LIMIT_EXCEEDED: cost_usd > 50.0",
