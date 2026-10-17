@@ -146,3 +146,14 @@ def test_mcp_run_health_check_tool():
     response = json.loads(run_health_check())
     assert response["status"] in ["healthy", "degraded"]
     assert response["passed"] >= 2
+
+
+def test_mcp_sql_injection_defense():
+    """SQL injection payloads in agent_id parameter execute safely without syntax errors."""
+    malicious_agent_id = "test' OR '1'='1"
+    q_resp = json.loads(get_quarantine_summary(limit=5, agent_id=malicious_agent_id))
+    assert q_resp["status"] in ["clean", "quarantine_active"]
+
+    b_resp = json.loads(inspect_bronze_lakehouse(limit=5, agent_id=malicious_agent_id))
+    assert b_resp["status"] in ["online", "empty"]
+

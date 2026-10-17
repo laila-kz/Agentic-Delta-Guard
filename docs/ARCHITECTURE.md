@@ -446,17 +446,23 @@ The documentation that described it as "zero-copy" was inaccurate for the DuckDB
 
 ---
 
-## Edge Cases
+## Edge Cases & State Mutation Policy
 
 | Edge Case | Handling | Status |
 | --- | --- | --- |
 | Duplicate events within a micro-batch | `dropDuplicates(["agent_id","session_id","action_id"])` inside watermark window | ✅ Implemented |
 | Late / out-of-order events within 10-min watermark | Processed normally via `withWatermark("event_timestamp","10 minutes")` | ✅ Implemented |
-| Late events beyond 10-min watermark | Dropped by Spark state management — not merged as new rows | ✅ Implemented |
-| Duplicate events across micro-batches (long-term) | `MERGE INTO` on Bronze by `(agent_id, session_id, action_id)` | ✅ Implemented |
-| Malformed JSON from Kafka | `from_json` produces null struct fields; null `agent_id`/`session_id`/`action_id` routes to quarantine | ✅ Implemented |
+| Late events beyond 10-min watermark | Dropped by Spark state management — not merged as new rows (zero-loss guarantee explicitly excludes out-of-watermark events) | ✅ Implemented |
+| Duplicate events across micro-batches (long-term) | `MERGE INTO` on Bronze by `(agent_id, session_id, action_id)` with `whenNotMatchedInsertAll()` | ✅ Implemented |
+| State mutation replay (`FAILED → SUCCESS`) | **First-Write-Wins (Option A: True Idempotency)**: If an action key `(agent_id, session_id, action_id)` already exists in Bronze, re-emitted mutations are ignored to preserve historical immutability | ✅ Documented Decision |
+| Malformed / truncated JSON from Kafka | Preserves raw unparseable string in `quarantine.raw_payload` with Kafka topic/partition/offset and tags `parse_error:invalid_json` | ✅ Implemented |
 | Kafka broker restart mid-stream | Checkpoint recovery replays from last committed offset | ✅ Checkpoint-based |
 | Checkpoint deletion | Gatekeeper replays from `earliest`; idempotent MERGE INTO prevents duplicates on Bronze | ✅ Idempotent |
 | Stale / future timestamps | Caught by freshness rules sourced from `agent_contract.yaml` | ✅ Implemented |
 | Cost out of bounds | Caught by bounds rule sourced from `agent_contract.yaml` | ✅ Implemented |
 | No exactly-once guarantee | Crash between Kafka offset commit and Delta commit is not separately tested; MERGE INTO makes Delta write idempotent on retry but the gap exists | ⚠️ Known limitation |
+
+### State Mutation Policy (`FAILED → SUCCESS`)
+The Gatekeeper implements **First-Write-Wins (True Idempotency)** via Delta Lake `MERGE INTO ... WHEN NOT MATCHED INSERT *`. 
+If an agent retries an action under the exact same `action_id` after previously emitting a `FAILED` record that was committed to Bronze, the subsequent `SUCCESS` event will **not** overwrite the existing record. 
+In agent workflows, retries should issue a distinct `action_id` linked by a shared `session_id` or `trace_id` rather than mutating historical action states in-place.

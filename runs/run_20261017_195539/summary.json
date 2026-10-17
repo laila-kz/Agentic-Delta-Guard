@@ -1,0 +1,12 @@
+{
+  "run_id": "run_20261017_195539",
+  "timestamp": "2026-10-17T19:55:39.634013+00:00",
+  "scenario": "B1",
+  "total_tasks": 5,
+  "total_events_emitted": 5,
+  "events_dropped": 0,
+  "elapsed_seconds": 0.48,
+  "throughput_eps": 10.48,
+  "trace_file": "C:\\Users\\kheza\\Desktop\\Data_Engineering\\Agentic-Delta-Guard\\runs\\run_20261017_195539\\agent_trace.jsonl",
+  "manifest_file": "C:\\Users\\kheza\\Desktop\\Data_Engineering\\Agentic-Delta-Guard\\runs\\run_20261017_195539\\manifest.jsonl"
+}

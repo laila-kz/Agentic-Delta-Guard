@@ -5,11 +5,10 @@ Translates LangChain agent lifecycle events (tool calls, LLM completions,
 errors) into canonical 9-field Agentic Delta Guard events and publishes them
 asynchronously to the Kafka topic the PySpark gatekeeper consumes.
 
-COST MAPPING DISCLAIMER:
-    LangChain does not provide cost_usd natively. This adapter uses a
-    configurable token-to-cost conversion (default: $0.00001 per token).
-    This is a DEMONSTRATION approximation, not production billing.
-    For real cost attribution, integrate a provider-specific pricing table.
+COST MAPPING:
+    Model-specific token pricing is loaded from configs/model_pricing.yaml.
+    If usage metadata is absent or the model is unknown, it falls back to
+    the configurable token rate (default: $0.00001 per token).
 
 WIRE FORMAT COMPATIBILITY:
     Events are emitted as JSON-serialized dicts with exactly the nine contract
@@ -38,14 +37,17 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import queue
 import threading
 import time
 import uuid
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
+import yaml
 from langchain_core.callbacks import BaseCallbackHandler
 
 logger = logging.getLogger(__name__)
@@ -62,6 +64,59 @@ MAX_TOOL_ARGS_LENGTH: int = 2000
 KAFKA_TOPIC: str = "agent-events"
 KAFKA_BOOTSTRAP_SERVERS: str = "localhost:9092"
 _BACKGROUND_QUEUE_MAXSIZE: int = 1000
+
+# Path to model pricing configuration
+_PRICING_CONFIG_PATH = Path(__file__).resolve().parents[2] / "configs" / "model_pricing.yaml"
+
+
+def _load_model_pricing() -> Dict[str, Any]:
+    """Load token pricing table from configs/model_pricing.yaml with safe defaults."""
+    defaults = {
+        "models": {
+            "default": {"fallback_per_token": COST_PER_TOKEN}
+        }
+    }
+    if not _PRICING_CONFIG_PATH.exists():
+        return defaults
+    try:
+        with open(_PRICING_CONFIG_PATH, "r", encoding="utf-8") as fh:
+            data = yaml.safe_load(fh)
+            return data if isinstance(data, dict) else defaults
+    except Exception as exc:
+        logger.warning("Failed to load model pricing config (%s), using defaults", exc)
+        return defaults
+
+
+_MODEL_PRICING_TABLE = _load_model_pricing()
+
+
+def _calculate_model_cost(
+    model_name: str,
+    prompt_tokens: int,
+    completion_tokens: int,
+    total_tokens: int,
+    fallback_rate: float = COST_PER_TOKEN,
+) -> float:
+    """Calculate USD cost based on per-model input/output pricing per 1M tokens."""
+    models_dict = _MODEL_PRICING_TABLE.get("models", {})
+    # Match model name or prefix (e.g. gpt-4o-2024-08-06 matches gpt-4o)
+    matched_pricing = None
+    clean_name = (model_name or "").lower().strip()
+    for m_key, m_pricing in models_dict.items():
+        if m_key != "default" and (m_key in clean_name or clean_name.startswith(m_key)):
+            matched_pricing = m_pricing
+            break
+
+    if matched_pricing and ("input_per_million" in matched_pricing or "output_per_million" in matched_pricing):
+        input_rate = float(matched_pricing.get("input_per_million", 0.0)) / 1_000_000.0
+        output_rate = float(matched_pricing.get("output_per_million", 0.0)) / 1_000_000.0
+        calculated = (prompt_tokens * input_rate) + (completion_tokens * output_rate)
+        return round(min(calculated, 50.0), 6)
+
+    # Fallback to per-token pricing
+    per_token_rate = models_dict.get("default", {}).get("fallback_per_token", fallback_rate)
+    count = total_tokens if total_tokens > 0 else (prompt_tokens + completion_tokens)
+    return round(min(count * per_token_rate, 50.0), 6)
 
 
 def _now_iso() -> str:
@@ -97,7 +152,7 @@ def _build_event(
 
 
 class LangChainKafkaProducer:
-    """Non-blocking async Kafka publisher for LangChain adapter events."""
+    """Non-blocking async Kafka publisher for LangChain adapter events with drop metrics."""
 
     def __init__(
         self,
@@ -109,14 +164,34 @@ class LangChainKafkaProducer:
         self.topic = topic
         self._queue: queue.Queue[Optional[Dict[str, Any]]] = queue.Queue(maxsize=queue_maxsize)
         self._producer: Any = None
+        self._dropped_events_count: int = 0
+        self._sent_events_count: int = 0
+        self._lock = threading.Lock()
         self._thread = threading.Thread(target=self._drain_loop, daemon=True)
         self._thread.start()
+
+    @property
+    def dropped_count(self) -> int:
+        with self._lock:
+            return self._dropped_events_count
+
+    @property
+    def sent_count(self) -> int:
+        with self._lock:
+            return self._sent_events_count
 
     def send(self, event: Dict[str, Any]) -> None:
         try:
             self._queue.put_nowait(event)
+            with self._lock:
+                self._sent_events_count += 1
         except queue.Full:
-            logger.debug("LangChainKafkaProducer: queue full, event dropped")
+            with self._lock:
+                self._dropped_events_count += 1
+            logger.warning(
+                "LangChainKafkaProducer: queue full, event dropped. Total dropped=%d",
+                self._dropped_events_count,
+            )
 
     def flush(self, timeout: float = 5.0) -> None:
         try:
@@ -126,13 +201,22 @@ class LangChainKafkaProducer:
 
     def close(self) -> None:
         self.flush()
-        self._queue.put_nowait(None)
+        try:
+            self._queue.put_nowait(None)
+        except queue.Full:
+            pass
         self._thread.join(timeout=5.0)
         if self._producer is not None:
             try:
                 self._producer.close()
             except Exception:
                 pass
+        with self._lock:
+            logger.info(
+                "LangChainKafkaProducer closed. Total sent: %d, Total dropped: %d",
+                self._sent_events_count,
+                self._dropped_events_count,
+            )
 
     def _get_producer(self) -> Any:
         if self._producer is not None:
@@ -141,7 +225,7 @@ class LangChainKafkaProducer:
             from kafka import KafkaProducer  # type: ignore[import]
             self._producer = KafkaProducer(
                 bootstrap_servers=self.bootstrap_servers,
-                value_serializer=lambda v: json.dumps(v).encode("utf-8"),
+                value_serializer=lambda v: v.encode("utf-8") if isinstance(v, str) else json.dumps(v).encode("utf-8"),
                 key_serializer=lambda k: k.encode("utf-8") if k else None,
             )
             logger.info("LangChainKafkaProducer connected to %s", self.bootstrap_servers)
@@ -160,7 +244,8 @@ class LangChainKafkaProducer:
                 producer = self._get_producer()
                 if producer is not None:
                     try:
-                        producer.send(self.topic, key=item.get("agent_id", "unknown"), value=item)
+                        agent_id = item.get("agent_id", "unknown") if isinstance(item, dict) else "unknown"
+                        producer.send(self.topic, key=agent_id, value=item)
                     except Exception as exc:
                         logger.warning("Kafka send failed: %s", exc)
                 self._queue.task_done()
@@ -195,6 +280,10 @@ class LangChainEventCallback(BaseCallbackHandler):
         self._tool_start_times: Dict[str, float] = {}
         self._tool_names: Dict[str, str] = {}
         self._tool_args: Dict[str, str] = {}
+
+    @property
+    def dropped_events_count(self) -> int:
+        return getattr(self._producer, "dropped_count", 0)
 
     def on_chain_start(
         self,
@@ -324,22 +413,56 @@ class LangChainEventCallback(BaseCallbackHandler):
         **kwargs: Any,
     ) -> None:
         total_tokens = 0
-        try:
-            usage = getattr(response, "llm_output", {}) or {}
-            if isinstance(usage, dict):
-                token_usage = usage.get("token_usage") or usage.get("usage") or {}
-                if isinstance(token_usage, dict):
-                    total_tokens = int(
-                        token_usage.get("total_tokens", 0)
-                        or token_usage.get("input_tokens", 0) + token_usage.get("output_tokens", 0)
-                    )
-        except Exception:
-            pass
+        prompt_tokens = 0
+        completion_tokens = 0
+        model_name = ""
 
-        if total_tokens > 0:
-            cost_usd = min(total_tokens * self.cost_per_token, 50.0)
+        try:
+            # 1. Extract model name
+            llm_output = getattr(response, "llm_output", {}) or {}
+            if isinstance(llm_output, dict):
+                model_name = (
+                    llm_output.get("model_name")
+                    or llm_output.get("model")
+                    or kwargs.get("name", "")
+                )
+                token_usage = llm_output.get("token_usage") or llm_output.get("usage") or {}
+                if isinstance(token_usage, dict):
+                    prompt_tokens = int(token_usage.get("prompt_tokens", 0) or token_usage.get("input_tokens", 0))
+                    completion_tokens = int(token_usage.get("completion_tokens", 0) or token_usage.get("output_tokens", 0))
+                    total_tokens = int(token_usage.get("total_tokens", 0) or (prompt_tokens + completion_tokens))
+
+            # 2. Extract standard usage_metadata on modern LangChain messages/generations
+            if not total_tokens and hasattr(response, "generations") and response.generations:
+                for gen_list in response.generations:
+                    for gen in gen_list:
+                        msg = getattr(gen, "message", None)
+                        if msg and hasattr(msg, "usage_metadata") and msg.usage_metadata:
+                            u = msg.usage_metadata
+                            prompt_tokens = int(u.get("input_tokens", 0))
+                            completion_tokens = int(u.get("output_tokens", 0))
+                            total_tokens = int(u.get("total_tokens", 0) or (prompt_tokens + completion_tokens))
+                        if not model_name and hasattr(gen, "generation_info") and gen.generation_info:
+                            model_name = gen.generation_info.get("model_name", "")
+        except Exception as exc:
+            logger.debug("Failed parsing LLM token usage metadata: %s", exc)
+
+        if total_tokens > 0 or prompt_tokens > 0 or completion_tokens > 0:
+            cost_usd = _calculate_model_cost(
+                model_name=model_name,
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+                total_tokens=total_tokens,
+                fallback_rate=self.cost_per_token,
+            )
             session_id = self._ensure_session_id()
-            tool_args_str = _truncate(json.dumps({"total_tokens": total_tokens}), self.max_tool_args_length)
+            meta_args = {
+                "model": model_name or "unknown",
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "total_tokens": total_tokens or (prompt_tokens + completion_tokens),
+            }
+            tool_args_str = _truncate(json.dumps(meta_args), self.max_tool_args_length)
             event = _build_event(
                 agent_id=self.agent_id,
                 session_id=session_id,

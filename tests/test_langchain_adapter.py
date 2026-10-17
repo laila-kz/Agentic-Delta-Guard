@@ -26,6 +26,7 @@ from delta_guard.langchain_adapter import (
     CONTRACT_ALLOWED_TOOLS,
     LangChainEventCallback,
     LangChainKafkaProducer,
+    _calculate_model_cost,
 )
 from delta_guard.benchmark import _validate_event
 
@@ -305,6 +306,66 @@ def test_session_id_explicit_and_metadata_propagation():
     )
     assert len(fake_producer2.events_sent) == 1
     assert fake_producer2.events_sent[0]["session_id"] == "meta_sess_456"
+
+
+# ---------------------------------------------------------------------------
+# Test 10: Producer queue drop counter tracks backpressure
+# ---------------------------------------------------------------------------
+
+def test_producer_queue_drop_counter():
+    """Producer records dropped events when queue fills up."""
+    producer = LangChainKafkaProducer(queue_maxsize=2)
+    # Patch _get_producer to avoid real Kafka attempts during unit test
+    producer._get_producer = lambda: None
+
+    for i in range(10):
+        producer.send({"agent_id": "test", "event_num": i})
+
+    assert producer.sent_count + producer.dropped_count == 10
+    assert producer.dropped_count > 0, "Expected events to be dropped with maxsize=2"
+
+
+# ---------------------------------------------------------------------------
+# Test 11: Per-model token pricing calculation
+# ---------------------------------------------------------------------------
+
+def test_model_specific_pricing():
+    """Calculates cost based on model input/output rates per million tokens."""
+    # gpt-4o-mini: input 0.15 / 1M, output 0.60 / 1M
+    cost_mini = _calculate_model_cost("gpt-4o-mini", prompt_tokens=1_000_000, completion_tokens=1_000_000, total_tokens=2_000_000)
+    assert abs(cost_mini - 0.75) < 1e-4
+
+    # Default/unknown model: fallback per token ($0.00001)
+    cost_default = _calculate_model_cost("unknown-llm", prompt_tokens=500, completion_tokens=500, total_tokens=1000)
+    assert abs(cost_default - 0.01) < 1e-4
+
+
+# ---------------------------------------------------------------------------
+# Test 12: on_llm_end captures model usage metadata and attributes cost
+# ---------------------------------------------------------------------------
+
+def test_on_llm_end_model_cost_attribution():
+    """Callback extracts usage_metadata and calculates attributed cost."""
+    callback, fake_producer = _make_callback()
+
+    class _MockResponse:
+        def __init__(self):
+            self.llm_output = {
+                "model_name": "gpt-4o-mini",
+                "token_usage": {"prompt_tokens": 1000, "completion_tokens": 500, "total_tokens": 1500},
+            }
+
+    import uuid
+    callback.on_llm_end(_MockResponse(), run_id=uuid.uuid4())
+
+    assert len(fake_producer.events_sent) == 1
+    event = fake_producer.events_sent[0]
+    assert event["tool_name"] == "vector_search"
+    # 1000 * (0.15/1M) + 500 * (0.60/1M) = 0.00015 + 0.00030 = 0.00045
+    assert abs(event["cost_usd"] - 0.00045) < 1e-5
+    args = json.loads(event["tool_args"])
+    assert args["model"] == "gpt-4o-mini"
+    assert args["prompt_tokens"] == 1000
 
 
 if __name__ == "__main__":

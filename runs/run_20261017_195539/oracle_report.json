@@ -1,0 +1,81 @@
+{
+  "total_manifest_events": 5,
+  "confusion_matrix": {
+    "true_positives_tp": 0,
+    "true_negatives_tn": 0,
+    "false_positives_fp": 0,
+    "false_negatives_fn_breach": 0,
+    "watermark_dropped_correct": 0,
+    "watermark_dropped_failed": 0
+  },
+  "metrics": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "signature_match_accuracy": 1.0,
+    "contract_breach_rate": 0.0
+  },
+  "per_scenario": {
+    "B1": {
+      "total": 5,
+      "correct": 0,
+      "failed": 5
+    }
+  },
+  "details_sample": [
+    {
+      "key": {
+        "agent_id": "real_autonomous_agent",
+        "session_id": null,
+        "action_id": "01a14b6f-2b47-7412-8796-4d14d86cd6d6"
+      },
+      "scenario": "B1",
+      "expected_route": "QUARANTINE",
+      "actual_route": "ABSENT",
+      "verdict": "QUARANTINE_DROPPED_ABSENT"
+    },
+    {
+      "key": {
+        "agent_id": "real_autonomous_agent",
+        "session_id": null,
+        "action_id": "01a14b6f-2b5b-7a83-9c23-5804691c86b6"
+      },
+      "scenario": "B1",
+      "expected_route": "QUARANTINE",
+      "actual_route": "ABSENT",
+      "verdict": "QUARANTINE_DROPPED_ABSENT"
+    },
+    {
+      "key": {
+        "agent_id": "real_autonomous_agent",
+        "session_id": null,
+        "action_id": "01a14b6f-2b6f-78d0-941d-2fb9422cab21"
+      },
+      "scenario": "B1",
+      "expected_route": "QUARANTINE",
+      "actual_route": "ABSENT",
+      "verdict": "QUARANTINE_DROPPED_ABSENT"
+    },
+    {
+      "key": {
+        "agent_id": "real_autonomous_agent",
+        "session_id": null,
+        "action_id": "01a14b6f-2b87-73b2-b1b3-ed5eca3768a4"
+      },
+      "scenario": "B1",
+      "expected_route": "QUARANTINE",
+      "actual_route": "ABSENT",
+      "verdict": "QUARANTINE_DROPPED_ABSENT"
+    },
+    {
+      "key": {
+        "agent_id": "real_autonomous_agent",
+        "session_id": null,
+        "action_id": "01a14b6f-2b9a-7710-aabb-d71f519fe91f"
+      },
+      "scenario": "B1",
+      "expected_route": "QUARANTINE",
+      "actual_route": "ABSENT",
+      "verdict": "QUARANTINE_DROPPED_ABSENT"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+# configs/model_pricing.yaml
+# Per-model token pricing for Agentic Delta Guard telemetry attribution.
+# Rates are specified in USD per 1,000,000 tokens (Standard provider pricing).
+
+models:
+  gpt-4o:
+    input_per_million: 2.50
+    output_per_million: 10.00
+  gpt-4o-mini:
+    input_per_million: 0.15
+    output_per_million: 0.60
+  gpt-4-turbo:
+    input_per_million: 10.00
+    output_per_million: 30.00
+  claude-3-5-sonnet:
+    input_per_million: 3.00
+    output_per_million: 15.00
+  claude-3-haiku:
+    input_per_million: 0.25
+    output_per_million: 1.25
+  ollama:
+    input_per_million: 0.00
+    output_per_million: 0.00
+  default:
+    fallback_per_token: 0.00001

@@ -105,11 +105,13 @@ def get_quarantine_summary(limit: int = 5, agent_id: Optional[str] = None) -> st
         except Exception:
             query = f"SELECT * FROM read_parquet('{quarantine_path.as_posix()}/**/*.parquet')"
 
+        params = []
         if agent_id:
-            query += f" WHERE agent_id = '{agent_id}'"
+            query += " WHERE agent_id = ?"
+            params.append(agent_id)
 
         query += f" ORDER BY quarantined_at DESC LIMIT {int(limit)}"
-        df = conn.execute(query).df()
+        df = conn.execute(query, params).df()
         records = df.to_dict(orient="records")
 
         # Cluster error signatures
@@ -162,11 +164,13 @@ def inspect_bronze_lakehouse(limit: int = 5, agent_id: Optional[str] = None) -> 
         except Exception:
             query = f"SELECT * FROM read_parquet('{bronze_path.as_posix()}/**/*.parquet')"
 
+        params = []
         if agent_id:
-            query += f" WHERE agent_id = '{agent_id}'"
+            query += " WHERE agent_id = ?"
+            params.append(agent_id)
 
         query += f" ORDER BY timestamp DESC LIMIT {int(limit)}"
-        df = conn.execute(query).df()
+        df = conn.execute(query, params).df()
         records = df.to_dict(orient="records")
 
         return json.dumps({
@@ -460,8 +464,6 @@ def main():
     """Main entrypoint to run the FastMCP server via stdio."""
     # If running with FastMCP
     mcp.run()
-
-
 
 
 if __name__ == "__main__":

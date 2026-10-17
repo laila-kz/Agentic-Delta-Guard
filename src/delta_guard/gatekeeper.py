@@ -1,5 +1,5 @@
 """
-gatekeeper.py â€” Distributed PySpark Structured Streaming Gatekeeper.
+gatekeeper.py — Distributed PySpark Structured Streaming Gatekeeper.
 
 Enforces ODCS data contract rules on worker nodes natively via DataFrame column
 expressions. Zero Driver memory bottlenecks.
@@ -12,10 +12,10 @@ import tempfile
 import time
 import yaml
 
-# â”€â”€ HADOOP_HOME self-heal (Windows / PySpark) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── HADOOP_HOME self-heal (Windows / PySpark) ────────────────────────────────
 # On Windows PySpark needs winutils.exe + hadoop.dll.  We bundle them in
-# <project_root>/.hadoop/bin.  Override HADOOP_HOME here â€” before any PySpark
-# import â€” so the JVM always finds the *correct* path for THIS project, even
+# <project_root>/.hadoop/bin.  Override HADOOP_HOME here — before any PySpark
+# import — so the JVM always finds the *correct* path for THIS project, even
 # when a stale HADOOP_HOME from a different project is set in the environment.
 _PROJECT_ROOT = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -29,9 +29,9 @@ if os.path.isdir(_HADOOP_HOME):
 if sys.platform == "win32":
     os.environ["PYSPARK_PYTHON"] = sys.executable
     os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 
-# â”€â”€ Java Version Requirement â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Java Version Requirement ─────────────────────────────────────────────────
 # PySpark 3.5 requires Java 11 or Java 17. Java 21+ is NOT supported because
 # Hadoop's UserGroupInformation calls Subject.getSubject() which was removed.
 # Use run_gatekeeper.ps1 to launch with Java 17, or set JAVA_HOME manually:
@@ -48,8 +48,8 @@ from pyspark.sql.types import (
     StructType,
 )
 
-# Running on your HOST MACHINE (outside Docker) â†’ use localhost:9092
-# Running INSIDE a Docker container             â†’ use kafka:29092
+# Running on your HOST MACHINE (outside Docker) → use localhost:9092
+# Running INSIDE a Docker container             → use kafka:29092
 BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 TOPIC = "agent-events"
 CONTRACT_PATH = "configs/agent_contract.yaml"
@@ -77,7 +77,7 @@ def _load_contract_thresholds() -> dict:
     """
     Load cost and freshness thresholds from agent_contract.yaml.
 
-    This is the single source of truth for contract bounds â€” both the
+    This is the single source of truth for contract bounds — both the
     PySpark gatekeeper and the dbt tests (via sync_contract_to_dbt_vars.py)
     derive their limits from this file.
 
@@ -133,7 +133,7 @@ def _load_contract_thresholds() -> dict:
 # Load thresholds at module import time so they are consistent across batches
 _THRESHOLDS = _load_contract_thresholds()
 
-# â”€â”€ Live status accumulator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Live status accumulator ──────────────────────────────────────────────────
 # Written to status.json once per batch commit so the console can poll it.
 _STATUS: dict = {
     "bronze_count": 0,
@@ -149,14 +149,14 @@ _batch_times: list = []   # epoch timestamps of recent batch completions
 
 
 def _write_status() -> None:
-    """Atomically write _STATUS to status.json via tmpâ†’rename."""
+    """Atomically write _STATUS to status.json via tmp→rename."""
     _STATUS["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     # Throughput: batches completed in the last 60 s, normalised to events/s
     _batch_times.append(time.time())
     cutoff = time.time() - 60.0
     while _batch_times and _batch_times[0] < cutoff:
         _batch_times.pop(0)
-    # rough ev/s: average events per batch Ã— batches per second
+    # rough ev/s: average events per batch × batches per second
     total = _STATUS["bronze_count"] + _STATUS["quarantine_count"]
     batches_per_sec = len(_batch_times) / 60.0
     _STATUS["throughput_eps"] = round(
@@ -172,16 +172,23 @@ def _write_status() -> None:
     with open(tmp, "w", encoding="utf-8") as fh:
         json.dump(_STATUS, fh)
     os.replace(tmp, STATUS_PATH)
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 from delta import configure_spark_with_delta_pip
 
-
 def build_spark() -> SparkSession:
+    spark_local_dir = os.path.join(_PROJECT_ROOT, "scratch", "spark_temp").replace("\\", "/")
+    os.makedirs(spark_local_dir, exist_ok=True)
+
     builder = (
         SparkSession.builder.appName("AgenticDeltaGuard-Gatekeeper")
         .master("local[2]")
+        .config("spark.driver.host", "127.0.0.1")
+        .config("spark.driver.bindAddress", "127.0.0.1")
+        .config("spark.sql.shuffle.partitions", "2")
+        .config("spark.default.parallelism", "2")
+        .config("spark.local.dir", spark_local_dir)
         .config("spark.python.worker.reuse", "true")
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
         .config(
@@ -226,19 +233,40 @@ def process_batch(batch_df: DataFrame, batch_id: int):
     deduplication so out-of-order events beyond the watermark are dropped
     rather than silently merged as new rows.
     """
-    if batch_df.isEmpty():
-        return
-
     max_cost = _THRESHOLDS["max_cost_usd"]
     age_hours = _THRESHOLDS["max_event_age_hours"]
     skew_mins = _THRESHOLDS["max_future_skew_mins"]
     watermark_mins = _THRESHOLDS["watermark_minutes"]
     allowed_tools = _THRESHOLDS["allowed_tools"]
 
-    # 1. Parse JSON payload
-    parsed_df = batch_df.select(
-        F.from_json(F.col("value").cast("string"), EVENT_SCHEMA).alias("payload")
-    ).select("payload.*")
+    # 1. Parse JSON payload while preserving raw wire bytes & Kafka metadata
+    has_kafka_meta = "topic" in batch_df.columns and "offset" in batch_df.columns
+    base_df = batch_df.withColumn("raw_payload", F.col("value").cast("string"))
+    if has_kafka_meta:
+        base_df = (
+            base_df
+            .withColumn("kafka_topic", F.col("topic"))
+            .withColumn("kafka_partition", F.col("partition"))
+            .withColumn("kafka_offset", F.col("offset").cast(StringType()))
+        )
+    else:
+        base_df = (
+            base_df
+            .withColumn("kafka_topic", F.lit(None).cast(StringType()))
+            .withColumn("kafka_partition", F.lit(None).cast(IntegerType()))
+            .withColumn("kafka_offset", F.lit(None).cast(StringType()))
+        )
+
+    parsed_df = base_df.withColumn(
+        "payload", F.from_json(F.col("raw_payload"), EVENT_SCHEMA)
+    ).select(
+        "raw_payload",
+        "kafka_topic",
+        "kafka_partition",
+        "kafka_offset",
+        "payload",
+        "payload.*",
+    )
 
     # 2. Parse event timestamp early so we can apply watermarking.
     #    withWatermark() tells Spark to drop state for events older than
@@ -252,10 +280,20 @@ def process_batch(batch_df: DataFrame, batch_id: int):
         "event_timestamp", f"{watermark_mins} minutes"
     )
 
-    # 3. Deduplicate within the watermark window on the idempotency key
-    deduplicated_df = watermarked_df.dropDuplicates(
-        ["agent_id", "session_id", "action_id"]
+    # 3. Deduplicate within the watermark window on the idempotency key (valid keys only)
+    valid_keys_df = watermarked_df.filter(
+        F.col("agent_id").isNotNull()
+        & F.col("session_id").isNotNull()
+        & F.col("action_id").isNotNull()
+    ).dropDuplicates(["agent_id", "session_id", "action_id"])
+
+    null_keys_df = watermarked_df.filter(
+        F.col("agent_id").isNull()
+        | F.col("session_id").isNull()
+        | F.col("action_id").isNull()
     )
+
+    deduplicated_df = valid_keys_df.unionByName(null_keys_df)
 
     # 4. Add validation metadata and cast numerical fields safely
     validated_df = (
@@ -266,6 +304,7 @@ def process_batch(batch_df: DataFrame, batch_id: int):
             "errors",
             F.filter(
                 F.array(
+                    F.when(F.col("payload").isNull(), "parse_error:invalid_json"),
                     F.when(F.col("agent_id").isNull(), "missing_required_field:agent_id"),
                     F.when(F.col("session_id").isNull(), "missing_required_field:session_id"),
                     F.when(F.col("action_id").isNull(), "missing_required_field:action_id"),
@@ -305,24 +344,34 @@ def process_batch(batch_df: DataFrame, batch_id: int):
         validated_df.filter(F.coalesce(F.size(F.col("errors")), F.lit(0)) == 0)
         .withColumn("cost_usd", F.col("cost_usd_double"))
         .withColumn("timestamp", F.col("timestamp_ts"))
-        .drop("cost_usd_double", "timestamp_ts", "errors", "event_timestamp")
+        .drop(
+            "payload",
+            "cost_usd_double",
+            "timestamp_ts",
+            "errors",
+            "event_timestamp",
+            "raw_payload",
+            "kafka_topic",
+            "kafka_partition",
+            "kafka_offset",
+        )
     )
 
     quarantine_df = (
         validated_df.filter(F.coalesce(F.size(F.col("errors")), F.lit(0)) > 0)
         .withColumn("quarantined_at", F.current_timestamp())
         .withColumn("error_summary", F.concat_ws("; ", F.col("errors")))
-        .drop("cost_usd_double", "timestamp_ts", "event_timestamp")
+        .drop("payload", "cost_usd_double", "timestamp_ts", "event_timestamp")
     )
 
     # 6. Distributed Delta Writes
-    valid_count = valid_df.count() if not valid_df.isEmpty() else 0
-    quarantine_count = quarantine_df.count() if not quarantine_df.isEmpty() else 0
+    valid_count = valid_df.count()
+    quarantine_count = quarantine_df.count()
 
-    if not valid_df.isEmpty():
+    if valid_count > 0:
         merge_into_bronze(batch_df.sparkSession, valid_df)
 
-    if not quarantine_df.isEmpty():
+    if quarantine_count > 0:
         (
             quarantine_df.write.format("delta")
             .mode("append")
@@ -376,6 +425,28 @@ def merge_into_bronze(spark: SparkSession, valid_df: DataFrame):
 
 
 def main():
+    import argparse
+    from pathlib import Path
+    import shutil
+
+    parser = argparse.ArgumentParser(description="Distributed PySpark Gatekeeper")
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="Process all available batches and exit cleanly (availableNow=True)",
+    )
+    parser.add_argument(
+        "--reset-checkpoint",
+        action="store_true",
+        help="Clear checkpoint directory to recover from Kafka restarts",
+    )
+    args = parser.parse_args()
+
+    checkpoint_dir = Path(_PROJECT_ROOT) / CHECKPOINT_PATH
+    if args.reset_checkpoint and checkpoint_dir.exists():
+        shutil.rmtree(checkpoint_dir, ignore_errors=True)
+        print(f"[gatekeeper] Cleared stale checkpoint directory: {checkpoint_dir}")
+
     spark = build_spark()
     spark.sparkContext.setLogLevel("WARN")
 
@@ -386,23 +457,25 @@ def main():
         .option("kafka.bootstrap.servers", BOOTSTRAP_SERVERS)
         .option("subscribe", TOPIC)
         .option("startingOffsets", "earliest")
+        .option("failOnDataLoss", "false")
         .load()
     )
 
-    query = (
+    writer = (
         raw_stream.writeStream.foreachBatch(process_batch)
         .option("checkpointLocation", CHECKPOINT_PATH)
-        .trigger(processingTime="10 seconds")
-        .start()
     )
 
-    print("[gatekeeper] Distributed PySpark Gatekeeper running â€” press Ctrl+C to stop")
-    query.awaitTermination()
+    if args.once:
+        print("[gatekeeper] Processing all available events in Kafka (availableNow=True)...")
+        query = writer.trigger(availableNow=True).start()
+        query.awaitTermination()
+        print("[gatekeeper] Micro-batch execution completed successfully.")
+    else:
+        print("[gatekeeper] Distributed PySpark Gatekeeper running — press Ctrl+C to stop")
+        query = writer.trigger(processingTime="5 seconds").start()
+        query.awaitTermination()
 
 
 if __name__ == "__main__":
     main()
-
-
-
-

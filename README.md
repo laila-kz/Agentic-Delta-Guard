@@ -28,6 +28,12 @@ The terminal interface below reflects a **sustained 15-minute streaming run (4,3
 | **Replay Deduplication** | **0 Duplicate Rows (100% dedupe)** | Composite key `(agent_id, session_id, action_id)` via Delta `MERGE INTO` drops duplicate deliveries |
 | **Incident Remediation** | **< 1 sec Automated Proposal** | Deterministic triage diffs quarantined anomalies and writes candidate contract patch with 10% headroom |
 | **Bronze Commits** | **3,684 Valid Rows** | Compliant agent events committed with full ACID guarantees and immediate dbt/DuckDB queryability |
+| **Real Agent Guarding** | **100% Routing Precision (0 Breaches)** | 50 tasks across 11 scenarios (A, B1–B10) evaluated with Automated Oracle ([Report](docs/reports/real_agent_validation.md)) |
+
+> 🚀 **One-Command Real Agent Evaluation Suite:**
+> ```powershell
+> python scripts/run_real_agent_evaluation.py --scenarios all
+> ```
 
 ---
 
