@@ -186,7 +186,25 @@ Quarantine rate: 14.9%
 
 ---
 
-## Quick Orientation: What Writes Where
+## Scene 8: Running Your Own Real Agent (Live Lakehouse Ingestion)
+
+Demonstrate wiring any LangChain agent or custom tool suite directly into Kafka, the PySpark Gatekeeper, and Delta Lake.
+
+```powershell
+# 1. Start Gatekeeper (Terminal 1)
+.\run_gatekeeper.ps1
+
+# 2. Run Custom Agent (Terminal 2)
+.\.venv\Scripts\python.exe examples/run_custom_agent.py
+```
+
+**Highlight on camera:**
+- Agent invokes real tools (`sql_query_executor`, `web_scraper`) with LangChain telemetry callbacks.
+- Advisory shift-left FastMCP catches rogue shell execution before Kafka commit.
+- Gatekeeper routes valid executions into Bronze and rogue tools/cost anomalies into Quarantine.
+- Live DuckDB query at the end verifies Delta Lake storage without needing a Spark cluster.
+
+---
 
 | Component | Writes to |
 |---|---|
