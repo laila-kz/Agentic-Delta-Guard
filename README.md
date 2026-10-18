@@ -34,6 +34,14 @@ The terminal interface below reflects a **sustained 15-minute streaming run (4,3
 > ```powershell
 > python scripts/run_real_agent_evaluation.py --scenarios all
 > ```
+>
+> 🤖 **Live Custom Agent End-to-End Pipeline Demo:**
+> Wire a custom LangChain agent emitting live telemetry into Kafka ➔ Gatekeeper ➔ Bronze/Quarantine Delta Lake:
+> ```powershell
+> python examples/run_custom_agent.py
+> ```
+> *Detailed walkthrough: [Custom Agent Runbook](docs/MY_AGENT_RUNBOOK.md) | Verified output: [Live Execution Proof](docs/reports/REAL_AGENT_DEMO_PROOF.md)*
+
 
 ---
 

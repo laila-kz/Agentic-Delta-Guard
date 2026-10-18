@@ -36,10 +36,13 @@ Options:
 
 from __future__ import annotations
 
+import os
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["OMP_NUM_THREADS"] = "1"
+
 import argparse
 import json
 import logging
-import os
 import sys
 import time
 import uuid
@@ -136,8 +139,8 @@ def run_agent_workflow(publish_to_kafka: bool = True) -> None:
 
     # Initialize telemetry producer
     if publish_to_kafka:
-        print("[1/4] Connecting LangChain telemetry producer to Kafka (localhost:9092)...")
-        producer = LangChainKafkaProducer(bootstrap_servers="localhost:9092", topic="agent-events")
+        print("[1/4] Connecting LangChain telemetry producer to Kafka (127.0.0.1:9092)...")
+        producer = LangChainKafkaProducer(bootstrap_servers="127.0.0.1:9092", topic="agent-events")
     else:
         print("[1/4] Running in dry-run mode (--no-kafka active)...")
         producer = _CollectingKafkaProducer()
@@ -236,7 +239,11 @@ def run_agent_workflow(publish_to_kafka: bool = True) -> None:
     # -----------------------------------------------------------------------
     # Step 5: Instant Lakehouse Storage Verification via DuckDB
     # -----------------------------------------------------------------------
-    print("\n[4/4] Verifying Lakehouse Delta tables via DuckDB...")
+    if publish_to_kafka:
+        print("\n[4/4] Waiting 6s for PySpark Gatekeeper micro-batch to commit to Delta Lake...")
+        time.sleep(6)
+    else:
+        print("\n[4/4] Inspecting Lakehouse Delta tables via DuckDB...")
     inspect_lakehouse(session_id)
 
 
