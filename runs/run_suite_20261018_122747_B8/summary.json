@@ -1,0 +1,12 @@
+{
+  "run_id": "run_suite_20261018_122747_B8",
+  "timestamp": "2026-10-18T12:32:07.563985+00:00",
+  "scenario": "B8",
+  "total_tasks": 5,
+  "total_events_emitted": 5,
+  "events_dropped": 0,
+  "elapsed_seconds": 0.1,
+  "throughput_eps": 50.84,
+  "trace_file": "C:\\Users\\kheza\\Desktop\\Data_Engineering\\Agentic-Delta-Guard\\runs\\run_suite_20261018_122747_B8\\agent_trace.jsonl",
+  "manifest_file": "C:\\Users\\kheza\\Desktop\\Data_Engineering\\Agentic-Delta-Guard\\runs\\run_suite_20261018_122747_B8\\manifest.jsonl"
+}

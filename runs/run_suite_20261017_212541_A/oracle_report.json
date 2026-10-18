@@ -1,0 +1,81 @@
+{
+  "total_manifest_events": 5,
+  "confusion_matrix": {
+    "true_positives_tp": 5,
+    "true_negatives_tn": 0,
+    "false_positives_fp": 0,
+    "false_negatives_fn_breach": 0,
+    "watermark_dropped_correct": 0,
+    "watermark_dropped_failed": 0
+  },
+  "metrics": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "signature_match_accuracy": 1.0,
+    "contract_breach_rate": 0.0
+  },
+  "per_scenario": {
+    "A": {
+      "total": 5,
+      "correct": 5,
+      "failed": 0
+    }
+  },
+  "details_sample": [
+    {
+      "key": {
+        "agent_id": "real_autonomous_agent",
+        "session_id": "dbe4b01a-692c-4110-a808-7e168680d5d7",
+        "action_id": "01a14bc1-9874-74c2-86c1-786ba1ca2e66"
+      },
+      "scenario": "A",
+      "expected_route": "BRONZE",
+      "actual_route": "BRONZE",
+      "verdict": "CORRECT_TP"
+    },
+    {
+      "key": {
+        "agent_id": "real_autonomous_agent",
+        "session_id": "dbe4b01a-692c-4110-a808-7e168680d5d7",
+        "action_id": "01a14bc1-98a3-7282-86a0-150903aea49e"
+      },
+      "scenario": "A",
+      "expected_route": "BRONZE",
+      "actual_route": "BRONZE",
+      "verdict": "CORRECT_TP"
+    },
+    {
+      "key": {
+        "agent_id": "real_autonomous_agent",
+        "session_id": "dbe4b01a-692c-4110-a808-7e168680d5d7",
+        "action_id": "01a14bc1-98b7-7c11-8178-050661bd3a94"
+      },
+      "scenario": "A",
+      "expected_route": "BRONZE",
+      "actual_route": "BRONZE",
+      "verdict": "CORRECT_TP"
+    },
+    {
+      "key": {
+        "agent_id": "real_autonomous_agent",
+        "session_id": "dbe4b01a-692c-4110-a808-7e168680d5d7",
+        "action_id": "01a14bc1-98ce-7912-9f5e-6f5f87391e1b"
+      },
+      "scenario": "A",
+      "expected_route": "BRONZE",
+      "actual_route": "BRONZE",
+      "verdict": "CORRECT_TP"
+    },
+    {
+      "key": {
+        "agent_id": "real_autonomous_agent",
+        "session_id": "dbe4b01a-692c-4110-a808-7e168680d5d7",
+        "action_id": "01a14bc1-98e1-70f1-85f6-867489b780e1"
+      },
+      "scenario": "A",
+      "expected_route": "BRONZE",
+      "actual_route": "BRONZE",
+      "verdict": "CORRECT_TP"
+    }
+  ]
+}

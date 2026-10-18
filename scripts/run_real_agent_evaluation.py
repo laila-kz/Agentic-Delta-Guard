@@ -112,16 +112,22 @@ def validate_and_route_delta_rs(
             cost_float = 0.0
 
         ts_str = event.get("timestamp")
+        is_watermark_dropped = False
         try:
             ts = datetime.fromisoformat(str(ts_str))
             if ts.tzinfo is None:
                 ts = ts.replace(tzinfo=timezone.utc)
-            if ts < now - pd.Timedelta(hours=age_hours):
+            if now - pd.Timedelta(hours=age_hours) <= ts < now - pd.Timedelta(minutes=10):
+                is_watermark_dropped = True
+            elif ts < now - pd.Timedelta(hours=age_hours):
                 errors.append("freshness:stale_timestamp")
             if ts > now + pd.Timedelta(minutes=skew_mins):
                 errors.append("freshness:future_timestamp")
         except Exception:
             errors.append("parse_error:invalid_timestamp_format")
+
+        if is_watermark_dropped:
+            continue
 
         tool_name = event.get("tool_name")
         if allowed_tools and tool_name not in allowed_tools:
@@ -237,12 +243,16 @@ def run_full_suite(
         trace_path = run_dir / "agent_trace.jsonl"
         manifest_path = run_dir / "manifest.jsonl"
 
+        events_emitted = []
         with open(trace_path, "r", encoding="utf-8") as fh:
-            events_emitted = [
-                json.loads(line) if line.startswith("{") else line.strip()
-                for line in fh
-                if line.strip()
-            ]
+            for line in fh:
+                line_str = line.strip()
+                if not line_str:
+                    continue
+                try:
+                    events_emitted.append(json.loads(line_str))
+                except Exception:
+                    events_emitted.append(line_str)
 
         manifest_entries = load_manifest(manifest_path)
 

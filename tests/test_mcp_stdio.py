@@ -130,6 +130,7 @@ def test_stdio_call_tool_check_contract_pass_and_fail():
                     "tool_name": "sql_query_executor",
                     "execution_time_ms": 150,
                     "cost_usd": 0.05,
+                    "status": "SUCCESS",
                     "tool_args": {"query": "SELECT 1;"},
                 }
                 res_pass = await session.call_tool("check_contract", arguments={"payload": valid_event})

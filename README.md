@@ -308,10 +308,10 @@ Measured using [`src/delta_guard/benchmark.py`](src/delta_guard/benchmark.py) (m
 
 | Metric | Measured Value | Scope & Test Environment |
 | :--- | ---: | :--- |
-| **Validation Throughput** | **28,427.92 ev/s** | Single-core Python in-process validation logic (`_validate_event`, 100k events/run, 5 runs + 1 warmup, no Kafka / Spark I/O overhead) |
-| **P50 Latency** | 0.0040 ms | Per-event contract validation latency (median) |
-| **P95 Latency** | 0.0071 ms | Per-event contract validation latency (median) |
-| **P99 Latency** | 0.0095 ms | Per-event contract validation latency (median) |
+| **Validation Throughput** | **41,431.70 ev/s** | Single-core Python in-process validation logic (`_validate_event`, 100k events/run, 5 runs + 1 warmup, no Kafka / Spark I/O overhead) |
+| **P50 Latency** | 0.0043 ms | Per-event contract validation latency (median) |
+| **P95 Latency** | 0.0094 ms | Per-event contract validation latency (median) |
+| **P99 Latency** | 0.0125 ms | Per-event contract validation latency (median) |
 | **Synthetic Poison Consistency** | 14.9%–15.0% | Verifies contract validator consistency against producer-injected anomalies (~15% target). Evaluates generator-to-validator rule alignment on synthetic data, not real-world classification accuracy. |
 
 *Environment:* Intel64 Family 6 Model 166 (x86_64), Windows 10/11 host, Python 3.11.9, 100,000-event workload per run. Regenerated report artifacts in `docs/reports/storage_benchmark.md` confirm Linux CI test suite parity.
@@ -462,11 +462,12 @@ python -m pytest tests/ -v --tb=short
 
 ### Skipped tests
 
-The test suite collects **52 test cases** — 50 passed, 2 skipped, 0 deselected on a
-Windows host (`.venv\Scripts\python.exe -m pytest tests/ -q`, verified 2026-10-06).
-This includes 4 wire-level MCP stdio integration tests (`tests/test_mcp_stdio.py`) and
-8 LangChain adapter tests (`tests/test_langchain_adapter.py`).
-Both skipped tests below are env-gated and skip on Linux CI as well:
+The test suite collects **61 test cases** — 56 passed, 1 deselected (chaos_docker/requires_docker env-gated tests) on a
+Windows host (`.venv\Scripts\python.exe -m pytest tests/ -v -m "not (chaos_docker or requires_docker)"`, verified 2026-10-17).
+This includes 4 wire-level MCP stdio integration tests (`tests/test_mcp_stdio.py`),
+8 LangChain adapter tests (`tests/test_langchain_adapter.py`), 5 real agent evaluation tests
+(`tests/real_agent/`), and contract, chaos, clone, and MCP server suites.
+Env-gated tests below skip on Linux CI unless the relevant variable is set:
 
 | Test | Module | Marker | Reason for Skip | How to Enable |
 | :--- | :--- | :--- | :--- | :--- |

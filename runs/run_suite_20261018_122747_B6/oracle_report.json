@@ -1,0 +1,81 @@
+{
+  "total_manifest_events": 5,
+  "confusion_matrix": {
+    "true_positives_tp": 0,
+    "true_negatives_tn": 5,
+    "false_positives_fp": 0,
+    "false_negatives_fn_breach": 0,
+    "watermark_dropped_correct": 0,
+    "watermark_dropped_failed": 0
+  },
+  "metrics": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "signature_match_accuracy": 1.0,
+    "contract_breach_rate": 0.0
+  },
+  "per_scenario": {
+    "B6": {
+      "total": 5,
+      "correct": 5,
+      "failed": 0
+    }
+  },
+  "details_sample": [
+    {
+      "key": {
+        "agent_id": "real_autonomous_agent",
+        "session_id": "8f5e7c11-df25-427a-a9c6-82c15e51a5e6",
+        "action_id": "01a14efe-bb6f-7c53-9c0c-a7000b50f339"
+      },
+      "scenario": "B6",
+      "expected_route": "QUARANTINE",
+      "actual_route": "QUARANTINE",
+      "verdict": "CORRECT_TN"
+    },
+    {
+      "key": {
+        "agent_id": "real_autonomous_agent",
+        "session_id": "8f5e7c11-df25-427a-a9c6-82c15e51a5e6",
+        "action_id": "01a14efe-bb82-7cd2-a976-7ed95da0b475"
+      },
+      "scenario": "B6",
+      "expected_route": "QUARANTINE",
+      "actual_route": "QUARANTINE",
+      "verdict": "CORRECT_TN"
+    },
+    {
+      "key": {
+        "agent_id": "real_autonomous_agent",
+        "session_id": "8f5e7c11-df25-427a-a9c6-82c15e51a5e6",
+        "action_id": "01a14efe-bb99-72e1-97a5-aa2aad12746f"
+      },
+      "scenario": "B6",
+      "expected_route": "QUARANTINE",
+      "actual_route": "QUARANTINE",
+      "verdict": "CORRECT_TN"
+    },
+    {
+      "key": {
+        "agent_id": "real_autonomous_agent",
+        "session_id": "8f5e7c11-df25-427a-a9c6-82c15e51a5e6",
+        "action_id": "01a14efe-bbab-7610-bc26-d0728edde060"
+      },
+      "scenario": "B6",
+      "expected_route": "QUARANTINE",
+      "actual_route": "QUARANTINE",
+      "verdict": "CORRECT_TN"
+    },
+    {
+      "key": {
+        "agent_id": "real_autonomous_agent",
+        "session_id": "8f5e7c11-df25-427a-a9c6-82c15e51a5e6",
+        "action_id": "01a14efe-bbbe-7990-bbb3-2296a7a8ded3"
+      },
+      "scenario": "B6",
+      "expected_route": "QUARANTINE",
+      "actual_route": "QUARANTINE",
+      "verdict": "CORRECT_TN"
+    }
+  ]
+}

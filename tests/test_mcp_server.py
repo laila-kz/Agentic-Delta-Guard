@@ -33,6 +33,7 @@ def sample_valid_event():
         "tool_name": "sql_query_executor",
         "execution_time_ms": 150,
         "cost_usd": 0.05,
+        "status": "SUCCESS",
         "tool_args": {"query": "SELECT 1;"},
     }
 

@@ -99,13 +99,21 @@ def _calculate_model_cost(
 ) -> float:
     """Calculate USD cost based on per-model input/output pricing per 1M tokens."""
     models_dict = _MODEL_PRICING_TABLE.get("models", {})
-    # Match model name or prefix (e.g. gpt-4o-2024-08-06 matches gpt-4o)
+    # Match model name: exact match first, then longest prefix match
     matched_pricing = None
     clean_name = (model_name or "").lower().strip()
-    for m_key, m_pricing in models_dict.items():
-        if m_key != "default" and (m_key in clean_name or clean_name.startswith(m_key)):
-            matched_pricing = m_pricing
-            break
+    if clean_name in models_dict and clean_name != "default":
+        matched_pricing = models_dict[clean_name]
+    else:
+        candidate_keys = sorted(
+            [k for k in models_dict.keys() if k != "default"],
+            key=lambda k: len(k),
+            reverse=True,
+        )
+        for m_key in candidate_keys:
+            if m_key in clean_name or clean_name.startswith(m_key):
+                matched_pricing = models_dict[m_key]
+                break
 
     if matched_pricing and ("input_per_million" in matched_pricing or "output_per_million" in matched_pricing):
         input_rate = float(matched_pricing.get("input_per_million", 0.0)) / 1_000_000.0

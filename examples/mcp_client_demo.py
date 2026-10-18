@@ -78,6 +78,7 @@ async def run_demo():
                 "tool_name": "web_scraper",
                 "execution_time_ms": 145,
                 "cost_usd": 0.02,
+                "status": "SUCCESS",
                 "tool_args": {"url": "https://example.com"},
             }
             res_valid = await session.call_tool("check_contract", arguments={"payload": valid_payload})
