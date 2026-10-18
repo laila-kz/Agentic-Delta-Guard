@@ -1,246 +1,278 @@
-# 🎬 Agentic Delta Guard — Demo & Run-Book Guide
+# 🚀 Practical Guide: Utilizing Agentic Delta Guard with Your Own AI Agent
 
-A cinematic, step-by-step script for recording a portfolio demo video **and** a complete run-book for everyday use.
-
----
-
-## 🖥️ Recommended Screen Setup
-
-| Pane | Content |
-|---|---|
-| **Left — Terminal 1** | Gatekeeper / Main command |
-| **Left — Terminal 2** | Producer / Agent runner |
-| **Right — Browser** | Kafka UI (`http://localhost:8080`) or generated reports in editor |
+Welcome to **Agentic Delta Guard**! This guide provides a start-to-end walkthrough for anyone cloning this repository to run the streaming data lakehouse pipeline, wire their own autonomous AI agents (LangChain, AutoGen, or custom Python), and enforce data contracts in real-time.
 
 ---
 
-## Prerequisites (one-time checks)
+## 🏗️ Architecture Overview
 
-```powershell
-java -version          # Must be Java 11 or 17 — NOT 21+
-docker --version       # Docker Desktop must be running
+```
+ [Your Custom AI Agent] (LangChain / AutoGen / Python)
+          │
+          ▼ (1. Structured JSON Telemetry via LangChainEventCallback)
+ [Apache Kafka KRaft Broker] (localhost:9092 / 127.0.0.1:9092)
+          │
+          ▼ (2. Micro-Batch JVM Catalyst Contract Validation)
+ [PySpark Streaming Gatekeeper]
+   ┌──────┴──────────────────────────────┐
+   │                                     │
+   ▼ (Valid Tools, Budget OK)            ▼ (Banned Tools, Cost Spikes, Malformed)
+ [Bronze Delta Lake]                   [Quarantine Delta Lake]
+ (data/bronze/agent_events)            (data/quarantine/agent_events)
+   │                                     │
+   ▼                                     ▼
+ [dbt Gold Analytical Marts]           [Incident Triage & Contract Evolution]
+ (DuckDB delta_scan)                   (triage.py -> agent_contract_proposed.yaml)
 ```
 
-> Java 21+ breaks PySpark. If `java -version` shows 21, switch to 17 first.
-
 ---
 
-## Phase 0 — Environment Setup
+## 📋 Prerequisites & One-Time Setup
+
+1. **Python:** 3.10 or 3.11
+2. **Java:** Java 11 or 17 (Required by PySpark. Java 21+ is unsupported by Spark).
+   ```powershell
+   java -version
+   ```
+3. **Docker Desktop:** Running (for Kafka broker).
+   ```powershell
+   docker --version
+   ```
+
+### Clone & Install Virtual Environment
 
 ```powershell
+# Clone the repository and enter directory
+git clone -b my-own-agent-demo https://github.com/laila-kz/Agentic-Delta-Guard.git
+cd Agentic-Delta-Guard
+
+# Create and activate virtual environment
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+
+# Install core and agent dependencies
 pip install -r requirements.txt
 pip install -r requirements-dev.txt
 ```
 
-**Expect:** No errors. `mcp`, `langchain-core`, `duckdb`, `pyspark`, `textual` all install. ~2-3 minutes on first run.
+---
+
+## 🎬 Step-by-Step Execution: Start to End
+
+### Step 1: Start the Kafka KRaft Broker
+
+Launch Kafka without ZooKeeper in KRaft mode:
+
+```powershell
+docker compose up -d kafka
+```
+
+*Optional:* Launch Kafka UI to monitor topics in your browser at `http://localhost:8080`:
+```powershell
+docker compose up -d kafka-ui
+```
 
 ---
 
-## Phase 1 — Full Test Suite (green before running live)
+### Step 2: Start the PySpark Streaming Gatekeeper (Terminal 1)
+
+In your first terminal, launch the Gatekeeper. It will establish the streaming micro-batch consumer on Kafka topic `agent-events` and enforce the rules in `configs/agent_contract.yaml`:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest tests/ -v -m "not (chaos_docker or requires_docker)"
+.\run_gatekeeper.ps1
 ```
 
-**Expect:** `56 passed, 1 deselected` in ~3-4 minutes. Covers:
-- Contract validation, chaos infra, Delta clone isolation
-- LangChain adapter + model pricing
-- Real agent autonomous ReAct evaluation
-- Oracle confusion matrix (TP/TN/FP/FN accounting)
-- MCP server tools + stdio wire-level JSON-RPC
+**What you will see:**
+- PySpark initializes using JVM Catalyst optimization and local Hadoop binaries (`.hadoop/bin/winutils.exe`).
+- A streaming query `gatekeeper_stream` begins micro-batch evaluation every 5 seconds.
+- Leave this terminal running in the background!
 
 ---
 
-## Phase 2 — MCP Wire-Level Tests (separate stdio suite)
+### Step 3: Run the Real Custom Agent Demo (Terminal 2)
+
+In a second terminal, execute the custom agent demonstration:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest tests/test_mcp_stdio.py -v
+.\.venv\Scripts\python.exe examples/run_custom_agent.py
 ```
 
-**Expect:** `4 passed` in ~15s. Each test spawns `run_mcp_server.py` as a subprocess and talks JSON-RPC over stdio. Seeing `Processing request of type CallToolRequest` in stderr is **normal**.
+**What happens during this run:**
+1. Connects a `LangChainEventCallback` directly to Kafka broker socket `127.0.0.1:9092`.
+2. The agent executes 4 distinct tasks:
+   - **Task 1 (`sql_query_executor`):** Valid tool, `$0.042` cost ➔ **Committed to Bronze Delta Lake**.
+   - **Task 2 (`web_scraper`):** Valid tool, `$0.015` cost ➔ **Committed to Bronze Delta Lake**.
+   - **Task 3 (`unauthorized_shell_exec`):** Rogue tool not in YAML contract ➔ **Isolated into Quarantine Delta Lake** (`semantic_rule:tool_not_allowed`).
+   - **Task 4 (`expensive_financial_calc`):** Cost spike of `$154.20` (> `$50.00` limit) ➔ **Isolated into Quarantine Delta Lake** (`semantic_rule:cost_out_of_bounds`).
+3. Flushes events to Kafka.
+4. Waits for the PySpark micro-batch trigger (5s).
+5. Automatically queries the Delta Lake storage via DuckDB and displays the audit breakdown:
+   - **Bronze Table:** 2 clean events.
+   - **Quarantine Table:** 2 isolated violations.
 
 ---
 
-## Scene 1: Start Infrastructure (0:00 - 0:30)
+### Step 4: How to Wire YOUR OWN AI Agent
 
-Start Kafka KRaft mode and Kafka UI.
+To connect your existing LangChain, AutoGen, or custom Python agent, you only need **three lines of code**:
 
-```powershell
-docker compose up -d
+```python
+from delta_guard.langchain_adapter import (
+    LangChainEventCallback,
+    LangChainKafkaProducer,
+)
+
+# 1. Connect the telemetry producer to Kafka
+producer = LangChainKafkaProducer(
+    bootstrap_servers="127.0.0.1:9092", 
+    topic="agent-events"
+)
+
+# 2. Instantiate the callback with your agent's unique ID
+callback = LangChainEventCallback(
+    agent_id="my_production_bot",
+    kafka_producer=producer,
+)
+
+# 3. Attach the callback to any LangChain tool, chain, or agent invocation
+try:
+    # Any LangChain Runnable, Tool, or Chain accepts 'config={"callbacks": [...]}'
+    my_tool.invoke({"input": "Fetch customer record"}, config={"callbacks": [callback]})
+finally:
+    # Always flush before script exit!
+    producer.flush(timeout=5.0)
+    producer.close()
 ```
-
-Open browser: `http://localhost:8080` (Kafka UI)
-
-**Highlight on camera:**
-- Kafka started in less than 3 seconds with no ZooKeeper.
-- Topic `agent-events` visible in Kafka UI.
 
 ---
 
-## Scene 2: Live Streaming, Poison Injection & Quarantine HUD (0:30 - 1:15)
+### Step 5: Registering Your Custom Tools & Budget in the Contract
 
-Demonstrate the streaming gatekeeper separating valid from poisoned records in real time.
-
-```powershell
-# Terminal 1 — Streaming Gatekeeper
-$env:KAFKA_BOOTSTRAP_SERVERS = "localhost:9092"
-.\.venv\Scripts\python.exe src/delta_guard/gatekeeper.py
+By default, [configs/agent_contract.yaml](configs/agent_contract.yaml) allows four standard tools:
+```yaml
+schema:
+  fields:
+    - name: tool_name
+      type: string
+      nullable: false
+      allowed_values:
+        - sql_query_executor
+        - vector_search
+        - web_scraper
+        - db_writer
 ```
 
-```powershell
-# Terminal 2 — Real-Time HUD (Dashboard)
-.\.venv\Scripts\python.exe src/delta_guard/hud.py
+To allow your agent's custom tools, simply add them to `allowed_values`:
+```yaml
+        - my_custom_api_tool       # <--- Add your tool here
 ```
 
-```powershell
-# Terminal 3 — Synthetic Producer (~15% poison payloads)
-.\.venv\Scripts\python.exe src/delta_guard/producer.py
+You can also adjust the max cost limit per action:
+```yaml
+    - name: cost_usd
+      type: float
+      min: 0.0
+      max: 100.0                   # <--- Increase or decrease spending limit
 ```
 
-**Highlight on camera:**
-- HUD updating live: valid events flowing to `data/bronze`, poisoned events (disallowed tools, negative cost, stale timestamps) routed to `data/quarantine`.
-- "The pipeline never crashed or halted on poison rows — valid rows were merged while invalid rows were safely quarantined."
+Any tool called by your agent that is **not** in this list is automatically prevented from corrupting your analytics lakehouse and is cleanly diverted into Quarantine.
 
 ---
 
-## Scene 3: Real Autonomous Agent Evaluation Matrix (1:15 - 1:55)
+### Step 6: Verifying Delta Lake Storage with DuckDB
 
-Show the one-command evaluation suite running 55 tasks across 11 adversarial scenarios.
+You can audit your Delta Lake tables at any time without running PySpark:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts/run_real_agent_evaluation.py --scenarios all
+# Inspect the latest Bronze & Quarantine counts and records:
+.\.venv\Scripts\python.exe examples/run_custom_agent.py --inspect-only
 ```
 
-**Highlight on camera:**
-- 11 scenarios: A (valid baseline) + B1-B10 (adversarial poisons: null fields, cost overflow, stale timestamps, future skew, banned tools, truncated JSON, compound failures).
-- Oracle confusion matrix showing 100.00% Routing Precision and 0.00% Breach Rate — zero poisoned events leaked into Bronze.
-- Auto-generated report written to `docs/reports/real_agent_validation.md`.
+Or query directly with Python:
+```python
+import duckdb
+con = duckdb.connect()
+con.execute("INSTALL delta; LOAD delta;")
+
+# Query valid Bronze events
+con.execute("SELECT agent_id, tool_name, cost_usd, status FROM delta_scan('data/bronze/agent_events')").df()
+
+# Query quarantined events and reasons
+con.execute("SELECT action_id, quarantine_reason, cost_usd FROM delta_scan('data/quarantine/agent_events')").df()
+```
 
 ---
 
-## Scene 4: Shift-Left MCP Pre-Flight Validation (1:55 - 2:25)
+### Step 7: Automated Incident Triage & Contract Evolution
 
-Show that LLM agents can validate payloads before sending them to Kafka.
+When rogue agents or unapproved tools land in Quarantine, run the autonomous triage engine:
 
 ```powershell
-.\.venv\Scripts\python.exe examples/mcp_client_demo.py
+.\.venv\Scripts\python.exe src/delta_guard/triage.py
 ```
 
-Open `docs/reports/mcp_interaction_log.md` in your editor.
-
-**Highlight on camera:**
-- `check_contract` tool returns pass/fail with precise remediation hints.
-- `get_quarantine_summary` clusters error signatures from live Delta Lake.
-- "Upstream agents query our schema contract and self-heal before producing bad data to the broker."
+**What it does:**
+- Scans `data/quarantine/agent_events`.
+- Clusters failures by root cause (e.g. `semantic_rule:tool_not_allowed`, `semantic_rule:cost_out_of_bounds`).
+- Proposes a non-breaking candidate contract patch in [configs/agent_contract_proposed.yaml](configs/agent_contract_proposed.yaml) with automatic safety headroom!
+- Logs incidents in `docs/INCIDENT_LOG.md`.
 
 ---
 
-## Scene 5: dbt Data Quality & Lakehouse Analytics (2:25 - 2:55)
+### Step 8: Build Gold Analytical Marts (dbt + DuckDB)
 
-Build the Gold Layer analytical marts and run automated data quality checks.
+Agentic Delta Guard uses zero-JVM analytics: dbt models read raw Bronze Delta Lake files via DuckDB's `delta_scan` extension:
 
 ```powershell
+# 1. Sync contract YAML variables into dbt
 .\.venv\Scripts\python.exe scripts/sync_contract_to_dbt_vars.py
 
+# 2. Build and test Gold marts
 cd dbt_delta_guard
 dbt deps --profiles-dir .
 dbt build --profiles-dir .
 cd ..
 ```
 
-**Highlight on camera:**
-- All 3 models (stg_agent_events, fct_agent_activity, dim_tool_efficiency) created.
-- Contract thresholds (max_cost_usd, max_event_age_hours) auto-synced from YAML into dbt variables.
+**What this produces:**
+- `stg_agent_events`: Clean staging view over Bronze Delta Lake.
+- `fct_agent_activity`: Aggregated agent actions and cost metrics.
+- `dim_tool_efficiency`: Tool latency and cost efficiency mart.
+- Automated data quality assertion tests.
 
 ---
 
-## Scene 6: Automated Incident Triage & Contract Proposals (2:55 - 3:20)
+### Step 9: Optional Shift-Left Pre-Flight Validation (MCP)
 
-Demonstrate autonomous clustering and self-healing contract proposals.
+To prevent bad payloads from even reaching Kafka, cooperative agents can query our Model Context Protocol (MCP) server before execution:
 
 ```powershell
-.\.venv\Scripts\python.exe src/delta_guard/triage.py
+# Start the MCP server over stdio
+.\.venv\Scripts\python.exe run_mcp_server.py
 ```
 
-**Highlight on camera:**
-- Clusters thousands of quarantine records into root-cause error signatures.
-- Distinguishes genuine defects (negative cost, banned tools) from benign contract drift.
-- Produces surgical patch proposal in `configs/agent_contract_proposed.yaml`.
+Your agent can call `check_contract({"tool_name": "...", "cost_usd": ...})` to receive pre-flight authorization and remediation hints.
 
 ---
 
-## Scene 7: Throughput Benchmark (3:20 - 3:40)
+## 🧹 State Reset (Clean Slate)
+
+To wipe all data and start completely fresh:
 
 ```powershell
-.\.venv\Scripts\python.exe src/delta_guard/benchmark.py
-```
-
-**Expect:**
-```
-Throughput (median of 5 runs): 41,431.70 events/sec
-P50/P95/P99: 0.0043 / 0.0094 / 0.0125 ms
-Quarantine rate: 14.9%
-```
-
----
-
-## Scene 8: Running Your Own Real Agent (Live Lakehouse Ingestion)
-
-Demonstrate wiring any LangChain agent or custom tool suite directly into Kafka, the PySpark Gatekeeper, and Delta Lake.
-
-```powershell
-# 1. Start Gatekeeper (Terminal 1)
-.\run_gatekeeper.ps1
-
-# 2. Run Custom Agent (Terminal 2)
-.\.venv\Scripts\python.exe examples/run_custom_agent.py
-```
-
-**Highlight on camera:**
-- Agent invokes real tools (`sql_query_executor`, `web_scraper`) with LangChain telemetry callbacks.
-- Advisory shift-left FastMCP catches rogue shell execution before Kafka commit.
-- Gatekeeper routes valid executions into Bronze and rogue tools/cost anomalies into Quarantine.
-- Live DuckDB query at the end verifies Delta Lake storage without needing a Spark cluster.
-
----
-
-| Component | Writes to |
-|---|---|
-| `producer.py` | Kafka topic `agent-events` |
-| `gatekeeper.py` | `data/bronze/agent_events/` (Delta) + `data/quarantine/agent_events/` (Delta) |
-| `triage.py` | `configs/agent_contract_proposed.yaml` + `docs/INCIDENT_LOG.md` |
-| `dbt run` | `data/bronze/dbt_delta_guard.duckdb` (Gold marts) |
-| `run_real_agent_evaluation.py` | `runs/<run_id>/` (traces, manifests) + `docs/reports/real_agent_validation.md` |
-| MCP `propose_contract_patch` | `configs/agent_contract_proposed.yaml` |
-
----
-
-## Path B — Full Docker Compose Pipeline
-
-```powershell
-docker compose up -d
-```
-
-**Expect:** 5 containers start: Kafka (KRaft), Kafka UI, producer, gatekeeper, web console. Takes 30-60s.
-
-| What | Where |
-|---|---|
-| Live event console | http://localhost:8888 |
-| Kafka topic browser | http://localhost:8080 |
-
-```powershell
-docker compose logs -f gatekeeper    # watch routing in real time
-docker compose down                  # stop everything when done
-```
-
----
-
-## State Reset (clean slate)
-
-```powershell
+# 1. Stop Kafka
 docker compose down
-Remove-Item -Recurse -Force data\bronze, data\quarantine, checkpoints\gatekeeper, status.json
-docker exec kafka kafka-topics --bootstrap-server localhost:9092 --delete --topic agent-events
+
+# 2. Remove local Delta Lake tables, checkpoints, and status
+Remove-Item -Recurse -Force data\bronze, data\quarantine, checkpoints\gatekeeper, status.json -ErrorAction SilentlyContinue
+
+# 3. Restart Kafka
+docker compose up -d kafka
 ```
+
+---
+
+## 📚 Reference Links
+- [Detailed Custom Agent Runbook](docs/MY_AGENT_RUNBOOK.md)
+- [Real Agent Execution Proof & Audit Log](docs/reports/REAL_AGENT_DEMO_PROOF.md)
+- [Active Data Contract](configs/agent_contract.yaml)

@@ -10,15 +10,24 @@
 
 ---
 
-## Live Demo State & Headline Metrics
+## ⚡ Quickstart: Run with Your Own Agent in 3 Steps
 
-The system provides two distinct monitoring interfaces depending on your execution path:
-- **Path A Interface (Local Host Execution):** Real-time Textual Terminal HUD ([`src/delta_guard/hud.py`](src/delta_guard/hud.py)), launched via `python run_pipeline.py`.
-- **Path B Interface (Docker Compose Stack):** Animated Web Console ([`console.html`](console.html) served by FastAPI [`status_server.py`](src/delta_guard/status_server.py) at `http://localhost:8888`), launched via `docker compose up -d`.
+Agentic Delta Guard allows you to stream real autonomous AI agent events through an ACID Lakehouse pipeline with strict YAML contract enforcement.
 
-The terminal interface below reflects a **sustained 15-minute streaming run (4,355 total agent events)**:
+```powershell
+# Step 1: Start the Kafka Broker (Terminal 1)
+docker compose up -d kafka
 
-![Real-Time Terminal HUD](docs/screenshots/hud_interface.png)
+# Step 2: Start the PySpark Streaming Gatekeeper (Terminal 2)
+.\run_gatekeeper.ps1
+
+# Step 3: Run the Custom LangChain Agent Demo (Terminal 3)
+python examples/run_custom_agent.py
+```
+
+> 📖 **Full Start-to-End Walkthrough:** Check [Demo_Guide.md](Demo_Guide.md) for the complete guide on wiring any LangChain, AutoGen, or Python agent, customizing allowed tools, and querying the resulting Delta Lake tables.
+>
+> 🧪 **Audit Proof:** See [docs/reports/REAL_AGENT_DEMO_PROOF.md](docs/reports/REAL_AGENT_DEMO_PROOF.md) for the verbatim execution log of 4 tasks (2 valid ➔ Bronze, 2 poison ➔ Quarantine).
 
 ### Key Results & Engineering Guarantees
 | Guarantee | Measured Value | Engineering Mechanism |
@@ -30,19 +39,6 @@ The terminal interface below reflects a **sustained 15-minute streaming run (4,3
 | **Bronze Commits** | **3,684 Valid Rows** | Compliant agent events committed with full ACID guarantees and immediate dbt/DuckDB queryability |
 | **Real Agent Guarding** | **100% Routing Precision (0 Breaches)** | 50 tasks across 11 scenarios (A, B1–B10) evaluated with Automated Oracle ([Report](docs/reports/real_agent_validation.md)) |
 
-> 🚀 **One-Command Real Agent Evaluation Suite:**
-> ```powershell
-> python scripts/run_real_agent_evaluation.py --scenarios all
-> ```
->
-> 🤖 **Live Custom Agent End-to-End Pipeline Demo:**
-> Wire a custom LangChain agent emitting live telemetry into Kafka ➔ Gatekeeper ➔ Bronze/Quarantine Delta Lake:
-> ```powershell
-> python examples/run_custom_agent.py
-> ```
-> *Detailed walkthrough: [Custom Agent Runbook](docs/MY_AGENT_RUNBOOK.md) | Verified output: [Live Execution Proof](docs/reports/REAL_AGENT_DEMO_PROOF.md)*
-
-
 ---
 
 ## Architecture
@@ -50,10 +46,9 @@ The terminal interface below reflects a **sustained 15-minute streaming run (4,3
 ```mermaid
 flowchart TD
     subgraph Layer0 ["Layer 0: Advisory Pre-Flight & Event Production"]
-        LC[LangChain Agent Fleet] -->|1. Advisory Pre-Flight| MCP["MCP Server (run_mcp_server.py)\ncheck_contract tool"]
-        LC -->|2. Async Emit| LCProd["LangChain Adapter\n(langchain_adapter.py)"]
-        Synth["Synthetic Producer\n(producer.py ~15% poison)"] -->|Direct Emit| Kafka[(Kafka: agent-events\nlocalhost:9092 / kafka:29092)]
-        LCProd -->|Kafka Publish| Kafka
+        LC[LangChain / Python Agent Fleet] -->|1. Advisory Pre-Flight| MCP["MCP Server (run_mcp_server.py)\ncheck_contract tool"]
+        LC -->|2. Telemetry Callback| LCProd["LangChain Adapter\n(langchain_adapter.py)"]
+        LCProd -->|Kafka Publish (127.0.0.1:9092)| Kafka[(Kafka: agent-events\nKRaft Broker)]
     end
 
     subgraph Layer1 ["Layer 1: Hard Enforcement Gatekeeper"]
@@ -70,10 +65,9 @@ flowchart TD
         Triage --> Patch["Proposed Contract Patch\n(agent_contract_proposed.yaml)"]
     end
 
-    subgraph Layer3 ["Layer 3: Observability (Path A vs Path B)"]
-        Bronze & Quarantine -.-> HUD["Path A: Textual Terminal HUD (hud.py)\nLocal host execution"]
-        Engine -.-> StatusFile["status.json"]
-        StatusFile -.-> Web["Path B: FastAPI Server (status_server.py)\nWeb Console (console.html: 8888)"]
+    subgraph Layer3 ["Layer 3: Lakehouse Audit & Observability"]
+        Bronze & Quarantine -.-> Audit["DuckDB Delta Lake Audit\n(python examples/run_custom_agent.py --inspect-only)"]
+        Quarantine -.-> TriageLog["docs/INCIDENT_LOG.md"]
     end
 ```
 
@@ -257,15 +251,14 @@ callback = create_langchain_producer(
 chain.invoke({"input": "Research quantum computing"}, config={"callbacks": [callback]})
 ```
 
-Run the no-API-key demo locally:
+Run the live agent pipeline demo locally:
 
 ```powershell
 pip install -r requirements-dev.txt    # adds langchain-core
-$env:PYTHONPATH = "src"
-python examples/langchain_demo.py
+python examples/run_custom_agent.py
 ```
 
-> **Note:** This adapter publishes real LangChain callback events — tool calls, LLM completions, errors — to the same Kafka topic the Gatekeeper consumes. The synthetic `producer.py` remains for load testing; this adapter demonstrates contract enforcement against real agent behaviour. See [`examples/langchain_demo.py`](examples/langchain_demo.py) for a complete runnable example and [`src/delta_guard/langchain_adapter.py`](src/delta_guard/langchain_adapter.py) for the full implementation.
+> **Note:** This adapter publishes real LangChain callback events — tool calls, LLM completions, execution costs — directly to Kafka topic `agent-events`. The PySpark Gatekeeper validates them against `configs/agent_contract.yaml` and routes them into Bronze or Quarantine Delta Lake tables. See [`examples/run_custom_agent.py`](examples/run_custom_agent.py) for the complete runnable implementation and [Demo_Guide.md](Demo_Guide.md) for the start-to-end guide.
 
 ---
 
@@ -310,23 +303,22 @@ Configure your MCP client (e.g., Claude Desktop or Cursor) to launch the server:
 
 ---
 
-## Benchmarks
+## Real Agent Evaluation Matrix & Streaming Reliability
 
-Measured using [`src/delta_guard/benchmark.py`](src/delta_guard/benchmark.py) (median across 5 runs of 100,000 events + 1 discarded warmup run). Full report: [`docs/reports/storage_benchmark.md`](docs/reports/storage_benchmark.md).
+Evaluated across 50 tasks in 11 adversarial scenarios (A, B1–B10) using autonomous agent execution with oracle verification. Full report: [`docs/reports/real_agent_validation.md`](docs/reports/real_agent_validation.md) and live demo proof: [`docs/reports/REAL_AGENT_DEMO_PROOF.md`](docs/reports/REAL_AGENT_DEMO_PROOF.md).
 
-| Metric | Measured Value | Scope & Test Environment |
+| Metric | Measured Value | Scope & Verification Mechanism |
 | :--- | ---: | :--- |
-| **Validation Throughput** | **41,431.70 ev/s** | Single-core Python in-process validation logic (`_validate_event`, 100k events/run, 5 runs + 1 warmup, no Kafka / Spark I/O overhead) |
-| **P50 Latency** | 0.0043 ms | Per-event contract validation latency (median) |
-| **P95 Latency** | 0.0094 ms | Per-event contract validation latency (median) |
-| **P99 Latency** | 0.0125 ms | Per-event contract validation latency (median) |
-| **Synthetic Poison Consistency** | 14.9%–15.0% | Verifies contract validator consistency against producer-injected anomalies (~15% target). Evaluates generator-to-validator rule alignment on synthetic data, not real-world classification accuracy. |
+| **Routing Precision** | **100.00%** | Zero false-positive or false-negative routings across compliant tasks and poisoned tools |
+| **Breach Rate** | **0.00%** | 0 disallowed tools, negative costs, or stale events leaked into Bronze Delta Lake |
+| **Gatekeeper Micro-Batch** | **5.0 s** | PySpark Structured Streaming micro-batch trigger interval with native JVM Catalyst filtering |
+| **Replay Deduplication** | **100.00%** | Delta Lake `MERGE INTO` composite key `(agent_id, session_id, action_id)` drops all retry storms |
+| **Automated Patch Synthesis** | **< 1.0 s** | Triage engine clusters Quarantine failures and writes candidates to `configs/agent_contract_proposed.yaml` |
 
-*Environment:* Intel64 Family 6 Model 166 (x86_64), Windows 10/11 host, Python 3.11.9, 100,000-event workload per run. Regenerated report artifacts in `docs/reports/storage_benchmark.md` confirm Linux CI test suite parity.
-
-*Throughput varies with machine load (observed range: 13.9k–48.2k ev/s across 5 runs on a shared developer machine). The README reports the median of the most recent full run.*
-
-> **Benchmark Scope Note:** `benchmark.py` measures in-process Python validation logic (`_validate_event`), whereas `gatekeeper.py` executes native Spark Catalyst column expressions in the JVM. Parity between the two implementations is verified via `tests/test_contract_validation.py::test_benchmark_validation_parity`. Real end-to-end streaming throughput across Kafka $\rightarrow$ PySpark micro-batches $\rightarrow$ Delta disk commits will be lower due to network serialization, Spark task scheduling, and filesystem I/O.
+> 🚀 **Run the complete evaluation suite:**
+> ```powershell
+> python scripts/run_real_agent_evaluation.py --scenarios all
+> ```
 
 ---
 
@@ -391,21 +383,19 @@ The deployment at `https://agentic-delta-guard.vercel.app` is an **interactive s
 | :--- | :--- |
 | `configs/agent_contract.yaml` | Single source of truth — active data contract rules consumed by gatekeeper, dbt, and MCP |
 | `configs/agent_contract_proposed.yaml` | Proposed contract evolution patch emitted by triage engine or MCP proposal tool |
-| `Project_summary.md` | Comprehensive technical architecture audit, failure modes, and 100x scaling redesign |
+| `examples/run_custom_agent.py` | Complete runnable demo wiring a real LangChain agent to Kafka, Gatekeeper, and Delta Lake |
+| `run_gatekeeper.ps1` | PySpark streaming gatekeeper launcher with Windows Hadoop environment configuration |
+| `Demo_Guide.md` | Comprehensive practical start-to-end runbook for connecting custom agents |
+| `docs/MY_AGENT_RUNBOOK.md` | Step-by-step developer integration guide for custom agents and tool contracts |
+| `docs/reports/REAL_AGENT_DEMO_PROOF.md` | Audit log and physical storage verification proof of real agent execution |
 | `src/delta_guard/gatekeeper.py` | PySpark Structured Streaming engine: enforces contract via Catalyst expressions into Bronze / Quarantine |
-| `src/delta_guard/producer.py` | Synthetic agent event generator with ~15% injected poison records for testing |
 | `src/delta_guard/langchain_adapter.py` | LangChain callback handler: converts agent execution events into canonical 9-field Kafka payloads |
 | `src/delta_guard/mcp/` | Model Context Protocol server (`server.py`), validators, and advisory pre-flight tools |
 | `src/delta_guard/triage.py` | Deterministic triage engine + optional LLM mode; clusters failures and generates contract patches |
 | `src/delta_guard/sandbox_guard.py` | Mutation testing against Delta snapshots / shallow clones to test contract evolution safely |
 | `src/delta_guard/delta_clone_utils.py` | Delta Lake shallow clone and snapshot copy utilities with portable fallback |
-| `src/delta_guard/status_server.py` | FastAPI backend serving `status.json` and the web console interface |
-| `src/delta_guard/hud.py` | Real-time Textual terminal dashboard for local pipeline monitoring (Path A) |
-| `src/delta_guard/benchmark.py` | Reproducible in-process validation throughput and storage footprint benchmark |
-| `run_pipeline.py` | Path A local runner: orchestrates Kafka health check, workers, and terminal HUD in one command |
 | `run_mcp_server.py` | Stdio entrypoint for launching the Agentic Delta Guard MCP server |
-| `scripts/` | Automation utilities: `sync_contract_to_dbt_vars.py`, `run_e2e_verification.py`, and test scripts |
-| `console.html` / `index.html` | Animated HTML5/Canvas real-time streaming pipeline dashboard (Path B and Vercel simulation) |
+| `scripts/` | Automation utilities: `sync_contract_to_dbt_vars.py`, `run_e2e_verification.py`, and real agent evaluation |
 | `dbt_delta_guard/` | dbt models + DuckDB profiles; staging reads Bronze via `delta_scan` |
 | `tests/` | Pytest suite: contract validation, chaos/infrastructure failover, Delta clones, MCP stdio, and LangChain |
 | `docs/CLAIMS.md` | Verification matrix mapping all claims to source files and tests |
