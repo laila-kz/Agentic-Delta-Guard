@@ -107,7 +107,7 @@ test:  ## Run pytest + dbt build (the full test suite)
 	@echo "All checks passed."
 
 console:  ## Start the status server locally (without Docker)
-	uvicorn delta_guard.status_server:app --host 0.0.0.0 --port 8888 --reload
+	uvicorn delta_guard.status_server:app --host 0.0.0.0 --port 8888 --reload --app-dir src
 
 ci-local:
 	powershell -ExecutionPolicy Bypass -File .\test_ci_locally.ps1

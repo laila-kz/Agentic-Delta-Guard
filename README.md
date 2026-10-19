@@ -176,7 +176,16 @@ Run `python src/delta_guard/triage.py` (or `make triage`) to regenerate proposal
 
 ---
 
-Two execution paths. Pick one.
+Three execution paths. Pick one.
+
+### Path 0 — Single-Command Demo Launcher (Recommended)
+
+Starts the full streaming stack (Kafka KRaft, Kafka UI, Producer, PySpark Gatekeeper, Web Console) and opens the live dashboard at `http://localhost:8888` in one command:
+
+```powershell
+python run_demo.py
+```
+*(Press `Ctrl+C` to gracefully terminate all services).* For a full cinematic presentation runbook, see [`Demo_Guide.md`](Demo_Guide.md).
 
 ### Path A — Textual Terminal HUD (local Python execution)
 
@@ -393,10 +402,13 @@ The deployment at `https://agentic-delta-guard.vercel.app` is an **interactive s
 | `src/delta_guard/delta_clone_utils.py` | Delta Lake shallow clone and snapshot copy utilities with portable fallback |
 | `src/delta_guard/status_server.py` | FastAPI backend serving `status.json` and the web console interface |
 | `src/delta_guard/hud.py` | Real-time Textual terminal dashboard for local pipeline monitoring (Path A) |
+| `src/delta_guard/real_agent/` | Autonomous ReAct agent evaluation suite, mock tools, and `@contract_guarded` pre-flight decorator |
 | `src/delta_guard/benchmark.py` | Reproducible in-process validation throughput and storage footprint benchmark |
+| `run_demo.py` | Single-command launcher for streaming pipeline, Kafka, gatekeeper, and web console |
 | `run_pipeline.py` | Path A local runner: orchestrates Kafka health check, workers, and terminal HUD in one command |
 | `run_mcp_server.py` | Stdio entrypoint for launching the Agentic Delta Guard MCP server |
-| `scripts/` | Automation utilities: `sync_contract_to_dbt_vars.py`, `run_e2e_verification.py`, and test scripts |
+| `Demo_Guide.md` | Cinematic demo walkthrough and step-by-step portfolio recording runbook |
+| `scripts/` | Automation utilities: `sync_contract_to_dbt_vars.py`, `redrive_quarantine.py`, `verify_redaction.py`, `run_real_agent_evaluation.py` |
 | `console.html` / `index.html` | Animated HTML5/Canvas real-time streaming pipeline dashboard (Path B and Vercel simulation) |
 | `dbt_delta_guard/` | dbt models + DuckDB profiles; staging reads Bronze via `delta_scan` |
 | `tests/` | Pytest suite: contract validation, chaos/infrastructure failover, Delta clones, MCP stdio, and LangChain |
@@ -460,6 +472,12 @@ pip install -r requirements-dev.txt
 python -m pytest tests/ -v --tb=short
 ```
 
+For an immediate, zero-setup spot check of sensitive data redaction, model cost logic, dangerous tool denylists, and `@contract_guarded` pre-flight decorators:
+
+```powershell
+python scripts/verify_redaction.py
+```
+
 ### Skipped tests
 
 The test suite collects **61 test cases** — 56 passed, 1 deselected (chaos_docker/requires_docker env-gated tests) on a
@@ -488,16 +506,16 @@ Env-gated tests below skip on Linux CI unless the relevant variable is set:
 - **Triage heuristic circularity:** The triage engine's automated rule relaxation widens the cost ceiling to $935.0 to accommodate the very synthetic anomalies ($850.0) injected to test contract violations.
 - **LangChain adapter queue drop:** The background thread queue in `LangChainKafkaProducer` is bounded at 1,000 items (`_BACKGROUND_QUEUE_MAXSIZE = 1000`). Under Kafka backpressure or broker unavailability, subsequent events are dropped silently (`logger.debug`) via `queue.put_nowait()`.
 - **LangChain cost estimation:** LangChain does not track execution costs natively. The adapter calculates `cost_usd` using a static token estimate (`$0.00001` per token), which is a demonstration approximation rather than real billing attribution.
-- **MCP SQL injection vulnerability:** In `src/delta_guard/mcp/server.py`, the `agent_id` filter in `get_quarantine_summary` and `inspect_bronze_lakehouse` is interpolated directly into DuckDB SQL query strings (`WHERE agent_id = '{agent_id}'`) rather than using parameterized query arguments.
+- **MCP SQL query parameterization:** `get_quarantine_summary` and `inspect_bronze_lakehouse` in `src/delta_guard/mcp/server.py` use parameterized queries (`WHERE agent_id = ?`) with DuckDB parameter substitution.
 - **Status server permissive CORS:** `status_server.py` configures `allow_origins=["*"]` to enable local browser and `file://` testing, which is permissive for production deployment.
 - **HUD silent read failure:** `_delta_rows()` in `hud.py` uses a bare `try...except Exception: return 0`. Any read lock, delta log desync, or deserialization error silently displays as 0 rows rather than reporting an error state.
-- **dbt test predicate & naming inconsistencies:** The custom dbt test `assert_cost_anomaly.sql` hardcodes `where cost_usd > 1.00` rather than referencing `var('max_cost_usd')`, and earlier test names exhibited alignment drift noted in the project audit.
+- **dbt test dynamic contract synchronization:** `assert_cost_anomaly.sql` references `{{ var('max_cost_usd', 50.0) }}` and thresholds are synchronized from `configs/agent_contract.yaml` using `python scripts/sync_contract_to_dbt_vars.py`.
 - **LLM triage untested in CI:** The deterministic path is exercised in CI. Live LLM enrichment is opt-in (`LIVE_LLM_TEST=1`).
 - **Sandbox portability:** Portable `SandboxGuard` uses an independent Delta snapshot (copy fallback). Native shallow clone requires a Spark/Delta runtime with native Hadoop support.
 - **Single-broker footprint:** Evaluated on a single Docker Compose KRaft broker.
 - **MCP server authorization:** `run_mcp_server.py` is tested in `tests/test_mcp_server.py` with `MCP_PROPOSAL_TOKEN` gating; this is a local review workflow, not enterprise IAM.
 - **Schema drift (silent field drop):** `from_json` is called with a fixed schema; unknown fields in incoming events are silently dropped rather than flagged. There is no policy for detecting or alerting on schema drift from producers.
-- **No quarantine re-drive path:** Once a contract is updated (e.g. via a proposed patch), previously-quarantined records that would now pass the new rules are not replayed. They remain in the Quarantine table indefinitely with no automated backfill mechanism.
+- **Quarantine DLQ re-drive utility:** While the real-time stream maintains append-only quarantine semantics, `scripts/redrive_quarantine.py` provides a zero-JVM utility (using `deltalake` and DuckDB) to re-evaluate and idempotently promote (`--dry-run` supported) previously-quarantined events once a contract patch is applied.
 - **Small-file problem:** The Bronze table accumulates one Parquet file per micro-batch; a 1,159-row sample produced 403 files with no partitioning or `OPTIMIZE`/`ZORDER` compaction. This is a known production anti-pattern and would require a compaction job at scale.
 - **Exactly-once gap:** `foreachBatch` provides at-least-once delivery — Kafka offsets are committed after the Delta write, but there is a narrow window between the offset commit and the Delta commit where a crash could replay an already-written batch. The Delta `MERGE INTO` keyed on `(agent_id, session_id, action_id)` prevents duplicate rows from landing in Bronze, but does not cover the Quarantine append path.
 

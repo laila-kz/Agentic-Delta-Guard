@@ -45,7 +45,7 @@ Thumbs.db
 .vercel
 
 # Runtime logs & transient status
-status.json
+status*.json
 logs/
 *.log
 

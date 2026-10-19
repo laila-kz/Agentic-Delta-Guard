@@ -1,7 +1,7 @@
-{{ config(severity = 'warn') }}
+{{ config(severity = var('freshness_test_severity', 'warn')) }}
 
 -- Asserts that incoming events fall within the rolling 24h freshness window and not in the future.
--- Configured as WARN for static test datasets, but enforced as ERROR in streaming production.
+-- Configurable via var('freshness_test_severity'): 'warn' for static demo fixtures, 'error' for live streaming CI.
 with time_bounds as (
     select
         coalesce(max(timestamp), current_timestamp) as reference_time

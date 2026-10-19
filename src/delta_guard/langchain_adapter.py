@@ -39,6 +39,7 @@ import json
 import logging
 import os
 import queue
+import re
 import threading
 import time
 import uuid
@@ -97,7 +98,11 @@ def _calculate_model_cost(
     total_tokens: int,
     fallback_rate: float = COST_PER_TOKEN,
 ) -> float:
-    """Calculate USD cost based on per-model input/output pricing per 1M tokens."""
+    """Calculate USD cost based on per-model input/output pricing per 1M tokens.
+    
+    Returns the real estimated cost without artificial clamping so that downstream
+    contract enforcement (Gatekeeper) can detect and isolate actual over-budget events.
+    """
     models_dict = _MODEL_PRICING_TABLE.get("models", {})
     # Match model name: exact match first, then longest prefix match
     matched_pricing = None
@@ -119,12 +124,37 @@ def _calculate_model_cost(
         input_rate = float(matched_pricing.get("input_per_million", 0.0)) / 1_000_000.0
         output_rate = float(matched_pricing.get("output_per_million", 0.0)) / 1_000_000.0
         calculated = (prompt_tokens * input_rate) + (completion_tokens * output_rate)
-        return round(min(calculated, 50.0), 6)
+        return round(calculated, 6)
 
     # Fallback to per-token pricing
     per_token_rate = models_dict.get("default", {}).get("fallback_per_token", fallback_rate)
     count = total_tokens if total_tokens > 0 else (prompt_tokens + completion_tokens)
-    return round(min(count * per_token_rate, 50.0), 6)
+    return round(count * per_token_rate, 6)
+
+
+# ── Sensitive Data & Secret Redaction ──────────────────────────────────────────
+_SENSITIVE_PATTERNS = [
+    # API keys & bearer tokens
+    (re.compile(r"sk-[a-zA-Z0-9_\-]{16,}", re.IGNORECASE), "sk-[REDACTED]"),
+    (re.compile(r"Bearer\s+[a-zA-Z0-9_\-\.]{16,}", re.IGNORECASE), "Bearer [REDACTED]"),
+    # Common secret / token fields in key-value or JSON structures
+    (re.compile(r'("(?:api[_-]?key|password|passwd|secret|access_token|private_key|token|auth)"\s*:\s*)"[^"]+"', re.IGNORECASE), r'\1"[REDACTED]"'),
+    (re.compile(r"('(?:api[_-]?key|password|passwd|secret|access_token|private_key|token|auth)'\s*:\s*)'[^']+'", re.IGNORECASE), r"\1'[REDACTED]'"),
+    (re.compile(r"((?:api[_-]?key|password|passwd|secret|access_token|private_key)\s*=\s*)[^\s,;&'\"]+", re.IGNORECASE), r"\1[REDACTED]"),
+    # PII: Email addresses
+    (re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", re.IGNORECASE), "[REDACTED_EMAIL]"),
+]
+
+
+def _redact_sensitive_data(text: str) -> str:
+    """Redacts secrets, API keys, passwords, and sensitive PII from string payloads."""
+    if not text:
+        return text
+    sanitized = text
+    for pattern, replacement in _SENSITIVE_PATTERNS:
+        sanitized = pattern.sub(replacement, sanitized)
+    return sanitized
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 def _now_iso() -> str:
@@ -146,6 +176,8 @@ def _build_event(
     status: str,
     tool_args: str,
 ) -> Dict[str, Any]:
+    # Sanitize tool_args before serialization and storage
+    sanitized_args = _redact_sensitive_data(_truncate(tool_args))
     return {
         "agent_id": agent_id,
         "session_id": session_id,
@@ -153,9 +185,10 @@ def _build_event(
         "timestamp": _now_iso(),
         "tool_name": tool_name,
         "execution_time_ms": max(0, int(execution_time_ms)),
-        "cost_usd": round(max(0.0, float(cost_usd)), 6),
+        # Do not clamp with max(0.0) so negative/sentinel costs pass to gatekeeper for quarantine
+        "cost_usd": round(float(cost_usd), 6),
         "status": status,
-        "tool_args": _truncate(tool_args),
+        "tool_args": sanitized_args,
     }
 
 
@@ -479,6 +512,27 @@ class LangChainEventCallback(BaseCallbackHandler):
                 execution_time_ms=0,
                 cost_usd=cost_usd,
                 status="SUCCESS",
+                tool_args=tool_args_str,
+            )
+            self._emit(event)
+        else:
+            # Token usage missing from provider metadata:
+            # Emit event with sentinels so unknown costs are never silently treated as verified $0.00 actions.
+            session_id = self._ensure_session_id()
+            meta_args = {
+                "model": model_name or "unknown",
+                "token_usage": "missing",
+                "warning": "LLM output did not include token usage metadata",
+            }
+            tool_args_str = _truncate(json.dumps(meta_args), self.max_tool_args_length)
+            event = _build_event(
+                agent_id=self.agent_id,
+                session_id=session_id,
+                action_id=str(run_id),
+                tool_name="vector_search",
+                execution_time_ms=0,
+                cost_usd=-1.0,
+                status="COST_UNKNOWN",
                 tool_args=tool_args_str,
             )
             self._emit(event)

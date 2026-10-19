@@ -18,8 +18,12 @@ def sync_contract():
     with open(contract_path, "r") as f:
         contract = yaml.safe_load(f)
     
-    # Extract thresholds from semantic rules
+    # Extract thresholds from schema and semantic rules
     vars_dict = {}
+    for field in contract.get("schema", {}).get("fields", []):
+        if field.get("name") == "tool_name" and field.get("allowed_values"):
+            vars_dict["allowed_tools"] = list(field["allowed_values"])
+
     for rule in contract.get("semantic_rules", []):
         if "cost_usd" in rule.get("rule", ""):
             # Extract max value from rule like "cost_usd >= 0.0 AND cost_usd <= 50.0"

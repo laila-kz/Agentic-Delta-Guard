@@ -17,6 +17,24 @@ import yaml
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
+# ── Dangerous Tool Safety Denylist ──────────────────────────────────────────
+# Tools whose name starts with any of these prefixes are NEVER auto-proposed
+# for addition to the contract allowlist, regardless of how frequently they
+# appear in Quarantine.  A security-flagged tool can trigger a diagnostic
+# alert but must never be silently admitted as "normal".
+DANGEROUS_TOOL_PREFIXES: frozenset[str] = frozenset({
+    "bash_", "shell_", "exec_", "admin_", "system_", "eval_", "drop_",
+    "delete_", "rm_", "sudo_", "privilege_", "root_", "cmd_", "powershell_",
+})
+
+
+def _is_dangerous_tool(tool_name: str) -> bool:
+    """Return True if the tool name matches any known dangerous prefix."""
+    lower = (tool_name or "").lower()
+    return any(lower.startswith(prefix) for prefix in DANGEROUS_TOOL_PREFIXES)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
 
 class LLMTriageEngine:
     def __init__(
@@ -172,18 +190,40 @@ class LLMTriageEngine:
                 f"Observed {stale_count} stale record(s) (>24h) and {future_count} future record(s) (>5m skew) (isolated by contract freshness rule)."
             )
 
-        # 3. Tool name evolution
+        # 3. Tool name evolution — separate safe candidates from dangerous tools
         if unseen_tools:
-            findings.append(f"Observed unseen tool name(s): {', '.join(unseen_tools)}.")
-            patches.append(
-                {
-                    "rule_id": "tool_name_allowed_values",
-                    "field": "tool_name",
-                    "added_tools": unseen_tools,
-                    "evidence_count": int(frame["tool_name"].isin(unseen_tools).sum()),
-                    "rationale": f"Add newly observed tool(s) {unseen_tools} to allowed_values.",
-                }
+            dangerous_unseen = [t for t in unseen_tools if _is_dangerous_tool(t)]
+            safe_unseen = [t for t in unseen_tools if not _is_dangerous_tool(t)]
+
+            findings.append(
+                f"Observed unseen tool name(s): {', '.join(unseen_tools)}. "
+                f"Safe candidates: {safe_unseen or 'none'}. "
+                f"SECURITY-FLAGGED (never auto-proposed): {dangerous_unseen or 'none'}."
             )
+
+            if dangerous_unseen:
+                # Log a security alert but do NOT add to patches — these must never be auto-approved
+                findings.append(
+                    f"SECURITY ALERT: {len(dangerous_unseen)} privileged tool(s) detected in quarantine: "
+                    f"{', '.join(dangerous_unseen)}. These require explicit human security review "
+                    f"and MUST NOT be added to the allowlist without proper vetting."
+                )
+
+            if safe_unseen:
+                patches.append(
+                    {
+                        "rule_id": "tool_name_allowed_values",
+                        "field": "tool_name",
+                        "added_tools": safe_unseen,
+                        "requires_human_approval": True,
+                        "evidence_count": int(frame["tool_name"].isin(safe_unseen).sum()),
+                        "rationale": (
+                            f"Candidate tool(s) {safe_unseen} observed in quarantine. "
+                            f"They do not match any dangerous-tool prefix pattern. "
+                            f"Human review required before promoting to active contract."
+                        ),
+                    }
+                )
 
         if schema_drift["missing_fields"] or schema_drift["unexpected_fields"]:
             findings.append("Observed quarantine columns differ from the contract schema.")

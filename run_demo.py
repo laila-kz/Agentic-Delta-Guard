@@ -59,6 +59,14 @@ def _popen(cmd: list, log_file=None) -> subprocess.Popen:
     return subprocess.Popen(cmd, **kwargs)
 
 
+def _is_port_in_use(port: int, host: str = "127.0.0.1") -> bool:
+    """Check if a local TCP port is already open/bound."""
+    import socket
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(0.5)
+        return s.connect_ex((host, port)) == 0
+
+
 # ── Kafka check ────────────────────────────────────────────────────────────────
 
 def check_kafka() -> None:
@@ -98,13 +106,17 @@ def run_streaming_demo() -> None:
     gate_log = open(logs_dir / "gatekeeper.log", "w", encoding="utf-8")
     processes.append(("Gatekeeper", _popen([VENV_PYTHON, "src/delta_guard/gatekeeper.py"], log_file=gate_log)))
 
-    print("[4/4] Starting Web Console at http://localhost:8888 ...")
-    serv_log = open(logs_dir / "status_server.log", "w", encoding="utf-8")
-    processes.append(("StatusServer", _popen(
-        [VENV_PYTHON, "-m", "uvicorn", "delta_guard.status_server:app",
-         "--host", "0.0.0.0", "--port", "8888"],
-        log_file=serv_log,
-    )))
+    serv_log = None
+    if _is_port_in_use(8888):
+        print("[4/4] Web Console is already running at http://localhost:8888 (reusing active instance).")
+    else:
+        print("[4/4] Starting Web Console at http://localhost:8888 ...")
+        serv_log = open(logs_dir / "status_server.log", "w", encoding="utf-8")
+        processes.append(("StatusServer", _popen(
+            [VENV_PYTHON, "-m", "uvicorn", "delta_guard.status_server:app",
+             "--host", "0.0.0.0", "--port", "8888", "--app-dir", "src"],
+            log_file=serv_log,
+        )))
 
     print("\n[OK] All services started.")
     print("     Logs are streamed to: logs/producer.log | logs/gatekeeper.log | logs/status_server.log")
@@ -116,11 +128,13 @@ def run_streaming_demo() -> None:
         pass
 
     print("[INFO] Press Ctrl+C to stop all services gracefully.\n")
+    reported_exits: set[str] = set()
     try:
         while True:
             time.sleep(1)
             for name, proc in processes:
-                if proc.poll() is not None:
+                if proc.poll() is not None and name not in reported_exits:
+                    reported_exits.add(name)
                     print(f"[WARN] '{name}' exited with code {proc.returncode}. Check logs/.")
     except KeyboardInterrupt:
         print("\n\nShutting down demo services...")
@@ -132,7 +146,8 @@ def run_streaming_demo() -> None:
             except subprocess.TimeoutExpired:
                 proc.kill()
         for fh in [prod_log, gate_log, serv_log]:
-            fh.close()
+            if fh:
+                fh.close()
         print("[OK] Demo cleanup complete.\n")
 
 

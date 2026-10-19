@@ -368,5 +368,139 @@ def test_on_llm_end_model_cost_attribution():
     assert args["prompt_tokens"] == 1000
 
 
+# =============================================================================
+# Fix 10 — Unit tests: secret redaction and cost calculation correctness
+# =============================================================================
+
+from delta_guard.langchain_adapter import _redact_sensitive_data  # noqa: E402
+
+
+class TestSecretRedaction:
+    """Verify that _redact_sensitive_data masks secrets and preserves safe values.
+
+    Note: _redact_sensitive_data operates on raw strings (JSON-serialized payloads).
+    """
+
+    # ── OpenAI / generic API keys ───────────────────────────────────────────
+
+    def test_openai_api_key_is_redacted(self):
+        payload = '{"api_key": "sk-abc1234567890abcdef"}'
+        result = _redact_sensitive_data(payload)
+        assert "sk-abc1234567890abcdef" not in result, "API key must be redacted"
+        assert "REDACTED" in result
+
+    def test_sk_key_pattern_redacted(self):
+        payload = "Authorization header: sk-1234567890abcdefghij"
+        result = _redact_sensitive_data(payload)
+        assert "sk-1234567890abcdefghij" not in result
+        assert "REDACTED" in result
+
+    # ── Bearer tokens ───────────────────────────────────────────────────────
+
+    def test_bearer_token_in_authorization_header(self):
+        payload = '{"Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.payload.sig"}'
+        result = _redact_sensitive_data(payload)
+        assert "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" not in result, "Bearer token payload must be redacted"
+        assert "REDACTED" in result
+
+    # ── Passwords in JSON-style payloads ─────────────────────────────────────
+
+    def test_password_field_is_redacted_in_json(self):
+        payload = '{"password": "supersecret123"}'
+        result = _redact_sensitive_data(payload)
+        assert "supersecret123" not in result, "password field must be redacted"
+        assert "REDACTED" in result
+
+    def test_secret_field_is_redacted_in_json(self):
+        payload = '{"secret": "topsecretvalue"}'
+        result = _redact_sensitive_data(payload)
+        assert "topsecretvalue" not in result
+        assert "REDACTED" in result
+
+    def test_access_token_is_redacted_in_json(self):
+        payload = '{"access_token": "ghp_someGithubToken123"}'
+        result = _redact_sensitive_data(payload)
+        assert "ghp_someGithubToken123" not in result
+        assert "REDACTED" in result
+
+    # ── PII — email addresses ────────────────────────────────────────────────
+
+    def test_email_address_is_redacted(self):
+        payload = '{"user": "alice@example.com"}'
+        result = _redact_sensitive_data(payload)
+        assert "alice@example.com" not in result, "Email address must be redacted"
+        assert "REDACTED_EMAIL" in result
+
+    # ── Safe values are preserved ────────────────────────────────────────────
+
+    def test_ordinary_sql_query_preserved(self):
+        payload = '{"query": "SELECT * FROM customers", "limit": 10}'
+        result = _redact_sensitive_data(payload)
+        assert "SELECT * FROM customers" in result
+        assert "limit" in result
+
+    def test_url_without_credentials_preserved(self):
+        payload = '{"url": "https://example.com/api/data", "topic": "refund_policy"}'
+        result = _redact_sensitive_data(payload)
+        assert "https://example.com/api/data" in result
+        assert "refund_policy" in result
+
+    def test_empty_string_returns_empty(self):
+        assert _redact_sensitive_data("") == ""
+
+    def test_none_returns_none(self):
+        """None input should be returned as-is without crashing."""
+        # _redact_sensitive_data returns early on falsy input
+        result = _redact_sensitive_data(None)  # type: ignore[arg-type]
+        assert result is None
+
+    def test_plain_text_no_secrets_preserved(self):
+        payload = "The agent completed the task successfully with 3 results."
+        result = _redact_sensitive_data(payload)
+        assert result == payload
+
+
+class TestCostCalculationCorrectness:
+    """Verify _calculate_model_cost propagates real costs, does not clamp, and
+    returns sentinel values when token usage is missing."""
+
+    def test_gpt4o_mini_cost(self):
+        cost = _calculate_model_cost("gpt-4o-mini", prompt_tokens=1000, completion_tokens=500, total_tokens=1500)
+        # gpt-4o-mini: $0.15/1M input + $0.60/1M output
+        expected = (1000 / 1_000_000) * 0.15 + (500 / 1_000_000) * 0.60
+        assert abs(cost - expected) < 1e-5, f"Expected ~{expected}, got {cost}"
+
+    def test_gpt4o_cost(self):
+        cost = _calculate_model_cost("gpt-4o", prompt_tokens=2000, completion_tokens=800, total_tokens=2800)
+        expected = (2000 / 1_000_000) * 2.50 + (800 / 1_000_000) * 10.00
+        assert abs(cost - expected) < 1e-5, f"Expected ~{expected}, got {cost}"
+
+    def test_large_token_count_is_not_clamped(self):
+        """No $50 cap: a very expensive call must propagate its real cost."""
+        cost = _calculate_model_cost("gpt-4o", prompt_tokens=10_000_000, completion_tokens=5_000_000, total_tokens=15_000_000)
+        assert cost > 50.0, "Cost should exceed $50 without artificial clamping"
+
+    def test_zero_tokens_returns_zero(self):
+        cost = _calculate_model_cost("gpt-4o-mini", prompt_tokens=0, completion_tokens=0, total_tokens=0)
+        assert cost == 0.0
+
+    def test_unknown_model_uses_fallback_rate(self):
+        """An unrecognised model uses the default per-token fallback, not $0.00."""
+        cost = _calculate_model_cost("some-unknown-future-model", prompt_tokens=500, completion_tokens=200, total_tokens=700)
+        # Should use fallback_per_token rate: positive and non-zero for positive tokens
+        assert cost > 0.0, f"Unknown model must use fallback rate, got {cost}"
+
+    def test_cost_is_deterministic(self):
+        """Same inputs must always produce the same output."""
+        cost1 = _calculate_model_cost("gpt-4o-mini", prompt_tokens=300, completion_tokens=100, total_tokens=400)
+        cost2 = _calculate_model_cost("gpt-4o-mini", prompt_tokens=300, completion_tokens=100, total_tokens=400)
+        assert cost1 == cost2
+
+    def test_cost_is_non_negative_for_valid_tokens(self):
+        """Positive token counts must yield non-negative cost."""
+        cost = _calculate_model_cost("gpt-4o-mini", prompt_tokens=100, completion_tokens=50, total_tokens=150)
+        assert cost >= 0.0
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v"]))

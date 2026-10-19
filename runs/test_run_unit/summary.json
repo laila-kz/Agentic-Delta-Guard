@@ -1,12 +1,12 @@
 {
   "run_id": "test_run_unit",
-  "timestamp": "2026-10-18T12:04:24.599987+00:00",
+  "timestamp": "2026-10-19T22:35:23.056980+00:00",
   "scenario": "A",
   "total_tasks": 3,
   "total_events_emitted": 3,
   "events_dropped": 0,
-  "elapsed_seconds": 0.06,
-  "throughput_eps": 50.62,
+  "elapsed_seconds": 4.07,
+  "throughput_eps": 0.74,
   "trace_file": "C:\\Users\\kheza\\Desktop\\Data_Engineering\\Agentic-Delta-Guard\\runs\\test_run_unit\\agent_trace.jsonl",
   "manifest_file": null
 }

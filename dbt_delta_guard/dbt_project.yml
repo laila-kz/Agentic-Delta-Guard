@@ -14,3 +14,8 @@ vars:
   max_cost_usd: 50.0
   max_event_age_hours: 24
   max_future_skew_minutes: 5
+  allowed_tools:
+  - sql_query_executor
+  - vector_search
+  - web_scraper
+  - db_writer

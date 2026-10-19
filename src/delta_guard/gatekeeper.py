@@ -162,12 +162,18 @@ def _write_status() -> None:
     _STATUS["throughput_eps"] = round(
         (total / max(len(_batch_times), 1)) * batches_per_sec, 2
     )
-    # Kafka liveness: cheap TCP probe
+    # Kafka liveness: probe configured bootstrap server
     try:
-        with socket.create_connection(("localhost", 9092), timeout=0.3):
+        first_broker = BOOTSTRAP_SERVERS.split(",")[0].strip()
+        if ":" in first_broker:
+            host, port_str = first_broker.split(":", 1)
+            port = int(port_str)
+        else:
+            host, port = first_broker, 9092
+        with socket.create_connection((host, port), timeout=0.3):
             _STATUS["kafka_online"] = True
     except OSError:
-        _STATUS["kafka_online"] = True  # inside Docker kafka is at kafka:29092
+        _STATUS["kafka_online"] = False
     tmp = STATUS_PATH + ".tmp"
     with open(tmp, "w", encoding="utf-8") as fh:
         json.dump(_STATUS, fh)
@@ -268,10 +274,9 @@ def process_batch(batch_df: DataFrame, batch_id: int):
         "payload.*",
     )
 
-    # 2. Parse event timestamp early so we can apply watermarking.
-    #    withWatermark() tells Spark to drop state for events older than
-    #    <watermark_mins> minutes relative to the max seen event_timestamp.
-    #    Events arriving beyond this window are dropped, not duplicated.
+    # 2. Parse event timestamp early for validation and chronological tracking.
+    #    Note: Intra-batch deduplication operates on this micro-batch DataFrame,
+    #    while end-to-end cross-batch idempotency is guaranteed by Delta Lake's ACID MERGE INTO.
     parsed_with_ts = parsed_df.withColumn(
         "event_timestamp",
         F.to_timestamp(F.col("timestamp")),
@@ -280,7 +285,7 @@ def process_batch(batch_df: DataFrame, batch_id: int):
         "event_timestamp", f"{watermark_mins} minutes"
     )
 
-    # 3. Deduplicate within the watermark window on the idempotency key (valid keys only)
+    # 3. Deduplicate within micro-batch on the idempotency key (valid keys only)
     valid_keys_df = watermarked_df.filter(
         F.col("agent_id").isNotNull()
         & F.col("session_id").isNotNull()
@@ -361,6 +366,20 @@ def process_batch(batch_df: DataFrame, batch_id: int):
         validated_df.filter(F.coalesce(F.size(F.col("errors")), F.lit(0)) > 0)
         .withColumn("quarantined_at", F.current_timestamp())
         .withColumn("error_summary", F.concat_ws("; ", F.col("errors")))
+        .withColumn(
+            "quarantine_id",
+            F.coalesce(
+                F.when(
+                    F.col("action_id").isNotNull() & (F.col("action_id") != "") & F.col("agent_id").isNotNull(),
+                    F.concat_ws("#", F.col("agent_id"), F.coalesce(F.col("session_id"), F.lit("unknown")), F.col("action_id")),
+                ),
+                F.when(
+                    F.col("kafka_offset").isNotNull(),
+                    F.concat_ws("#", F.coalesce(F.col("kafka_topic"), F.lit("topic")), F.coalesce(F.col("kafka_partition").cast("string"), F.lit("0")), F.col("kafka_offset")),
+                ),
+                F.sha2(F.coalesce(F.col("raw_payload"), F.lit("empty")), 256),
+            ),
+        )
         .drop("payload", "cost_usd_double", "timestamp_ts", "event_timestamp")
     )
 
@@ -372,12 +391,7 @@ def process_batch(batch_df: DataFrame, batch_id: int):
         merge_into_bronze(batch_df.sparkSession, valid_df)
 
     if quarantine_count > 0:
-        (
-            quarantine_df.write.format("delta")
-            .mode("append")
-            .option("mergeSchema", "true")
-            .save(QUARANTINE_PATH)
-        )
+        merge_into_quarantine(batch_df.sparkSession, quarantine_df)
         # Accumulate per-signature error counts for the console
         sig_rows = (
             quarantine_df
@@ -419,6 +433,33 @@ def merge_into_bronze(spark: SparkSession, valid_df: DataFrame):
             target.action_id = source.action_id
             """,
         )
+        .whenNotMatchedInsertAll()
+        .execute()
+    )
+
+
+def merge_into_quarantine(spark: SparkSession, quarantine_df: DataFrame):
+    """
+    Idempotent Delta MERGE for quarantine table to prevent duplicate violation records on replay.
+    Uses quarantine_id (or fallback composite key) to ensure identical invalid actions aren't duplicated.
+    """
+    if not DeltaTable.isDeltaTable(spark, QUARANTINE_PATH):
+        quarantine_df.write.format("delta").mode("append").option("mergeSchema", "true").save(QUARANTINE_PATH)
+        return
+
+    quarantine_table = DeltaTable.forPath(spark, QUARANTINE_PATH)
+    target_columns = quarantine_table.toDF().columns
+    if "quarantine_id" in target_columns:
+        merge_cond = "target.quarantine_id = source.quarantine_id"
+    else:
+        merge_cond = """
+            (target.action_id IS NOT NULL AND target.action_id = source.action_id AND target.agent_id = source.agent_id)
+            OR (target.raw_payload IS NOT NULL AND target.raw_payload = source.raw_payload)
+        """
+
+    (
+        quarantine_table.alias("target")
+        .merge(quarantine_df.alias("source"), merge_cond)
         .whenNotMatchedInsertAll()
         .execute()
     )
