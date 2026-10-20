@@ -13,9 +13,10 @@ from typing import Any
 import duckdb
 import pandas as pd
 import yaml
-
+from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+load_dotenv(PROJECT_ROOT / ".env")
 
 # ── Dangerous Tool Safety Denylist ──────────────────────────────────────────
 # Tools whose name starts with any of these prefixes are NEVER auto-proposed
@@ -249,7 +250,7 @@ class LLMTriageEngine:
         }
 
     def _call_llm(self, prompt: str, max_retries: int = 3) -> dict[str, Any] | None:
-        """Call an available LLM provider with exponential-backoff retry.
+        """Call an available LLM provider (Gemini, OpenAI, or Anthropic) with exponential-backoff retry.
 
         Retries up to `max_retries` times on transient network/rate-limit errors
         before giving up and returning None (caller falls back to deterministic
@@ -257,7 +258,35 @@ class LLMTriageEngine:
         """
         import time
 
-        if os.getenv("OPENAI_API_KEY"):
+        gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        if gemini_key:
+            model = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={gemini_key}"
+            headers = {"Content-Type": "application/json"}
+            payload = {
+                "contents": [
+                    {
+                        "parts": [
+                            {
+                                "text": (
+                                    "You are an automated Data Lakehouse SRE Triage Engine. "
+                                    "Analyze the following quarantine contract and error incident clusters. "
+                                    "Respond ONLY with valid JSON adhering to these exact keys: "
+                                    "'summary' (string), 'findings' (list of strings), 'schema_drift' (dict with missing_fields and unexpected_fields), "
+                                    "'metrics' (dict with cost_anomaly_rows, stale_timestamp_rows, future_timestamp_rows), "
+                                    "'recommended_patches' (list of objects with rule_id, rule, message, rationale).\n\n"
+                                    + prompt
+                                )
+                            }
+                        ]
+                    }
+                ],
+                "generationConfig": {
+                    "responseMimeType": "application/json",
+                    "temperature": 0.1,
+                },
+            }
+        elif os.getenv("OPENAI_API_KEY"):
             url = "https://api.openai.com/v1/chat/completions"
             headers = {"Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}"}
             payload = {
@@ -286,24 +315,54 @@ class LLMTriageEngine:
             method="POST",
         )
 
-        last_error: Exception | None = None
+        last_error: Exception | str | None = None
         for attempt in range(max_retries):
             try:
-                with urllib.request.urlopen(request, timeout=30) as response:
+                with urllib.request.urlopen(request, timeout=90) as response:
                     body = json.loads(response.read().decode("utf-8"))
-                if "choices" in body:
+
+                content = ""
+                if "candidates" in body and body["candidates"]:
+                    content = (
+                        body["candidates"][0]
+                        .get("content", {})
+                        .get("parts", [{}])[0]
+                        .get("text", "")
+                    )
+                elif "choices" in body:
                     content = body["choices"][0]["message"]["content"]
-                else:
+                elif "content" in body:
                     content = body["content"][0]["text"]
-                return json.loads(content)
+
+                # Clean markdown code fences if model enclosed JSON in ```json ... ```
+                cleaned = content.strip()
+                if cleaned.startswith("```"):
+                    lines = cleaned.splitlines()
+                    if lines and lines[0].startswith("```"):
+                        lines = lines[1:]
+                    if lines and lines[-1].startswith("```"):
+                        lines = lines[:-1]
+                    cleaned = "\n".join(lines).strip()
+
+                parsed = json.loads(cleaned)
+                parsed["provider"] = "gemini" if gemini_key else ("openai" if os.getenv("OPENAI_API_KEY") else "anthropic")
+                return parsed
             except urllib.error.HTTPError as exc:
+                err_body = ""
+                try:
+                    err_body = exc.read().decode("utf-8", errors="replace")
+                    err_json = json.loads(err_body)
+                    err_msg = err_json.get("error", {}).get("message", err_body)
+                    last_error = f"HTTP {exc.code} {exc.reason}: {err_msg}"
+                except Exception:
+                    last_error = f"HTTP {exc.code} {exc.reason}: {err_body or exc}"
+
                 # 429 = rate limit; 5xx = server error — both are retryable
                 if exc.code in (429, 500, 502, 503, 504):
-                    last_error = exc
                     if attempt < max_retries - 1:
                         time.sleep(2 ** attempt)
                     continue
-                # 4xx that are not 429 are not retryable (bad key, bad request…)
+                # 4xx that are not 429 are not retryable
                 return None
             except (OSError, ValueError, KeyError, IndexError, urllib.error.URLError) as exc:
                 last_error = exc
@@ -331,7 +390,8 @@ class LLMTriageEngine:
         llm_diagnosis = self._call_llm(prompt)
         if llm_diagnosis is None:
             return deterministic
-        llm_diagnosis["provider"] = "openai_or_anthropic"
+        if "provider" not in llm_diagnosis:
+            llm_diagnosis["provider"] = "gemini" if (os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")) else "openai_or_anthropic"
         llm_diagnosis.setdefault("recommended_patches", deterministic["recommended_patches"])
         return llm_diagnosis
 

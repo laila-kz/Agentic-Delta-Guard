@@ -22,9 +22,10 @@ schema:
     type: string
     nullable: false
     allowed_values:
-    - bash_shell_executor
     - db_writer
+    - expensive_financial_calc
     - sql_query_executor
+    - unauthorized_shell_exec
     - vector_search
     - web_scraper
   - name: execution_time_ms
@@ -53,4 +54,4 @@ idempotency:
   - session_id
   - action_id
   strategy: merge_upsert
-proposed_at: '2026-10-18T12:38:09.598534+00:00'
+proposed_at: '2026-10-20T13:22:35.223402+00:00'
